@@ -1,4 +1,4 @@
-#include "bk4829_uvk1_v3_profile.h"
+#include "bk4829_uvk1_v3_radio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -179,11 +179,43 @@ static void test_uvk1_profile_fails_closed_on_bus_error(void)
     CHECK(profile.bus_valid);
 }
 
+static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
+{
+    fake_bus_t fake = {0};
+    d10s_bk4829_uvk1_v3_radio_t radio = {0};
+    d10s_spectrum_radio_ops_t ops = {0};
+    const d10s_bk4829_bus_port_t port = make_port(&fake);
+    const d10s_bk4829_bus_timing_t timing = {2u, 48u};
+    uint32_t actual_hz = 0u;
+
+    CHECK(d10s_bk4829_uvk1_v3_radio_init(&radio, &port, &timing,
+                                          145000000u, &ops));
+    CHECK(radio.initialized);
+    CHECK(radio.profile.rx_mode_configured);
+    CHECK(ops.context == &radio.scanner_adapter);
+    CHECK(ops.tune_hz != 0);
+    CHECK(ops.read_rssi != 0);
+    CHECK(ops.set_attenuation == 0);
+
+    CHECK(ops.tune_hz(ops.context, 145125000u, &actual_hz));
+    CHECK(actual_hz == 145125000u);
+    CHECK(radio.profile.current_frequency_hz == 145125000u);
+    CHECK(write_seen(&fake, 0x38u, (uint16_t)(145125000u / 10u)));
+    CHECK(write_seen(&fake, 0x33u, 0x9008u));
+
+    d10s_bk4829_uvk1_v3_radio_stop(&radio);
+    CHECK(!radio.initialized);
+    CHECK(!radio.profile.rx_mode_configured);
+    CHECK(write_seen(&fake, 0x33u, 0x9000u));
+    CHECK(write_seen(&fake, 0x30u, 0x0000u));
+}
+
 int main(void)
 {
     test_uvk1_profile_initializes_and_selects_lna_path();
     test_uvk1_profile_stops_rx_and_lna();
     test_uvk1_profile_fails_closed_on_bus_error();
+    test_radio_wrapper_binds_profile_to_scanner_ops();
     puts("BK4829 UV-K1 V3 profile tests: PASS");
     return 0;
 }
