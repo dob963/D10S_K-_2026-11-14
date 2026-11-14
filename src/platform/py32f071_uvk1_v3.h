@@ -23,6 +23,9 @@ typedef struct {
     bool spi_ready;
     bool systick_ready;
     bool keypad_ready;
+    d10s_spectrum_key_t key_candidate;
+    d10s_spectrum_key_t key_pressed;
+    uint8_t key_stable_count;
     uint32_t core_clock_hz;
     uint32_t systick_last;
     uint32_t milliseconds;
