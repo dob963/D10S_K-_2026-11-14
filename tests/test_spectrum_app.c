@@ -74,8 +74,8 @@ static bool radio_read(void *context, uint16_t *rssi)
 static void test_complete_spectrum_application_pipeline(void)
 {
     const d10s_spectrum_band_t bands[] = {
-        {144000000u, 144004000u, 5u, 1u},
-        {145000000u, 145004000u, 5u, 1u}
+        {144000000u, 144004000u, 5u, 10u},
+        {145000000u, 145004000u, 5u, 10u}
     };
     fake_hardware_t hw = {0};
     const d10s_st7565_port_t lcd_port = {
