@@ -19,6 +19,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - 128x64 graph renderer: RSSI trace, grid, adaptive threshold, held-peak marker, cursor and frequency label.
 - Monochrome framebuffer with normal or moderately bold text.
 - Callback-based ST7565 controller: panel command initialization, page addressing, and complete eight-page framebuffer flush from the Spectrum view.
+- One presentation entry point now clears the framebuffer, renders a validated Spectrum snapshot, and flushes all eight LCD pages; invalid snapshots are rejected without sending a partial frame.
 - Host tests verify command/data ordering, page layout, framebuffer-to-controller transfer and configured column offset. The PY32F071 GPIO/SPI callback implementation and physical panel validation remain outstanding.
 
 ### BK4829 primitives
