@@ -3,7 +3,8 @@
  * Copyright 2023 Dual Tachyon
  *
  * Derived register profile from:
- * armel/uv-k1-k5v3-firmware-custom, App/driver/bk4829.c,
+ * armel/uv-k1-k5v3-firmware-custom, App/driver/bk4829.c plus RX-enable
+ * semantics in App/radio.c and GPIO numbering in App/driver/bk4819-regs.h,
  * commit 3261ca7883d5b0b60c0905d8766612dee7b4191d.
  *
  * Changes: adapted to the D10S bus API, fail-closed callbacks and
