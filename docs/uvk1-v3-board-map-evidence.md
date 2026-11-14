@@ -29,7 +29,7 @@ The repository is Apache-2.0 for the reviewed BK4829 source component; file-leve
 | ST7565 MOSI | PA7 / SPI1 | `st7565.c` SPI init | Candidate mapping |
 | ST7565 chip select | PB2 | `st7565.c` PIN_CS; `board.c` GPIO init | Candidate mapping |
 | ST7565 A0 / D-C | PA6 | `st7565.c` PIN_A0; `board.c` GPIO init | Candidate mapping |
-| LCD backlight | PF8 | `board.c` GPIO init | Candidate mapping; polarity/drive still to verify |
+| LCD backlight | PF8, active-high | `board.c` GPIO init; `backlight.c` sets the pin for ON | Candidate mapping; D10S provides simple on/off, not the upstream PWM fade/DMA driver |
 | Keypad rows | PB15..PB12, input pull-up | `board.c` GPIO init | Candidate mapping |
 | Keypad columns | PB6..PB3, output | `board.c` GPIO init | Candidate mapping |
 | PTT input | PB10, input pull-up | `board.c` GPIO init | Not used; D10S remains receive-only |
