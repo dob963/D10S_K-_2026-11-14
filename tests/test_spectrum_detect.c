@@ -659,7 +659,8 @@ static void fake_canvas_text(void *context, uint8_t x, uint8_t y,
         value[7] == '\0') canvas->saw_frequency = true;
     if (value != 0 && value[0] == 'B' && value[1] == '1' && value[2] == '/')
         canvas->saw_band = true;
-    if (value != 0 && value[0] == 'A' && value[1] == '2')
+    if (value != 0 && value[0] == 'A' && value[1] == '0' &&
+        value[2] == '0' && value[3] == '2')
         canvas->saw_att = true;
     if (value != 0 && value[0] == 'T' && value[1] == '\0')
         canvas->saw_turbo = true;
@@ -733,6 +734,30 @@ static void test_spectrum_view_rejects_invalid_snapshot(void)
     CHECK(fake.pixel_writes == 0u);
 }
 
+static void test_spectrum_view_rejects_invalid_rssi_and_band_count(void)
+{
+    const d10s_spectrum_bin_t bad_rssi[] = {
+        {100000u, 10u}, {110000u, 512u}, {120000u, 10u}
+    };
+    const d10s_spectrum_bin_t good_bins[] = {
+        {100000u, 10u}, {110000u, 20u}, {120000u, 10u}
+    };
+    d10s_spectrum_view_model_t model = {
+        .bins = bad_rssi, .count = 3u, .band_index = 0u, .band_count = 1u,
+        .noise_floor = 10u, .open_threshold = 20u
+    };
+    fake_canvas_t fake = {0};
+    const d10s_spectrum_canvas_t canvas = {
+        &fake, fake_canvas_pixel, fake_canvas_text
+    };
+
+    CHECK(!d10s_spectrum_view_render(&canvas, &model));
+    model.bins = good_bins;
+    model.band_count = 9u;
+    CHECK(!d10s_spectrum_view_render(&canvas, &model));
+    CHECK(fake.pixel_writes == 0u);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -758,6 +783,7 @@ int main(void)
     test_spectrum_view_cursor_uses_published_bin_frequency();
     test_spectrum_view_draws_graph_and_status_labels();
     test_spectrum_view_rejects_invalid_snapshot();
+    test_spectrum_view_rejects_invalid_rssi_and_band_count();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
