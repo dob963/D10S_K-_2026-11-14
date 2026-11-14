@@ -178,8 +178,12 @@ static void test_complete_spectrum_application_pipeline(void)
 
         CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_9));
         CHECK(!app.paused);
+        CHECK(app.scanner.bin_index == 0u);
         CHECK(d10s_spectrum_app_tick(&app, now_ms + 100u) != D10S_APP_ERROR);
+        CHECK(hw.tune_calls == tune_before_pause + 1u);
         CHECK(d10s_spectrum_app_tick(&app, now_ms + 101u) != D10S_APP_ERROR);
+        CHECK(hw.read_calls == read_before_pause);
+        CHECK(d10s_spectrum_app_tick(&app, now_ms + 102u) != D10S_APP_ERROR);
         CHECK(hw.read_calls > read_before_pause);
     }
 
