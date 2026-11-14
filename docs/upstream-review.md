@@ -15,7 +15,7 @@ This source provides a useful PY32F071 UV-K1/UV-K5 V3 platform reference: startu
 - Frequency tuning writes registers 0x38 and 0x39; the radio interface uses 10 Hz frequency units.
 - The upstream BK4819_Init() contains the baseline register sequence now isolated in the optional D10S V3 profile.
 - BK4819_RX_TurnOn() writes REG_37=0x9F1F, REG_30=0x0000, then REG_30=0xBFF1.
-- BK4819_PickRXFilterPathBasedOnFrequency() selects GPIO4 for VHF LNA below 28 MHz and GPIO3 for UHF LNA at/above 28 MHz. The upstream implementation also manipulates GPIO0 as an RX-enable output; D10S intentionally does not assert that output until the exact board routing is verified.
+- BK4819_PickRXFilterPathBasedOnFrequency() selects GPIO4 for VHF LNA below 28 MHz and GPIO3 for UHF LNA at/above 28 MHz. The upstream RX setup asserts GPIO0 (source-named RX_ENABLE), while its TX setup clears GPIO0 and separately controls GPIO1 as PA_ENABLE. D10S follows the RX enable semantics and never asserts GPIO1; the actual RF path still needs board validation.
 - The upstream board file maps BK4829 CSN/SCK/SDA to PF9/PB8/PB9 and ST7565 SCK/MOSI/A0/CS to PA5/PA7/PA6/PB2. These are candidate pins for that source's board target only. They are **not verified for the user's actual PCB revision**.
 
 ## D10S integration
