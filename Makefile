@@ -17,8 +17,8 @@ SPECTRUM_HEADERS = \
 	src/platform/mono128x64.h \
 	src/app/spectrum_app.h \
 	src/platform/st7565.h
-RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timing.c src/radio/bk4829_scanner_adapter.c src/radio/bk4829_uvk1_v3_profile.c
-RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h src/radio/bk4829_scanner_adapter.h src/radio/bk4829_uvk1_v3_profile.h
+RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timing.c src/radio/bk4829_scanner_adapter.c src/radio/bk4829_uvk1_v3_profile.c src/radio/bk4829_uvk1_v3_radio.c
+RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h src/radio/bk4829_scanner_adapter.h src/radio/bk4829_uvk1_v3_profile.h src/radio/bk4829_uvk1_v3_radio.h
 INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
 .PHONY: test clean
@@ -54,6 +54,6 @@ build/test_spectrum_app: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) $(RADIO_SOURCES
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) $(RADIO_SOURCES) tests/test_spectrum_app.c -o $@
 
-build/test_bk4829_profile: src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_uvk1_v3_profile.c $(RADIO_HEADERS) tests/test_bk4829_profile.c
+build/test_bk4829_profile: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_profile.c
 	mkdir -p build
-	$(CC) $(CFLAGS) $(INCLUDES) src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_uvk1_v3_profile.c tests/test_bk4829_profile.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) $(RADIO_SOURCES) tests/test_bk4829_profile.c -o $@
