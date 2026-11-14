@@ -14,7 +14,6 @@
 #include "bk4829_uvk1_v3_profile.h"
 
 #include <stddef.h>
-#include <string.h>
 
 typedef struct {
     uint8_t address;
@@ -111,7 +110,9 @@ bool d10s_bk4829_uvk1_v3_initialize_rx(
         !d10s_bk4829_frequency_supported(initial_frequency_hz) ||
         (initial_frequency_hz % 10u) != 0u) return false;
 
-    memset(profile, 0, sizeof(*profile));
+    profile->bus_valid = false;
+    profile->receiver_on = false;
+    profile->current_frequency_hz = 0u;
     profile->bus = *bus;
     profile->timing = *timing;
     profile->bus_valid = true;
