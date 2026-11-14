@@ -31,6 +31,15 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
     scanner->published_attenuation_level = 0u;
     scanner->published_count = 0u;
     scanner->published_valid = false;
+    scanner->turbo_enabled = false;
+    scanner->turbo_have_sample = false;
+    scanner->turbo_min_settle_ms = 0u;
+    scanner->turbo_poll_interval_ms = 0u;
+    scanner->turbo_previous_rssi = 0u;
+    scanner->turbo_next_poll_ms = 0u;
+    scanner->turbo_stable_delta = 0u;
+    scanner->turbo_stable_samples = 0u;
+    scanner->turbo_stable_count = 0u;
     scanner->phase = SCANNER_PHASE_TUNE;
     return true;
 }
@@ -65,7 +74,31 @@ bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
     if (scanner == 0 || settle_ms == 0u ||
         scanner->phase != SCANNER_PHASE_TUNE || scanner->bin_index != 0u)
         return false;
+    if (scanner->turbo_enabled && settle_ms <= scanner->turbo_min_settle_ms)
+        return false;
     scanner->settle_ms = settle_ms;
+    return true;
+}
+
+bool d10s_spectrum_scanner_set_turbo(d10s_spectrum_scanner_t *scanner,
+                                     bool enabled,
+                                     uint16_t min_settle_ms,
+                                     uint16_t poll_interval_ms,
+                                     uint8_t stable_delta,
+                                     uint8_t stable_samples)
+{
+    if (scanner == 0 || scanner->phase != SCANNER_PHASE_TUNE ||
+        scanner->bin_index != 0u) return false;
+    if (enabled && (min_settle_ms == 0u || poll_interval_ms == 0u ||
+                    stable_samples < 2u || scanner->settle_ms <= min_settle_ms))
+        return false;
+    scanner->turbo_enabled = enabled;
+    scanner->turbo_min_settle_ms = enabled ? min_settle_ms : 0u;
+    scanner->turbo_poll_interval_ms = enabled ? poll_interval_ms : 0u;
+    scanner->turbo_stable_delta = enabled ? stable_delta : 0u;
+    scanner->turbo_stable_samples = enabled ? stable_samples : 0u;
+    scanner->turbo_stable_count = 0u;
+    scanner->turbo_have_sample = false;
     return true;
 }
 
@@ -149,14 +182,27 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
         scanner->current_frequency_hz = actual_frequency_hz;
         scanner->bins[scanner->bin_index].frequency_hz = actual_frequency_hz;
         scanner->settle_started_ms = now_ms;
+        scanner->turbo_have_sample = false;
+        scanner->turbo_stable_count = 0u;
+        scanner->turbo_next_poll_ms = now_ms;
         scanner->phase = SCANNER_PHASE_SETTLE;
         return D10S_SCANNER_BUSY;
     }
 
     case SCANNER_PHASE_SETTLE:
-        if ((uint32_t)(now_ms - scanner->settle_started_ms) < scanner->settle_ms)
+        if (!scanner->turbo_enabled) {
+            if ((uint32_t)(now_ms - scanner->settle_started_ms) <
+                scanner->settle_ms) return D10S_SCANNER_BUSY;
+            scanner->phase = SCANNER_PHASE_READ;
             return D10S_SCANNER_BUSY;
-        scanner->phase = SCANNER_PHASE_READ;
+        }
+        if ((uint32_t)(now_ms - scanner->settle_started_ms) <
+            scanner->turbo_min_settle_ms) return D10S_SCANNER_BUSY;
+        if ((uint32_t)(now_ms - scanner->settle_started_ms) >= scanner->settle_ms ||
+            (int32_t)(now_ms - scanner->turbo_next_poll_ms) >= 0) {
+            scanner->phase = SCANNER_PHASE_READ;
+            return D10S_SCANNER_BUSY;
+        }
         return D10S_SCANNER_BUSY;
 
     case SCANNER_PHASE_READ: {
@@ -167,6 +213,34 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
             rssi > D10S_SPECTRUM_MAX_RSSI) {
             scanner->phase = SCANNER_PHASE_FAILED;
             return D10S_SCANNER_ERROR;
+        }
+        if (scanner->turbo_enabled) {
+            const uint32_t elapsed = (uint32_t)(now_ms - scanner->settle_started_ms);
+            uint16_t difference;
+            if (!scanner->turbo_have_sample) {
+                scanner->turbo_previous_rssi = rssi;
+                scanner->turbo_have_sample = true;
+                scanner->turbo_stable_count = 1u;
+            } else {
+                difference = rssi > scanner->turbo_previous_rssi
+                    ? (uint16_t)(rssi - scanner->turbo_previous_rssi)
+                    : (uint16_t)(scanner->turbo_previous_rssi - rssi);
+                if (difference <= scanner->turbo_stable_delta) {
+                    if (scanner->turbo_stable_count < UINT8_MAX)
+                        ++scanner->turbo_stable_count;
+                } else {
+                    scanner->turbo_stable_count = 1u;
+                }
+                scanner->turbo_previous_rssi = rssi;
+            }
+
+            if (scanner->turbo_stable_count < scanner->turbo_stable_samples &&
+                elapsed < scanner->settle_ms) {
+                scanner->turbo_next_poll_ms =
+                    now_ms + scanner->turbo_poll_interval_ms;
+                scanner->phase = SCANNER_PHASE_SETTLE;
+                return D10S_SCANNER_BUSY;
+            }
         }
         {
             uint32_t compensated = (uint32_t)rssi + scanner->rssi_compensation;
