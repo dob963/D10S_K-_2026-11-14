@@ -113,6 +113,7 @@ static bool set_cursor_position(d10s_spectrum_app_t *app,
     if (app == NULL || count < 3u) return false;
     app->cursor_bin = (uint16_t)(index % count);
     app->cursor_enabled = true;
+    if (app->paused) app->pause_frame_pending = true;
     return true;
 }
 
@@ -128,12 +129,14 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
     case D10S_KEY_MENU:
         if (app->cursor_enabled) {
             app->cursor_enabled = false;
+            if (app->paused) app->pause_frame_pending = true;
             return true;
         }
         return set_cursor_position(app, count, (uint16_t)(count / 2u));
 
     case D10S_KEY_EXIT:
         app->cursor_enabled = false;
+        if (app->paused) app->pause_frame_pending = true;
         return true;
 
     case D10S_KEY_0:
