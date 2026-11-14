@@ -2,7 +2,7 @@
 
 ## Reviewed reference
 
-Primary behavioral reference: [autumn1rain/karina-v3-k1](https://github.com/autumn1rain/karina-v3-k1), the public Karina firmware repository for UV-K5 V3, UV-K1 and UV-K1(8). Its repository declares Apache-2.0. The public tree reviewed on 2026-11-14 contains documentation and release material, but not the application source files for the Spectrum implementation; therefore D10S does not copy or vendor Karina source code.
+Primary behavioral source reviewed: [public UV-K1 V3 firmware reference](https://github.com/autumn1rain/karina-v3-k1), covering UV-K5 V3, UV-K1 and UV-K1(8). Its repository declares Apache-2.0. The public tree reviewed on 2026-11-14 contains documentation and release material, but not the application source files for its Spectrum implementation; D10S uses the published behavior notes as requirements only and does not copy or vendor application source.
 
 Supplementary maintainer notes: [Dim0s firmware pack — Karina information](https://github.com/Dim0s/quansheng-UV-K5v3-K1-firmware-pack). These notes describe the Spectrum behavior and known limitations. They are treated as implementation requirements to verify, not proof that the same timing values are optimal on the target radio.
 
@@ -42,6 +42,6 @@ These three UI/memory cases are not yet implemented in the portable scanner modu
 
 ## Visual direction
 
-D10S is an independent project. Its Spectrum screen should follow the requested Karina-like visual behavior: a high-contrast graph, legible frequency and RSSI labels, moderately bold typography, a clear noise threshold line, a visible peak/cursor, and a simple multi-band status. F4HWN's Spectrum screen is not the selected visual reference.
+D10S is an independent project. Its Spectrum screen uses a high-contrast graph, legible frequency and RSSI labels, moderately bold typography, a clear noise threshold line, a visible peak/cursor, and a simple multi-band status. The layout and implementation are original.
 
-No Karina or F4HWN source code has been copied into the D10S portable detector, scan planner, or scanner state machine.
+No application source from the reviewed firmware projects has been copied into the D10S portable detector, scan planner, or scanner state machine.
