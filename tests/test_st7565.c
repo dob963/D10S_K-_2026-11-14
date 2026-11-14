@@ -39,12 +39,10 @@ static void test_mono_framebuffer_flushes_all_st7565_pages(void)
 {
     fake_lcd_t f;
     d10s_st7565_t lcd;
-    d10s_bk4829_bus_port_t unused;
     d10s_st7565_port_t port = {select, mode, write_byte, delay, &f};
     d10s_st7565_config_t config = {4u, 31u, 4u, 7u, false, false,
                                    false, 120u, 40u};
     d10s_mono128x64_t framebuffer;
-    (void)unused;
 
     memset(&f, 0, sizeof(f));
     d10s_mono128x64_clear(&framebuffer, false);
