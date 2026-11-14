@@ -128,6 +128,11 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(app.cursor_bin == 2u);
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_F));
     CHECK(!app.bold_labels);
+    CHECK(app.peak_hold_visible);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_STAR));
+    CHECK(!app.peak_hold_visible);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_STAR));
+    CHECK(app.peak_hold_visible);
 
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_2));
     CHECK(app.pending_band_valid && app.pending_band_index == 1u);
