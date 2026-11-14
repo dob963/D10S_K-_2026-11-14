@@ -44,7 +44,7 @@ def main() -> int:
     if not (FLASH_BASE <= reset_address < FLASH_LIMIT):
         fail(f"Reset_Handler 0x{reset_vector:08X} is outside the application flash region")
 
-    reserved = set(range(4, 11)) | {12, 13}
+    reserved = set(range(4, 11)) | {12, 13, 46}  # IRQ30 is reserved on PY32F071
     for index, vector in enumerate(vectors[1:], start=1):
         if index in reserved:
             if vector != 0:
