@@ -1,5 +1,6 @@
 #include "spectrum_detect.h"
 #include "spectrum_scanner.h"
+#include "spectrum_view.h"
 #include "spectrum_plan.h"
 
 #include <stdio.h>
@@ -626,6 +627,112 @@ static void test_turbo_honors_max_delay_when_rssi_never_stabilizes(void)
     CHECK(now_ms >= 25u);
 }
 
+typedef struct {
+    bool pixels[D10S_VIEW_HEIGHT][D10S_VIEW_WIDTH];
+    uint32_t pixel_writes;
+    uint32_t text_writes;
+    bool saw_bold;
+    bool saw_frequency;
+    bool saw_band;
+    bool saw_att;
+    bool saw_turbo;
+} fake_canvas_t;
+
+static void fake_canvas_pixel(void *context, uint8_t x, uint8_t y, bool on)
+{
+    fake_canvas_t *canvas = (fake_canvas_t *)context;
+    canvas->pixels[y][x] = on;
+    ++canvas->pixel_writes;
+}
+
+static void fake_canvas_text(void *context, uint8_t x, uint8_t y,
+                             const char *value, uint8_t style)
+{
+    fake_canvas_t *canvas = (fake_canvas_t *)context;
+    (void)x;
+    (void)y;
+    ++canvas->text_writes;
+    if ((style & D10S_VIEW_TEXT_BOLD) != 0u) canvas->saw_bold = true;
+    if (value != 0 && value[0] == '1' && value[1] == '4' &&
+        value[2] == '4' && value[3] == '.' &&
+        value[4] == '0' && value[5] == '0' && value[6] == '2' &&
+        value[7] == '\\0') canvas->saw_frequency = true;
+    if (value != 0 && value[0] == 'B' && value[1] == '1' && value[2] == '/')
+        canvas->saw_band = true;
+    if (value != 0 && value[0] == 'A' && value[1] == '2')
+        canvas->saw_att = true;
+    if (value != 0 && value[0] == 'T' && value[1] == '\\0')
+        canvas->saw_turbo = true;
+}
+
+static void test_spectrum_view_cursor_uses_published_bin_frequency(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {144000000u, 100u}, {144001000u, 110u}, {144002000u, 160u},
+        {144003000u, 120u}, {144004000u, 100u}
+    };
+    const d10s_spectrum_view_model_t model = {
+        .bins = bins, .count = 5u, .band_index = 0u, .band_count = 2u,
+        .attenuation_level = 2u, .turbo_enabled = true,
+        .noise_floor = 100u, .open_threshold = 120u,
+        .peak_hold_valid = true, .peak_hold_frequency_hz = 144002000u,
+        .cursor_valid = true, .cursor_bin = 2u,
+        .band_label = 0, .bold_labels = true
+    };
+    uint32_t frequency = 0u;
+
+    CHECK(d10s_spectrum_view_cursor_frequency(&model, 2u, &frequency));
+    CHECK(frequency == 144002000u);
+    CHECK(!d10s_spectrum_view_cursor_frequency(&model, 5u, &frequency));
+}
+
+static void test_spectrum_view_draws_graph_and_status_labels(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {144000000u, 100u}, {144001000u, 110u}, {144002000u, 160u},
+        {144003000u, 120u}, {144004000u, 100u}
+    };
+    const d10s_spectrum_view_model_t model = {
+        .bins = bins, .count = 5u, .band_index = 0u, .band_count = 2u,
+        .attenuation_level = 2u, .turbo_enabled = true,
+        .noise_floor = 100u, .open_threshold = 120u,
+        .peak_hold_valid = true, .peak_hold_frequency_hz = 144002000u,
+        .cursor_valid = true, .cursor_bin = 2u,
+        .band_label = 0, .bold_labels = true
+    };
+    fake_canvas_t fake = {0};
+    const d10s_spectrum_canvas_t canvas = {
+        &fake, fake_canvas_pixel, fake_canvas_text
+    };
+
+    CHECK(d10s_spectrum_view_render(&canvas, &model));
+    CHECK(fake.pixel_writes > 100u);
+    CHECK(fake.text_writes >= 5u);
+    CHECK(fake.saw_bold);
+    CHECK(fake.saw_frequency);
+    CHECK(fake.saw_band);
+    CHECK(fake.saw_att);
+    CHECK(fake.saw_turbo);
+}
+
+static void test_spectrum_view_rejects_invalid_snapshot(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {100000u, 10u}, {110000u, 20u}, {120000u, 10u}
+    };
+    const d10s_spectrum_view_model_t model = {
+        .bins = bins, .count = 3u, .band_index = 1u, .band_count = 1u,
+        .noise_floor = 10u, .open_threshold = 20u
+    };
+    fake_canvas_t fake = {0};
+    const d10s_spectrum_canvas_t canvas = {
+        &fake, fake_canvas_pixel, fake_canvas_text
+    };
+
+    CHECK(!d10s_spectrum_view_render(&canvas, &model));
+    CHECK(fake.pixel_writes == 0u);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -648,6 +755,9 @@ int main(void)
     test_scanner_delay_changes_only_between_sweeps();
     test_turbo_exits_early_when_rssi_stabilizes();
     test_turbo_honors_max_delay_when_rssi_never_stabilizes();
+    test_spectrum_view_cursor_uses_published_bin_frequency();
+    test_spectrum_view_draws_graph_and_status_labels();
+    test_spectrum_view_rejects_invalid_snapshot();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
