@@ -14,19 +14,22 @@ typedef bool (*d10s_bk4829_rx_init_fn)(
     void *context);
 typedef bool (*d10s_bk4829_rx_resume_fn)(uint32_t frequency_hz,
                                          void *context);
+typedef bool (*d10s_bk4829_rx_stop_fn)(void *context);
 
 typedef struct {
     d10s_bk4829_bus_port_t bus;
     d10s_bk4829_bus_timing_t timing;
     d10s_bk4829_rx_resume_fn resume_rx;
+    d10s_bk4829_rx_stop_fn stop_rx;
     void *context;
     bool ready;
     bool discard_first_rssi;
 } d10s_bk4829_scanner_adapter_t;
 
 /*
- * Initialization and RX-mode transitions are supplied by a board-specific,
- * verified profile. This adapter owns only synthesizer writes and RSSI reads.
+ * Initialization, RX-mode transitions and fail-safe standby are supplied by
+ * a board-specific verified profile. This adapter owns synthesizer writes
+ * and RSSI reads; it does not invent BK4829 startup or RF-switch register data.
  */
 bool d10s_bk4829_scanner_adapter_init(
     d10s_bk4829_scanner_adapter_t *adapter,
@@ -34,6 +37,7 @@ bool d10s_bk4829_scanner_adapter_init(
     const d10s_bk4829_bus_timing_t *timing,
     d10s_bk4829_rx_init_fn initialize_rx,
     d10s_bk4829_rx_resume_fn resume_rx,
+    d10s_bk4829_rx_stop_fn stop_rx,
     uint32_t initial_frequency_hz,
     void *context);
 void d10s_bk4829_scanner_adapter_stop(
