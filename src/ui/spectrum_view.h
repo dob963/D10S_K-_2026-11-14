@@ -9,6 +9,7 @@
 
 #define D10S_VIEW_WIDTH 128u
 #define D10S_VIEW_HEIGHT 64u
+#define D10S_VIEW_MAX_BANDS 8u
 #define D10S_VIEW_TEXT_BOLD 0x01u
 
 typedef struct {
@@ -31,7 +32,7 @@ typedef struct {
     uint32_t peak_hold_frequency_hz;
     bool cursor_valid;
     uint16_t cursor_bin;
-    const char *band_label;
+    const char *band_label; /* Optional short label; keep it to five characters. */
     bool bold_labels;
 } d10s_spectrum_view_model_t;
 
