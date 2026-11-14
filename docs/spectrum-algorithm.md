@@ -2,13 +2,13 @@
 
 ## Input contract
 
-The detector consumes one completed sweep: an ordered array of frequency/RSSI pairs. Frequencies must be strictly increasing with a constant bin spacing, and the array must contain 3 to 256 bins. Uniform spacing is required for valid three-point frequency interpolation. RSSI is an unsigned relative measurement from the receiver path; it is not converted to dBm.
+The detector consumes one completed sweep: an ordered array of frequency/RSSI pairs. Frequencies must be strictly increasing with a constant bin spacing, and the array must contain 3 to 256 bins. Uniform spacing is required for valid three-point frequency interpolation. RSSI is the raw unsigned 9-bit relative measurement (0..511) from the BK4829 receiver path; out-of-range input is rejected and it is not converted to dBm.
 
 The caller must reset tracking when it changes band or frequency grid. The receiver driver remains responsible for tuning, waiting for settling, acquiring RSSI, and recording the actual tuned frequency in every bin.
 
 ## Multi-band plan
 
-The portable scan-plan module accepts up to eight caller-defined bands. Each band defines start/stop frequency, bin count and dwell sweeps. The plan validates a positive integer, uniform bin spacing, exposes exact per-bin frequencies, rotates bands after the configured dwell, and resets its dwell counter on manual band selection. The application must call `d10s_spectrum_reset_tracking()` whenever the active band changes so old noise history and held peaks are not carried into a different RF range.
+The portable scan-plan module accepts up to eight caller-defined bands. The caller-owned band array must remain valid for the lifetime of the plan. Each band defines start/stop frequency, bin count and dwell sweeps. The plan validates a positive integer, uniform bin spacing, exposes exact per-bin frequencies, rotates bands after the configured dwell, and resets its dwell counter on manual band selection. The application must call `d10s_spectrum_reset_tracking()` whenever the active band changes so old noise history and held peaks are not carried into a different RF range.
 
 No band limits are hard-coded: final ranges must come from the confirmed hardware variant and the selected scan plan.
 
