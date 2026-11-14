@@ -66,3 +66,8 @@ add_executable(test_spectrum_key tests/test_spectrum_key.c)
 target_link_libraries(test_spectrum_key PRIVATE d10s_spectrum_core)
 target_compile_options(test_spectrum_key PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME spectrum_key_debounce COMMAND test_spectrum_key)
+
+add_executable(test_target_defaults tests/test_target_defaults.c src/spectrum/spectrum_plan.c)
+target_include_directories(test_target_defaults PRIVATE target src/spectrum)
+target_compile_options(test_target_defaults PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME target_scan_defaults COMMAND test_target_defaults)
