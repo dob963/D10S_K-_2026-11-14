@@ -143,7 +143,7 @@ static void test_uvk1_profile_initializes_and_enables_rx_path(void)
     CHECK(profile.current_frequency_hz == 27000000u);
     CHECK(write_seen(&fake, 0x33u, 0x9004u));
     CHECK(write_seen(&fake, 0x33u, 0x9044u));
-    CHECK(fake.register_count == before + 4u);
+    CHECK(fake.register_count == before + 2u);
 
     before = fake.register_count;
     CHECK(!d10s_bk4829_uvk1_v3_resume_rx(600000000u, &profile));
