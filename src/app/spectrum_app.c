@@ -1,0 +1,150 @@
+#include "spectrum_app.h"
+
+#include <stddef.h>
+
+bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
+                            const d10s_spectrum_band_t *bands,
+                            uint8_t band_count,
+                            const d10s_spectrum_radio_ops_t *radio,
+                            d10s_st7565_t *display,
+                            const d10s_spectrum_config_t *detector_config,
+                            uint16_t settle_ms)
+{
+    if (app == NULL || radio == NULL || display == NULL ||
+        !display->initialized || radio->tune_hz == NULL ||
+        radio->read_rssi == NULL) return false;
+
+    app->initialized = false;
+    if (!d10s_spectrum_scanner_init(&app->scanner, bands, band_count,
+                                    detector_config, settle_ms)) return false;
+    app->radio = *radio;
+    app->display = display;
+    app->cursor_bin = 0u;
+    app->cursor_enabled = false;
+    app->bold_labels = true;
+    app->last_result = (d10s_spectrum_result_t){0};
+    d10s_mono128x64_clear(&app->framebuffer, false);
+    app->initialized = true;
+    return true;
+}
+
+d10s_spectrum_app_status_t d10s_spectrum_app_tick(
+                            d10s_spectrum_app_t *app,
+                            uint32_t now_ms)
+{
+    d10s_spectrum_result_t result;
+    const d10s_spectrum_bin_t *snapshot = NULL;
+    uint16_t count = 0u;
+    uint8_t band_index = 0u;
+    uint8_t attenuation_level = 0u;
+    uint32_t generation = 0u;
+    bool band_changed = false;
+    d10s_spectrum_scanner_status_t status;
+    d10s_spectrum_canvas_t canvas;
+    d10s_spectrum_view_model_t model;
+
+    if (app == NULL || !app->initialized || app->display == NULL)
+        return D10S_APP_ERROR;
+
+    status = d10s_spectrum_scanner_tick(&app->scanner, &app->radio,
+                                        now_ms, &result, &band_changed);
+    (void)band_changed;
+    if (status == D10S_SCANNER_IDLE) return D10S_APP_IDLE;
+    if (status == D10S_SCANNER_ERROR) return D10S_APP_ERROR;
+    if (status != D10S_SCANNER_SWEEP_READY) return D10S_APP_BUSY;
+
+    if (!d10s_spectrum_scanner_snapshot(&app->scanner, &snapshot, &count,
+                                        &band_index, &attenuation_level,
+                                        &generation) ||
+        snapshot == NULL || count < 3u) return D10S_APP_ERROR;
+    (void)generation;
+
+    model = (d10s_spectrum_view_model_t){
+        .bins = snapshot,
+        .count = count,
+        .band_index = band_index,
+        .band_count = app->scanner.plan.band_count,
+        .attenuation_level = attenuation_level,
+        .turbo_enabled = app->scanner.turbo_enabled,
+        .noise_floor = result.noise_floor,
+        .open_threshold = result.open_threshold,
+        .peak_hold_valid = result.peak_hold_valid,
+        .peak_hold_frequency_hz = result.peak_hold_frequency_hz,
+        .cursor_valid = app->cursor_enabled && app->cursor_bin < count,
+        .cursor_bin = app->cursor_bin,
+        .band_label = NULL,
+        .bold_labels = app->bold_labels
+    };
+
+    d10s_mono128x64_clear(&app->framebuffer, false);
+    d10s_mono128x64_bind(&app->framebuffer, &canvas);
+    if (!d10s_spectrum_view_render(&canvas, &model) ||
+        !d10s_mono128x64_flush(&app->framebuffer, app->display))
+        return D10S_APP_ERROR;
+
+    app->last_result = result;
+    return D10S_APP_FRAME_UPDATED;
+}
+
+bool d10s_spectrum_app_set_cursor(d10s_spectrum_app_t *app,
+                                  bool enabled,
+                                  uint16_t bin_index)
+{
+    if (app == NULL || !app->initialized ||
+        bin_index >= D10S_SPECTRUM_MAX_BINS) return false;
+    app->cursor_enabled = enabled;
+    app->cursor_bin = bin_index;
+    return true;
+}
+
+bool d10s_spectrum_app_set_bold_labels(d10s_spectrum_app_t *app,
+                                       bool enabled)
+{
+    if (app == NULL || !app->initialized) return false;
+    app->bold_labels = enabled;
+    return true;
+}
+
+bool d10s_spectrum_app_set_delay(d10s_spectrum_app_t *app,
+                                 uint16_t settle_ms)
+{
+    return app != NULL && app->initialized &&
+           d10s_spectrum_scanner_set_delay(&app->scanner, settle_ms);
+}
+
+bool d10s_spectrum_app_set_turbo(d10s_spectrum_app_t *app,
+                                 bool enabled,
+                                 uint16_t min_settle_ms,
+                                 uint16_t poll_interval_ms,
+                                 uint8_t stable_delta,
+                                 uint8_t stable_samples)
+{
+    return app != NULL && app->initialized &&
+           d10s_spectrum_scanner_set_turbo(&app->scanner, enabled,
+                                            min_settle_ms, poll_interval_ms,
+                                            stable_delta, stable_samples);
+}
+
+bool d10s_spectrum_app_set_attenuation(d10s_spectrum_app_t *app,
+                                       uint8_t level,
+                                       uint16_t measured_raw_rssi_offset)
+{
+    return app != NULL && app->initialized &&
+           d10s_spectrum_scanner_set_attenuation(&app->scanner, &app->radio,
+                                                  level,
+                                                  measured_raw_rssi_offset);
+}
+
+bool d10s_spectrum_app_select_band(d10s_spectrum_app_t *app,
+                                   uint8_t band_index)
+{
+    return app != NULL && app->initialized &&
+           d10s_spectrum_scanner_select_band(&app->scanner, band_index);
+}
+
+void d10s_spectrum_app_stop(d10s_spectrum_app_t *app)
+{
+    if (app == NULL || !app->initialized) return;
+    d10s_spectrum_scanner_stop(&app->scanner);
+    app->initialized = false;
+}
