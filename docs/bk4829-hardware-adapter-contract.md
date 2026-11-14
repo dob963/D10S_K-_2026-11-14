@@ -12,7 +12,7 @@ The portable scanner uses d10s_spectrum_radio_ops_t. The hardware adapter maps t
 - bk4829.c: frequency-word conversion, REG_38/REG_39 writes, and 9-bit REG_67 RSSI extraction.
 - bk4829_scanner_adapter.c: scanner bridge, including first RSSI conversion discard after each tune.
 - bk4829_uvk1_v3_profile.c: opt-in baseline and RX-mode sequence plus VHF/UHF LNA selector derived from the pinned upstream UV-K1 V3 BK4829 driver. See docs/bk4829-uvk1-v3-profile.md.
-- py32f071_uvk1_v3.c: candidate PF9/PB8/PB9 three-wire BK4829 GPIO callbacks and PA5/PA7/PB2/PA6 ST7565 SPI/GPIO callbacks. Calibrated delay callbacks must be supplied by the target application.
+- py32f071_uvk1_v3.c: candidate PF9/PB8/PB9 three-wire BK4829 GPIO callbacks and PA5/PA7/PB2/PA6 ST7565 SPI/GPIO callbacks. The target may supply calibrated delay callbacks or use the built-in SysTick delay backend after providing the measured core clock.
 
 ## Required callback behavior
 
