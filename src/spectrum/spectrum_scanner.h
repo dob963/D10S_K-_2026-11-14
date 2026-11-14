@@ -26,6 +26,12 @@ typedef struct {
     d10s_spectrum_plan_t plan;
     d10s_spectrum_state_t detector;
     d10s_spectrum_bin_t bins[D10S_SPECTRUM_MAX_BINS];
+    d10s_spectrum_bin_t published_bins[D10S_SPECTRUM_MAX_BINS];
+    uint32_t published_generation;
+    uint8_t published_band_index;
+    uint8_t published_attenuation_level;
+    uint16_t published_count;
+    bool published_valid;
     uint32_t settle_started_ms;
     uint32_t current_frequency_hz;
     uint16_t bin_index;
@@ -43,6 +49,16 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
                                 const d10s_spectrum_config_t *config,
                                 uint16_t settle_ms);
 void d10s_spectrum_scanner_stop(d10s_spectrum_scanner_t *scanner);
+bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
+                                     uint16_t settle_ms);
+bool d10s_spectrum_scanner_select_band(d10s_spectrum_scanner_t *scanner,
+                                       uint8_t band_index);
+bool d10s_spectrum_scanner_snapshot(const d10s_spectrum_scanner_t *scanner,
+                                    const d10s_spectrum_bin_t **bins,
+                                    uint16_t *count,
+                                    uint8_t *band_index,
+                                    uint8_t *attenuation_level,
+                                    uint32_t *generation);
 /* Offset is a measured correction in raw RSSI units, never dB. */
 bool d10s_spectrum_scanner_set_attenuation(
                                 d10s_spectrum_scanner_t *scanner,
