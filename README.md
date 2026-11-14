@@ -61,6 +61,7 @@ The scanner reserves two 256-point buffers (about 4 KiB on a 32-bit ABI) plus th
 - BK4829 UV-K1 V3 profile: docs/bk4829-uvk1-v3-profile.md
 - ST7565 backend and target port: docs/st7565-platform-port.md
 - Integrated application layer: docs/application-layer.md
+- PY32F071 target build, linker, startup and hardware release limits: target/README.md
 - Spectrum behavior requirements and source review: docs/reference-behavior.md
 - Third-party notices: THIRD_PARTY_NOTICES.md
 
