@@ -1,7 +1,6 @@
 #include "bk4829_scanner_adapter.h"
 
 #include <stddef.h>
-#include <string.h>
 
 static void fail_closed(d10s_bk4829_scanner_adapter_t *a)
 {
@@ -63,7 +62,7 @@ bool d10s_bk4829_scanner_adapter_init(
     void *context)
 {
     if (a == NULL) return false;
-    memset(a, 0, sizeof(*a));
+    a->bus = (d10s_bk4829_bus_port_t){0};\n    a->timing = (d10s_bk4829_bus_timing_t){0};\n    a->resume_rx = NULL;\n    a->stop_rx = NULL;\n    a->context = NULL;\n    a->ready = false;\n    a->discard_first_rssi = false;
     if (bus == NULL || timing == NULL || initialize_rx == NULL ||
         resume_rx == NULL || stop_rx == NULL ||
         !d10s_bk4829_frequency_supported(initial_frequency_hz) ||
