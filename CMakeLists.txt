@@ -10,6 +10,7 @@ add_library(d10s_spectrum_core
     src/spectrum/spectrum_plan.c
     src/spectrum/spectrum_scanner.c
     src/ui/spectrum_view.c
+    src/ui/spectrum_key.c
     src/app/spectrum_app.c
     src/platform/mono128x64.c
     src/platform/st7565.c
@@ -60,3 +61,8 @@ add_executable(test_py32_clock tests/test_py32_clock.c)
 target_link_libraries(test_py32_clock PRIVATE d10s_spectrum_core)
 target_compile_options(test_py32_clock PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME py32_clock COMMAND test_py32_clock)
+
+add_executable(test_spectrum_key tests/test_spectrum_key.c)
+target_link_libraries(test_spectrum_key PRIVATE d10s_spectrum_core)
+target_compile_options(test_spectrum_key PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME spectrum_key_debounce COMMAND test_spectrum_key)
