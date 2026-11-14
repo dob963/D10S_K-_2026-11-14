@@ -22,4 +22,4 @@ The app does not initialize the radio or LCD. It must receive:
 - a radio adapter whose RX initialization, tune and RSSI read callbacks are valid for the exact board;
 - an ST7565 controller initialized with the real panel's settings and physical GPIO/SPI callbacks.
 
-The current BK4829 adapter requires externally supplied receive-init/resume/stop callbacks and does not provide an ATT callback. The portable app is therefore software-integration-complete for the available interfaces, not yet a complete target firmware.
+The `d10s_bk4829_uvk1_v3_radio_init()` wrapper now binds the source-derived UV-K1 V3 receive profile and scanner adapter directly into the radio-ops object consumed by the app. It still requires a separately verified physical GPIO bus implementation, and ATT remains unavailable. The portable app is therefore integrated across its software interfaces, not yet a complete target firmware.
