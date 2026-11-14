@@ -1,4 +1,5 @@
 #include "spectrum_detect.h"
+#include "spectrum_scanner.h"
 #include "spectrum_plan.h"
 
 #include <stdio.h>
