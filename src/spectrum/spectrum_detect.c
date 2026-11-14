@@ -151,11 +151,15 @@ void d10s_spectrum_default_config(d10s_spectrum_config_t *config)
 void d10s_spectrum_init(d10s_spectrum_state_t *state,
                         const d10s_spectrum_config_t *config)
 {
-    d10s_spectrum_config_t defaults;
+    d10s_spectrum_config_t selected;
     if (state == NULL) return;
-    d10s_spectrum_default_config(&defaults);
+    if (config != NULL) {
+        selected = *config;
+    } else {
+        d10s_spectrum_default_config(&selected);
+    }
     clear_bytes(state, sizeof(*state));
-    state->config = config != NULL ? *config : defaults;
+    state->config = selected;
     if (state->config.noise_percentile > 100u)
         state->config.noise_percentile = 100u;
     if (state->config.noise_history_percentile > 100u)
@@ -166,7 +170,14 @@ void d10s_spectrum_init(d10s_spectrum_state_t *state,
 
 void d10s_spectrum_reset_tracking(d10s_spectrum_state_t *state)
 {
+    size_t i;
     if (state == NULL) return;
+    state->noise_initialized = false;
+    state->noise_floor = 0u;
+    for (i = 0u; i < D10S_NOISE_HISTORY_SWEEPS; ++i)
+        state->noise_history[i] = 0u;
+    state->noise_history_count = 0u;
+    state->noise_history_next = 0u;
     state->pending_valid = false;
     state->pending_bin = 0u;
     state->pending_streak = 0u;
