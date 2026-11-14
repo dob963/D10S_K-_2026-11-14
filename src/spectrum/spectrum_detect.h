@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #define D10S_SPECTRUM_MAX_BINS 256u
+#define D10S_SPECTRUM_MAX_RSSI 511u
 #define D10S_NOISE_HISTORY_SWEEPS 5u
 
 typedef struct {
