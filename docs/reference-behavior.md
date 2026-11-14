@@ -24,7 +24,7 @@ Maintainer notes report a change from static waits toward adaptive delays in the
 | --- | --- |
 | Multi-band scan | spectrum_plan.c: up to eight validated bands, exact uniform bin grids and per-band dwell |
 | Delay | d10s_spectrum_scanner_set_delay(): changes settling delay only at a sweep boundary |
-| Turbo | Not enabled by a hard-coded shortcut. A separate adaptive acquisition policy must be measured against real receiver RSSI before use |
+| Turbo | Optional adaptive RSSI-stability polling with caller-supplied minimum delay, poll interval, stability tolerance and maximum Delay; disabled by default and still requires real-radio tuning |
 | Noise/squelch bar | Adaptive rolling percentile plus a configurable relative margin, not a fixed absolute threshold |
 | Peak filtering | Local-maximum prominence and confirmation over consecutive completed sweeps |
 | Frequency precision | Store the actual frequency reported by the radio adapter for each sample |
