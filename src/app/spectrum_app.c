@@ -25,6 +25,8 @@ bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
     app->cursor_enabled = false;
     app->bold_labels = true;
     app->peak_hold_visible = true;
+    app->paused = false;
+    app->pause_frame_pending = false;
     app->last_result = (d10s_spectrum_result_t){0};
     d10s_mono128x64_clear(&app->framebuffer, false);
     app->initialized = true;
@@ -49,15 +51,21 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
     if (app == NULL || !app->initialized || app->display == NULL)
         return D10S_APP_ERROR;
 
-    if (app->pending_band_valid) {
-        if (app->scanner.plan.active_band == app->pending_band_index ||
-            d10s_spectrum_scanner_select_band(&app->scanner,
-                                               app->pending_band_index))
-            app->pending_band_valid = false;
-    }
+    if (app->paused) {
+        if (!app->pause_frame_pending) return D10S_APP_IDLE;
+        result = app->last_result;
+        status = D10S_SCANNER_SWEEP_READY;
+    } else {
+        if (app->pending_band_valid) {
+            if (app->scanner.plan.active_band == app->pending_band_index ||
+                d10s_spectrum_scanner_select_band(&app->scanner,
+                                                   app->pending_band_index))
+                app->pending_band_valid = false;
+        }
 
-    status = d10s_spectrum_scanner_tick(&app->scanner, &app->radio,
-                                        now_ms, &result, &band_changed);
+        status = d10s_spectrum_scanner_tick(&app->scanner, &app->radio,
+                                            now_ms, &result, &band_changed);
+    }
     (void)band_changed;
     if (status == D10S_SCANNER_IDLE) return D10S_APP_IDLE;
     if (status == D10S_SCANNER_ERROR) return D10S_APP_ERROR;
@@ -76,6 +84,7 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         .band_count = app->scanner.plan.band_count,
         .attenuation_level = attenuation_level,
         .turbo_enabled = app->scanner.turbo_enabled,
+        .hold_enabled = app->paused,
         .noise_floor = result.noise_floor,
         .open_threshold = result.open_threshold,
         .peak_hold_valid = app->peak_hold_visible && result.peak_hold_valid,
@@ -93,6 +102,7 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         return D10S_APP_ERROR;
 
     app->last_result = result;
+    app->pause_frame_pending = false;
     return D10S_APP_FRAME_UPDATED;
 }
 
@@ -151,6 +161,13 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
 
     case D10S_KEY_STAR:
         app->peak_hold_visible = !app->peak_hold_visible;
+        if (app->paused) app->pause_frame_pending = true;
+        return true;
+
+    case D10S_KEY_9:
+        if (!app->paused && !app->scanner.published_valid) return false;
+        app->paused = !app->paused;
+        app->pause_frame_pending = app->paused;
         return true;
 
     case D10S_KEY_1:
@@ -181,6 +198,7 @@ bool d10s_spectrum_app_set_cursor(d10s_spectrum_app_t *app,
         bin_index >= D10S_SPECTRUM_MAX_BINS) return false;
     app->cursor_enabled = enabled;
     app->cursor_bin = bin_index;
+    if (app->paused) app->pause_frame_pending = true;
     return true;
 }
 
@@ -189,6 +207,7 @@ bool d10s_spectrum_app_set_bold_labels(d10s_spectrum_app_t *app,
 {
     if (app == NULL || !app->initialized) return false;
     app->bold_labels = enabled;
+    if (app->paused) app->pause_frame_pending = true;
     return true;
 }
 
@@ -234,5 +253,7 @@ void d10s_spectrum_app_stop(d10s_spectrum_app_t *app)
     if (app == NULL || !app->initialized) return;
     d10s_spectrum_scanner_stop(&app->scanner);
     app->pending_band_valid = false;
+    app->paused = false;
+    app->pause_frame_pending = false;
     app->initialized = false;
 }
