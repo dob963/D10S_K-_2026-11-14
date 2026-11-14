@@ -184,9 +184,6 @@ static void test_rejects_irregular_frequency_grid(void)
     CHECK(!d10s_spectrum_process(&state, bins, 4u, &result));
 }
 
-#include "spectrum_plan.h"
-
-
 static void test_rejects_rssi_above_nine_bit_range(void)
 {
     d10s_spectrum_state_t state;
@@ -268,6 +265,137 @@ static void test_manual_band_change_resets_dwell(void)
     CHECK(plan.active_band == 0u);
 }
 
+typedef struct {
+    uint32_t frequency_hz;
+    uint32_t first_hz;
+    uint32_t step_hz;
+    uint32_t tune_calls;
+    uint32_t read_calls;
+    uint16_t noise_level;
+    uint16_t peak_level;
+    bool fail_tune;
+    bool fail_read;
+} fake_radio_t;
+
+static bool fake_radio_tune(void *context, uint32_t frequency_hz)
+{
+    fake_radio_t *radio = (fake_radio_t *)context;
+    if (radio->fail_tune) return false;
+    radio->frequency_hz = frequency_hz;
+    ++radio->tune_calls;
+    return true;
+}
+
+static bool fake_radio_read(void *context, uint16_t *rssi)
+{
+    fake_radio_t *radio = (fake_radio_t *)context;
+    uint32_t index;
+    if (radio->fail_read || rssi == 0) return false;
+    index = (radio->frequency_hz - radio->first_hz) / radio->step_hz;
+    *rssi = index == 2u ? radio->peak_level :
+            (uint16_t)(radio->noise_level + (index & 1u));
+    ++radio->read_calls;
+    return true;
+}
+
+static d10s_spectrum_scanner_status_t fake_run_until_sweep(
+        d10s_spectrum_scanner_t *scanner,
+        const d10s_spectrum_radio_ops_t *ops,
+        uint32_t *now_ms,
+        d10s_spectrum_result_t *result,
+        bool *band_changed)
+{
+    unsigned i;
+    d10s_spectrum_scanner_status_t status = D10S_SCANNER_BUSY;
+    for (i = 0u; i < 100u; ++i) {
+        status = d10s_spectrum_scanner_tick(scanner, ops, *now_ms,
+                                             result, band_changed);
+        *now_ms += 1u;
+        if (status != D10S_SCANNER_BUSY) return status;
+    }
+    return status;
+}
+
+static void test_scanner_acquires_and_confirms_signal(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 2u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 100u, .peak_level = 160u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+    unsigned sweep;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 3u));
+    for (sweep = 0u; sweep < 3u; ++sweep) {
+        CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                                   &result, &changed) == D10S_SCANNER_SWEEP_READY);
+        CHECK(!changed);
+    }
+    CHECK(result.confirmed);
+    CHECK(result.confirmed_level == 160u);
+    CHECK(fake.tune_calls == 15u);
+    CHECK(fake.read_calls == 15u);
+}
+
+static void test_scanner_resets_detector_on_band_change(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u},
+        {430000000u, 430004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 2u, NULL, 1u));
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(changed);
+    CHECK(scanner.plan.active_band == 1u);
+    CHECK(!scanner.detector.noise_initialized);
+    CHECK(!scanner.detector.peak_hold_valid);
+}
+
+static void test_scanner_rejects_radio_failures(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u, .fail_tune = true
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 2u));
+    CHECK(d10s_spectrum_scanner_tick(&scanner, &ops, 0u,
+                                     &result, &changed) == D10S_SCANNER_ERROR);
+    CHECK(d10s_spectrum_scanner_tick(&scanner, &ops, 1u,
+                                     &result, &changed) == D10S_SCANNER_ERROR);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -280,6 +408,9 @@ int main(void)
     test_rejects_irregular_frequency_grid();
     test_band_reset_clears_old_noise_and_peak();
     test_rejects_rssi_above_nine_bit_range();
+    test_scanner_acquires_and_confirms_signal();
+    test_scanner_resets_detector_on_band_change();
+    test_scanner_rejects_radio_failures();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
