@@ -81,7 +81,7 @@ static bool fake_read_data(bool *high, void *context)
     return true;
 }
 
-static bool fake_delay(uint32_t ticks, void *context)
+static bool fake_delay(uint16_t ticks, void *context)
 {
     fake_bus_t *bus = (fake_bus_t *)context;
     (void)ticks;
