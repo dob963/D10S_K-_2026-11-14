@@ -8,12 +8,6 @@ static bool command(d10s_st7565_t *d, uint8_t value)
            d->port.write_byte(value, d->port.context);
 }
 
-static bool data(d10s_st7565_t *d, uint8_t value)
-{
-    return d->port.data_mode(true, d->port.context) &&
-           d->port.write_byte(value, d->port.context);
-}
-
 bool d10s_st7565_init(d10s_st7565_t *d,
                       const d10s_st7565_port_t *p,
                       const d10s_st7565_config_t *c)
