@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #define D10S_SPECTRUM_MAX_BINS 256u
+#define D10S_NOISE_HISTORY_SWEEPS 5u
 
 typedef struct {
     uint32_t frequency_hz;
@@ -14,6 +15,7 @@ typedef struct {
 
 typedef struct {
     uint8_t noise_percentile;
+    uint8_t noise_history_percentile;
     uint16_t noise_margin;
     uint16_t min_peak_prominence;
     uint8_t confirm_sweeps;
@@ -39,6 +41,9 @@ typedef struct {
     d10s_spectrum_config_t config;
     bool noise_initialized;
     uint16_t noise_floor;
+    uint16_t noise_history[D10S_NOISE_HISTORY_SWEEPS];
+    uint8_t noise_history_count;
+    uint8_t noise_history_next;
     bool pending_valid;
     uint16_t pending_bin;
     uint8_t pending_streak;
