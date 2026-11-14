@@ -58,6 +58,8 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
                                 const d10s_spectrum_config_t *config,
                                 uint16_t settle_ms);
 void d10s_spectrum_scanner_stop(d10s_spectrum_scanner_t *scanner);
+/* Restart the active band's next complete sweep after an inspection pause. */
+bool d10s_spectrum_scanner_restart_sweep(d10s_spectrum_scanner_t *scanner);
 bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
                                      uint16_t settle_ms);
 /* In Turbo, settle_ms is the maximum; all stability timings are caller-set. */
