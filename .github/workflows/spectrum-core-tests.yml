@@ -21,7 +21,7 @@ jobs:
         run: cmake --build build --parallel
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
-      - name: Cross-compile detector for Cortex-M0+
+      - name: Cross-compile portable modules for Cortex-M0+
         run: |
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -c src/spectrum/spectrum_detect.c -o /tmp/d10s_spectrum_detect_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -c src/spectrum/spectrum_plan.c -o /tmp/d10s_spectrum_plan_arm.o
@@ -32,3 +32,5 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829.c -o /tmp/d10s_bk4829_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_timing.c -o /tmp/d10s_bk4829_timing_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/platform -c src/platform/st7565.c -o /tmp/d10s_st7565_arm.o
+      - name: Verify Makefile build and tests
+        run: make clean && make test
