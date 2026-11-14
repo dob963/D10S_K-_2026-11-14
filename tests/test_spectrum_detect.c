@@ -1,6 +1,7 @@
 #include "spectrum_detect.h"
 #include "spectrum_scanner.h"
 #include "spectrum_view.h"
+#include "mono128x64.h"
 #include "spectrum_plan.h"
 
 #include <stdio.h>
@@ -758,6 +759,82 @@ static void test_spectrum_view_rejects_invalid_rssi_and_band_count(void)
     CHECK(fake.pixel_writes == 0u);
 }
 
+static uint32_t count_framebuffer_bits(const d10s_mono128x64_t *display)
+{
+    uint16_t i;
+    uint32_t bits = 0u;
+    for (i = 0u; i < D10S_MONO128X64_BUFFER_BYTES; ++i) {
+        uint8_t value = display->bytes[i];
+        while (value != 0u) {
+            bits += (uint32_t)(value & 1u);
+            value >>= 1;
+        }
+    }
+    return bits;
+}
+
+static void test_mono128x64_pixel_layout_and_page_bounds(void)
+{
+    d10s_mono128x64_t display;
+    d10s_mono128x64_clear(&display, false);
+    d10s_mono128x64_pixel(&display, 0u, 0u, true);
+    d10s_mono128x64_pixel(&display, 127u, 63u, true);
+    CHECK(display.bytes[0] == 0x01u);
+    CHECK(display.bytes[1023] == 0x80u);
+    CHECK(d10s_mono128x64_page(&display, 0u) == &display.bytes[0]);
+    CHECK(d10s_mono128x64_page(&display, 7u) == &display.bytes[896]);
+    CHECK(d10s_mono128x64_page(&display, 8u) == 0);
+    d10s_mono128x64_clear(&display, true);
+    CHECK(count_framebuffer_bits(&display) == 8192u);
+    d10s_mono128x64_clear(&display, false);
+    CHECK(count_framebuffer_bits(&display) == 0u);
+}
+
+static void test_mono128x64_canvas_text_and_bold_style(void)
+{
+    d10s_mono128x64_t regular;
+    d10s_mono128x64_t bold;
+    d10s_spectrum_canvas_t regular_canvas;
+    d10s_spectrum_canvas_t bold_canvas;
+
+    d10s_mono128x64_clear(&regular, false);
+    d10s_mono128x64_clear(&bold, false);
+    d10s_mono128x64_bind(&regular, &regular_canvas);
+    d10s_mono128x64_bind(&bold, &bold_canvas);
+    CHECK(regular_canvas.pixel != 0);
+    CHECK(regular_canvas.text != 0);
+    regular_canvas.text(regular_canvas.context, 0u, 0u, "D10S", 0u);
+    bold_canvas.text(bold_canvas.context, 0u, 0u, "D10S",
+                     D10S_VIEW_TEXT_BOLD);
+    CHECK(count_framebuffer_bits(&regular) > 0u);
+    CHECK(count_framebuffer_bits(&bold) > count_framebuffer_bits(&regular));
+    CHECK(d10s_mono128x64_page(&bold, 0u)[0] != 0u);
+}
+
+static void test_mono128x64_framebuffer_with_spectrum_renderer(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {144000000u, 100u}, {144001000u, 110u}, {144002000u, 160u},
+        {144003000u, 120u}, {144004000u, 100u}
+    };
+    const d10s_spectrum_view_model_t model = {
+        .bins = bins, .count = 5u, .band_index = 0u, .band_count = 2u,
+        .attenuation_level = 2u, .turbo_enabled = true,
+        .noise_floor = 100u, .open_threshold = 120u,
+        .peak_hold_valid = true, .peak_hold_frequency_hz = 144002000u,
+        .cursor_valid = true, .cursor_bin = 2u,
+        .band_label = 0, .bold_labels = true
+    };
+    d10s_mono128x64_t display;
+    d10s_spectrum_canvas_t canvas;
+
+    d10s_mono128x64_clear(&display, false);
+    d10s_mono128x64_bind(&display, &canvas);
+    CHECK(d10s_spectrum_view_render(&canvas, &model));
+    CHECK(count_framebuffer_bits(&display) > 250u);
+    CHECK(count_framebuffer_bits(&display) < 8192u);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -784,6 +861,9 @@ int main(void)
     test_spectrum_view_draws_graph_and_status_labels();
     test_spectrum_view_rejects_invalid_snapshot();
     test_spectrum_view_rejects_invalid_rssi_and_band_count();
+    test_mono128x64_pixel_layout_and_page_bounds();
+    test_mono128x64_canvas_text_and_bold_style();
+    test_mono128x64_framebuffer_with_spectrum_renderer();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
