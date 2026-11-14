@@ -5,6 +5,7 @@ SPECTRUM_SOURCES = \
 	src/spectrum/spectrum_detect.c \
 	src/spectrum/spectrum_plan.c \
 	src/spectrum/spectrum_scanner.c \
+	src/app/spectrum_app.c \
 	src/ui/spectrum_view.c \
 	src/platform/mono128x64.c \
 	src/platform/st7565.c
@@ -21,11 +22,12 @@ INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio
 
 .PHONY: test clean
 
-test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter
+test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app
 	./build/test_spectrum_detect
 	./build/test_bk4829_bus
 	./build/test_st7565
 	./build/test_bk4829_scanner_adapter
+	./build/test_spectrum_app
 
 build/test_spectrum_detect: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_detect.c
 	mkdir -p build
@@ -45,3 +47,7 @@ clean:
 build/test_bk4829_scanner_adapter: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_scanner_adapter.c
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) $(RADIO_SOURCES) tests/test_bk4829_scanner_adapter.c -o $@
+
+build/test_spectrum_app: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_spectrum_app.c
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) $(RADIO_SOURCES) tests/test_spectrum_app.c -o $@
