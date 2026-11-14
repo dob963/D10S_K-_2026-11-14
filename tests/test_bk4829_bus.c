@@ -1,9 +1,16 @@
 #include "bk4829.h"
 #include "bk4829_timing.h"
 
-#include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#define CHECK(condition) do { \
+    if (!(condition)) { \
+        fprintf(stderr, "%s:%d: check failed: %s\\n", __FILE__, __LINE__, #condition); \
+        exit(EXIT_FAILURE); \
+    } \
+} while (0)
 
 typedef struct {
     bool csn, clock, output;
@@ -23,7 +30,7 @@ static bool rd(bool *v, void *c) {
     *v=b->input[b->input_index++]; return true;
 }
 static bool delay(uint16_t n, void *c) {
-    fake_bus_t *b=c; assert(n); if (b->fail_delay) { b->fail_delay=false; return false; }
+    fake_bus_t *b=c; CHECK(n); if (b->fail_delay) { b->fail_delay=false; return false; }
     return true;
 }
 static void append(bool *o,unsigned *n,uint16_t v,uint8_t width) {
@@ -36,46 +43,46 @@ int main(void) {
     uint32_t word=0u;
     memset(&b,0,sizeof(b)); b.csn=true; b.output=true;
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
-    assert(d10s_bk4829_write_register(&p,&t,0x25u,0xA55Au));
+    CHECK(d10s_bk4829_write_register(&p,&t,0x25u,0xA55Au));
     append(expected,&n,0x25u,8u); append(expected,&n,0xA55Au,16u);
-    assert(b.written_count==n && memcmp(b.written,expected,n)==0);
-    assert(b.csn && b.clock && b.output);
+    CHECK(b.written_count==n && memcmp(b.written,expected,n)==0);
+    CHECK(b.csn && b.clock && b.output);
 
     memset(&b,0,sizeof(b)); b.csn=true; b.output=true; b.input_count=16u;
     for(unsigned i=0;i<16u;i++) b.input[i]=((0xA1B2u>>(15u-i))&1u)!=0u;
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
-    assert(d10s_bk4829_read_register(&p,&t,0x26u,&value));
+    CHECK(d10s_bk4829_read_register(&p,&t,0x26u,&value));
     n=0u; append(expected,&n,0xA6u,8u);
-    assert(b.written_count==n && memcmp(b.written,expected,n)==0);
-    assert(value==0xA1B2u && b.input_index==16u && b.csn && b.clock && b.output);
+    CHECK(b.written_count==n && memcmp(b.written,expected,n)==0);
+    CHECK(value==0xA1B2u && b.input_index==16u && b.csn && b.clock && b.output);
 
     memset(&b,0,sizeof(b)); b.csn=true; b.output=true; b.input_count=16u;
     for(unsigned i=0;i<16u;i++) b.input[i]=true;
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
-    assert(d10s_bk4829_read_raw_rssi(&p,&t,&rssi) && rssi==511u);
-    assert(d10s_bk4829_frequency_supported(18000000u));
-    assert(d10s_bk4829_frequency_supported(580000000u));
-    assert(d10s_bk4829_frequency_supported(760000000u));
-    assert(d10s_bk4829_frequency_supported(1160000000u));
-    assert(!d10s_bk4829_frequency_supported(600000000u));
-    assert(!d10s_bk4829_frequency_supported(1300000000u));
-    assert(d10s_bk4829_frequency_to_word(144000000u,&word) && word==14400000u);
-    assert(!d10s_bk4829_frequency_to_word(144000001u,&word));
-    assert(!d10s_bk4829_frequency_to_word(144000000u,0));
+    CHECK(d10s_bk4829_read_raw_rssi(&p,&t,&rssi) && rssi==511u);
+    CHECK(d10s_bk4829_frequency_supported(18000000u));
+    CHECK(d10s_bk4829_frequency_supported(580000000u));
+    CHECK(d10s_bk4829_frequency_supported(760000000u));
+    CHECK(d10s_bk4829_frequency_supported(1160000000u));
+    CHECK(!d10s_bk4829_frequency_supported(600000000u));
+    CHECK(!d10s_bk4829_frequency_supported(1300000000u));
+    CHECK(d10s_bk4829_frequency_to_word(144000000u,&word) && word==14400000u);
+    CHECK(!d10s_bk4829_frequency_to_word(144000001u,&word));
+    CHECK(!d10s_bk4829_frequency_to_word(144000000u,0));
 
     memset(&b,0,sizeof(b)); b.csn=true; b.output=true; b.fail_delay=true;
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
-    assert(!d10s_bk4829_write_register(&p,&t,0x20u,0u));
-    assert(b.csn && b.clock && b.output);
-    assert(!d10s_bk4829_write_register(&p,&t,0x80u,0u));
-    assert(!d10s_bk4829_read_register(&p,&t,0x20u,0));
+    CHECK(!d10s_bk4829_write_register(&p,&t,0x20u,0u));
+    CHECK(b.csn && b.clock && b.output);
+    CHECK(!d10s_bk4829_write_register(&p,&t,0x80u,0u));
+    CHECK(!d10s_bk4829_read_register(&p,&t,0x20u,0));
     {
         d10s_bk4829_bus_timing_t built = {0u, 0u};
-        assert(!d10s_bk4829_build_timing(0u, &built));
-        assert(d10s_bk4829_build_timing(1000000u, &built));
-        assert(built.half_period_ticks == 1u && built.turnaround_ticks == 1u);
-        assert(d10s_bk4829_build_timing(48000000u, &built));
-        assert(built.half_period_ticks == 2u && built.turnaround_ticks == 48u);
+        CHECK(!d10s_bk4829_build_timing(0u, &built));
+        CHECK(d10s_bk4829_build_timing(1000000u, &built));
+        CHECK(built.half_period_ticks == 1u && built.turnaround_ticks == 1u);
+        CHECK(d10s_bk4829_build_timing(48000000u, &built));
+        CHECK(built.half_period_ticks == 2u && built.turnaround_ticks == 48u);
     }
     puts("BK4829 bus tests: PASS"); return 0;
 }
