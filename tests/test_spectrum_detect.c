@@ -431,6 +431,11 @@ static void test_scanner_att_compensation_and_boundary_rules(void)
     CHECK(fake.attenuation_level == 2u);
     CHECK(scanner.attenuation_configured);
     CHECK(scanner.rssi_compensation == 20u);
+    CHECK(d10s_spectrum_scanner_tick(&scanner, &ops, 0u,
+                                     &result, &changed) == D10S_SCANNER_BUSY);
+    CHECK(!d10s_spectrum_scanner_set_attenuation(&scanner, &ops, 1u, 10u));
+    CHECK(fake.attenuation_level == 2u);
+    now_ms = 1u;
     CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
                                &result, &changed) == D10S_SCANNER_SWEEP_READY);
     CHECK(result.candidate_valid);
