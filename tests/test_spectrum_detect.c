@@ -370,7 +370,7 @@ static void test_scanner_resets_detector_on_band_change(void)
         .noise_level = 90u, .peak_level = 150u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -396,7 +396,7 @@ static void test_scanner_rejects_radio_failures(void)
         .noise_level = 90u, .peak_level = 150u, .fail_tune = true
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
