@@ -1,24 +1,20 @@
 #include "bk4829_timing.h"
 
-#include <limits.h>
-
-static uint64_t ceil_div(uint64_t n, uint64_t d)
-{
-    return n / d + ((n % d) != 0u ? 1u : 0u);
-}
+#define D10S_BK4829_EDGE_DELAY_CYCLES 35u
 
 bool d10s_bk4829_build_timing(uint32_t delay_tick_hz,
                               d10s_bk4829_bus_timing_t *timing)
 {
-    uint64_t half;
-    uint64_t turnaround;
-    if (delay_tick_hz == 0u || timing == 0) return false;
-    half = ceil_div((uint64_t)delay_tick_hz * 25u, 1000000000u);
-    turnaround = ceil_div(delay_tick_hz, 1000000u);
-    if (half == 0u) half = 1u;
-    if (turnaround == 0u) turnaround = 1u;
-    if (half > UINT16_MAX || turnaround > UINT16_MAX) return false;
-    timing->half_period_ticks = (uint16_t)half;
-    timing->turnaround_ticks = (uint16_t)turnaround;
+    /*
+     * The pinned UV-K1 V3 driver uses a 35-NOP SHORT_DELAY between BK4829
+     * serial edges and after the SDA direction turnaround. The PY32 SysTick
+     * backend counts HCLK cycles, so 35 ticks preserve that cycle-based delay
+     * regardless of whether the bootloader left HCLK at 8, 48 or 72 MHz.
+     */
+    if (delay_tick_hz < 1000000u || delay_tick_hz > 72000000u ||
+        timing == 0) return false;
+
+    timing->half_period_ticks = D10S_BK4829_EDGE_DELAY_CYCLES;
+    timing->turnaround_ticks = D10S_BK4829_EDGE_DELAY_CYCLES;
     return true;
 }
