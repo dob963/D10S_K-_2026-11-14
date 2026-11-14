@@ -56,9 +56,13 @@ static bool estimate_noise_floor(d10s_spectrum_state_t *state,
 static bool valid_frequency_grid(const d10s_spectrum_bin_t *bins, size_t count)
 {
     size_t i;
+    uint32_t step;
     if (count < 3u) return false;
-    for (i = 1u; i < count; ++i) {
-        if (bins[i].frequency_hz <= bins[i - 1u].frequency_hz) return false;
+    if (bins[1].frequency_hz <= bins[0].frequency_hz) return false;
+    step = bins[1].frequency_hz - bins[0].frequency_hz;
+    for (i = 2u; i < count; ++i) {
+        if (bins[i].frequency_hz <= bins[i - 1u].frequency_hz ||
+            bins[i].frequency_hz - bins[i - 1u].frequency_hz != step) return false;
     }
     return true;
 }
