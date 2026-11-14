@@ -46,8 +46,21 @@ static void test_spectrum_present_renders_and_flushes_complete_frame(void)
         {145000000u, 96u}, {145012500u, 155u}, {145025000u, 104u}
     };
     d10s_spectrum_view_model_t model = {
-        bins, 3u, 0u, 1u, 0u, false, 90u, 110u,
-        false, 0u, false, 0u, "VHF", true
+        .bins = bins,
+        .count = 3u,
+        .band_index = 0u,
+        .band_count = 1u,
+        .attenuation_level = 0u,
+        .turbo_enabled = false,
+        .hold_enabled = false,
+        .noise_floor = 90u,
+        .open_threshold = 110u,
+        .peak_hold_valid = false,
+        .peak_hold_frequency_hz = 0u,
+        .cursor_valid = false,
+        .cursor_bin = 0u,
+        .band_label = "VHF",
+        .bold_labels = true
     };
     unsigned i;
     unsigned nonzero_data = 0u;
