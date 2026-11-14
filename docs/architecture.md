@@ -18,9 +18,11 @@ Bootloader reported for the target unit: 7.03.01 (must be re-read before any rel
 4. Candidate peak gate with multi-pass confirmation; one isolated sample cannot open a signal.
 5. Local frequency refinement around a confirmed candidate.
 6. Peak hold and stable display update.
-7. ATT/LNA state tracked explicitly; attenuation changes must not silently shift the reported level.
-8. Optional blacklist and signal-memory handling, kept separate from the acquisition loop.
-9. EXP/cursor frequency derived from the active band's own frequency grid.
+7. ATT state tracked explicitly; attenuation changes must not silently shift the reported level. Any compensation is measured in raw RSSI units.
+8. Completed sweeps are published as stable, band-tagged snapshots; no partial buffer is exposed to the display.
+9. Delay can be changed only at a sweep boundary. Turbo remains a separate adaptive acquisition policy, not a blind reduction of settling time.
+10. Optional blacklist and signal-memory handling, kept separate from the acquisition loop.
+11. EXP/cursor frequency derived from the displayed snapshot's stored frequency data and band tag.
 
 ## Required bug protections
 - First memory slot must preserve its channel/name metadata.
