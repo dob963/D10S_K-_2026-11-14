@@ -31,6 +31,7 @@ def main() -> int:
         fail(f"image too large ({len(data)} bytes; limit {MAX_IMAGE_BYTES})")
 
     vectors = struct.unpack_from("<48I", data)
+    image_end = min(FLASH_BASE + len(data), FLASH_LIMIT)
     initial_sp, reset_vector = vectors[0], vectors[1]
 
     if initial_sp != RAM_LIMIT:
@@ -41,8 +42,8 @@ def main() -> int:
     reset_address = reset_vector & ~1
     if (reset_vector & 1) == 0:
         fail("Reset_Handler vector does not have the Thumb bit set")
-    if not (FLASH_BASE <= reset_address < FLASH_LIMIT):
-        fail(f"Reset_Handler 0x{reset_vector:08X} is outside the application flash region")
+    if not (FLASH_BASE <= reset_address < image_end):
+        fail(f"Reset_Handler 0x{reset_vector:08X} does not point into the built image")
 
     reserved = set(range(4, 11)) | {12, 13, 46}  # IRQ30 is reserved on PY32F071
     for index, vector in enumerate(vectors[1:], start=1):
@@ -53,8 +54,8 @@ def main() -> int:
         address = vector & ~1
         if (vector & 1) == 0:
             fail(f"vector {index} has no Thumb bit")
-        if not (FLASH_BASE <= address < FLASH_LIMIT):
-            fail(f"vector {index} points outside application flash: 0x{vector:08X}")
+        if not (FLASH_BASE <= address < image_end):
+            fail(f"vector {index} does not point into the built image: 0x{vector:08X}")
 
     print(
         "STRUCTURAL IMAGE CHECK PASSED: "
