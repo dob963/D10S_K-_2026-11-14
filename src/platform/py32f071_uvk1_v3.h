@@ -13,7 +13,8 @@ typedef bool (*d10s_py32_delay_ticks_fn)(uint16_t ticks, void *context);
 typedef struct {
     d10s_py32_delay_ms_fn delay_ms;
     d10s_py32_delay_ticks_fn delay_ticks;
-    void *delay_context;
+    void *delay_ms_context;
+    void *delay_ticks_context;
     bool gpio_ready;
     bool spi_ready;
 } d10s_py32f071_uvk1_v3_t;
