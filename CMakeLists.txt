@@ -8,6 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 add_library(d10s_spectrum_core
     src/spectrum/spectrum_detect.c
     src/spectrum/spectrum_plan.c
+    src/spectrum/spectrum_scanner.c
 )
 target_include_directories(d10s_spectrum_core PUBLIC src/spectrum)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
