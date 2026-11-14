@@ -1,4 +1,5 @@
 #include "spectrum_detect.h"
+#include "spectrum_plan.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -183,6 +184,77 @@ static void test_rejects_irregular_frequency_grid(void)
     CHECK(!d10s_spectrum_process(&state, bins, 4u, &result));
 }
 
+#include "spectrum_plan.h"
+
+static void test_band_grid_boundaries(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144100000u, 9u, 2u}
+    };
+    d10s_spectrum_plan_t plan;
+    uint32_t frequency = 0u;
+
+    CHECK(d10s_spectrum_plan_init(&plan, bands, 1u));
+    CHECK(d10s_spectrum_plan_frequency(&plan, 0u, &frequency));
+    CHECK(frequency == 144000000u);
+    CHECK(d10s_spectrum_plan_frequency(&plan, 4u, &frequency));
+    CHECK(frequency == 144050000u);
+    CHECK(d10s_spectrum_plan_frequency(&plan, 8u, &frequency));
+    CHECK(frequency == 144100000u);
+    CHECK(!d10s_spectrum_plan_frequency(&plan, 9u, &frequency));
+}
+
+static void test_multi_band_dwell_and_rotation(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144070000u, 8u, 2u},
+        {430000000u, 430070000u, 8u, 1u}
+    };
+    d10s_spectrum_plan_t plan;
+
+    CHECK(d10s_spectrum_plan_init(&plan, bands, 2u));
+    CHECK(!d10s_spectrum_plan_complete_sweep(&plan));
+    CHECK(plan.active_band == 0u);
+    CHECK(d10s_spectrum_plan_complete_sweep(&plan));
+    CHECK(plan.active_band == 1u);
+    CHECK(plan.sweeps_on_band == 0u);
+    CHECK(d10s_spectrum_plan_complete_sweep(&plan));
+    CHECK(plan.active_band == 0u);
+}
+
+static void test_invalid_band_definitions(void)
+{
+    const d10s_spectrum_band_t too_few = {100u, 200u, 2u, 1u};
+    const d10s_spectrum_band_t irregular = {100u, 210u, 4u, 1u};
+    const d10s_spectrum_band_t no_dwell = {100u, 200u, 3u, 0u};
+    const d10s_spectrum_band_t reversed = {200u, 100u, 3u, 1u};
+    d10s_spectrum_plan_t plan;
+
+    CHECK(!d10s_spectrum_band_is_valid(&too_few));
+    CHECK(!d10s_spectrum_band_is_valid(&irregular));
+    CHECK(!d10s_spectrum_band_is_valid(&no_dwell));
+    CHECK(!d10s_spectrum_band_is_valid(&reversed));
+    CHECK(!d10s_spectrum_plan_init(&plan, &too_few, 1u));
+}
+
+static void test_manual_band_change_resets_dwell(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {100u, 200u, 3u, 3u},
+        {300u, 400u, 3u, 1u}
+    };
+    d10s_spectrum_plan_t plan;
+
+    CHECK(d10s_spectrum_plan_init(&plan, bands, 2u));
+    CHECK(!d10s_spectrum_plan_complete_sweep(&plan));
+    CHECK(plan.sweeps_on_band == 1u);
+    CHECK(d10s_spectrum_plan_select_band(&plan, 1u));
+    CHECK(plan.sweeps_on_band == 0u);
+    CHECK(!d10s_spectrum_plan_select_band(&plan, 1u));
+    CHECK(d10s_spectrum_plan_complete_sweep(&plan));
+    CHECK(plan.active_band == 0u);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -194,6 +266,10 @@ int main(void)
     test_rejects_invalid_frequency_grid();
     test_rejects_irregular_frequency_grid();
     test_band_reset_clears_old_noise_and_peak();
+    test_band_grid_boundaries();
+    test_multi_band_dwell_and_rotation();
+    test_invalid_band_definitions();
+    test_manual_band_change_resets_dwell();
     puts("D10S Spectrum detector tests: PASS");
     return 0;
 }
