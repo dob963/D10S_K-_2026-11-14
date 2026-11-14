@@ -13,6 +13,7 @@ add_library(d10s_spectrum_core
     src/platform/mono128x64.c
     src/radio/bk4829_bus.c
     src/radio/bk4829.c
+    src/radio/bk4829_timing.c
 )
 target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform src/radio)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
