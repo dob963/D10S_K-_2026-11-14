@@ -170,6 +170,7 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
     uint16_t peak_bin = 0u;
     bool peak_x_valid = false;
     uint8_t style;
+    uint32_t cursor_frequency_hz = 0u;
     char frequency_text[16];
 
     if (canvas == 0 || canvas->pixel == 0 || model == 0 ||
@@ -246,10 +247,9 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         draw_line(canvas, cursor_x, GRAPH_TOP, cursor_x, GRAPH_BOTTOM, true);
         if (canvas->text != 0 &&
             d10s_spectrum_view_cursor_frequency(model, model->cursor_bin,
-                                                &model->bins[0].frequency_hz)) {
+                                                &cursor_frequency_hz)) {
             /* The text is formatted from the selected snapshot's stored bin. */
-            format_frequency(model->bins[model->cursor_bin].frequency_hz,
-                             frequency_text);
+            format_frequency(cursor_frequency_hz, frequency_text);
             canvas->text(canvas->context, 0u, 56u, frequency_text,
                          model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u);
         }
