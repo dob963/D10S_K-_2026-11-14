@@ -206,7 +206,7 @@ bool d10s_py32f071_uvk1_v3_keypad_init(
 
 bool d10s_py32f071_uvk1_v3_keypad_poll(
     d10s_py32f071_uvk1_v3_t *board,
-    d10s_py32f071_uvk1_v3_key_t *key)
+    d10s_spectrum_key_t *key)
 {
     static const d10s_py32f071_uvk1_v3_key_t keymap[5][4] = {
         {D10S_KEY_SIDE1, D10S_KEY_SIDE2, D10S_KEY_NONE, D10S_KEY_NONE},
