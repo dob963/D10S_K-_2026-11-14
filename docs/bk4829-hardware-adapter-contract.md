@@ -33,6 +33,12 @@ The scanner's fixed settling delay or Turbo stability polling happens before its
 - Do not claim that an ATT step corresponds to a calibrated dB value.
 - Any compensation passed to the scanner must come from measurements for the same board, band, and ATT state, expressed in raw RSSI units.
 
+## Source-derived reference profile (not a hardware sign-off)
+
+`src/radio/bk4829_uvk1_v3_profile.c` contains an opt-in profile derived from the complete pinned upstream BK4829 initialization and RX/LNA routines. Its provenance, Apache-2.0 license copy, modified-file notice and relevant upstream attribution are recorded in `THIRD_PARTY_NOTICES.md` and `LICENSES/Apache-2.0.txt`.
+
+The profile follows the source driver's GPIO3/UHF-LNA and GPIO4/VHF-LNA selection bits. It does not set GPIO0 as an assumed RX-enable signal. The upstream source is evidence for that firmware/board lineage, not proof that every UV-K1 V3 PCB revision has identical RF switching. Keep the profile opt-in until the exact board and RF path are checked with hardware measurements.
+
 ## Bring-up sequence and release blockers
 
 1. Confirm exact MCU marking, PCB revision, and UV-K1 V3 variant.
