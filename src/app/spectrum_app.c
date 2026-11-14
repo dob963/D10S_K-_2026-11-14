@@ -24,6 +24,7 @@ bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
     app->cursor_bin = 0u;
     app->cursor_enabled = false;
     app->bold_labels = true;
+    app->peak_hold_visible = true;
     app->last_result = (d10s_spectrum_result_t){0};
     d10s_mono128x64_clear(&app->framebuffer, false);
     app->initialized = true;
@@ -77,7 +78,7 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         .turbo_enabled = app->scanner.turbo_enabled,
         .noise_floor = result.noise_floor,
         .open_threshold = result.open_threshold,
-        .peak_hold_valid = result.peak_hold_valid,
+        .peak_hold_valid = app->peak_hold_visible && result.peak_hold_valid,
         .peak_hold_frequency_hz = result.peak_hold_frequency_hz,
         .cursor_valid = app->cursor_enabled && app->cursor_bin < count,
         .cursor_bin = app->cursor_bin,
@@ -147,6 +148,10 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
 
     case D10S_KEY_F:
         return d10s_spectrum_app_set_bold_labels(app, !app->bold_labels);
+
+    case D10S_KEY_STAR:
+        app->peak_hold_visible = !app->peak_hold_visible;
+        return true;
 
     case D10S_KEY_1:
     case D10S_KEY_2:
