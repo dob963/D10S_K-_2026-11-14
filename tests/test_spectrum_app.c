@@ -159,6 +159,7 @@ static void test_complete_spectrum_application_pipeline(void)
         CHECK(app.paused && app.pause_frame_pending);
         CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_FRAME_UPDATED);
         CHECK(app.paused && !app.pause_frame_pending);
+        CHECK((app.framebuffer.bytes[70u] & (1u << 1)) != 0u);
         CHECK(hw.bytes_written == bytes_before_pause + 8u * 131u);
 
         for (idle_tick = 1u; idle_tick <= 10u; ++idle_tick)
