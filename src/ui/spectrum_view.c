@@ -146,6 +146,8 @@ static void draw_header(const d10s_spectrum_canvas_t *canvas,
     canvas->text(canvas->context, 34u, 1u,
                  model->band_label != 0 ? model->band_label : label, style);
     canvas->text(canvas->context, 91u, 1u, att, style);
+    if (model->hold_enabled)
+        canvas->text(canvas->context, 70u, 1u, "H", style);
     if (model->turbo_enabled)
         canvas->text(canvas->context, 122u, 1u, "T", style);
 }
