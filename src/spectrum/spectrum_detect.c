@@ -1,0 +1,213 @@
+#include "spectrum_detect.h"
+
+static void clear_bytes(void *memory, size_t length)
+{
+    uint8_t *bytes = (uint8_t *)memory;
+    size_t i;
+    for (i = 0u; i < length; ++i) bytes[i] = 0u;
+}
+
+static uint16_t clamp_u16(uint32_t value)
+{
+    return value > UINT16_MAX ? UINT16_MAX : (uint16_t)value;
+}
+
+static void sort_u16(uint16_t *values, size_t count)
+{
+    size_t i;
+    for (i = 1u; i < count; ++i) {
+        const uint16_t value = values[i];
+        size_t j = i;
+        while (j > 0u && values[j - 1u] > value) {
+            values[j] = values[j - 1u];
+            --j;
+        }
+        values[j] = value;
+    }
+}
+
+static bool estimate_noise_floor(d10s_spectrum_state_t *state,
+                                 const d10s_spectrum_bin_t *bins,
+                                 size_t count)
+{
+    uint16_t sorted[D10S_SPECTRUM_MAX_BINS];
+    size_t i;
+    size_t percentile_index;
+    uint16_t observation;
+
+    if (count == 0u || count > D10S_SPECTRUM_MAX_BINS) return false;
+
+    for (i = 0u; i < count; ++i) sorted[i] = bins[i].rssi;
+    sort_u16(sorted, count);
+    percentile_index = ((count - 1u) * state->config.noise_percentile) / 100u;
+    observation = sorted[percentile_index];
+
+    if (!state->noise_initialized) {
+        state->noise_floor = observation;
+        state->noise_initialized = true;
+    } else {
+        const uint32_t filtered =
+            ((uint32_t)state->noise_floor * 3u + observation + 2u) / 4u;
+        state->noise_floor = clamp_u16(filtered);
+    }
+    return true;
+}
+
+static bool valid_frequency_grid(const d10s_spectrum_bin_t *bins, size_t count)
+{
+    size_t i;
+    if (count < 3u) return false;
+    for (i = 1u; i < count; ++i) {
+        if (bins[i].frequency_hz <= bins[i - 1u].frequency_hz) return false;
+    }
+    return true;
+}
+
+static uint32_t refined_frequency(const d10s_spectrum_bin_t *bins, size_t index)
+{
+    const int32_t left = (int32_t)bins[index - 1u].rssi;
+    const int32_t center = (int32_t)bins[index].rssi;
+    const int32_t right = (int32_t)bins[index + 1u].rssi;
+    const int32_t denominator = left - (2 * center) + right;
+    const int32_t numerator = left - right;
+    int32_t offset_q8 = 0;
+    const uint32_t span =
+        bins[index + 1u].frequency_hz - bins[index - 1u].frequency_hz;
+    int64_t frequency;
+
+    if (denominator < 0) {
+        offset_q8 = (128 * numerator) / denominator;
+        if (offset_q8 > 128) offset_q8 = 128;
+        if (offset_q8 < -128) offset_q8 = -128;
+    }
+    frequency = (int64_t)bins[index].frequency_hz +
+                ((int64_t)span * offset_q8) / 512;
+    if (frequency < 0) return 0u;
+    if (frequency > UINT32_MAX) return UINT32_MAX;
+    return (uint32_t)frequency;
+}
+
+static bool find_peak(const d10s_spectrum_state_t *state,
+                      const d10s_spectrum_bin_t *bins,
+                      size_t count,
+                      uint16_t threshold,
+                      size_t *peak_index)
+{
+    size_t i;
+    bool found = false;
+    uint16_t best_level = 0u;
+
+    for (i = 1u; i + 1u < count; ++i) {
+        const uint16_t level = bins[i].rssi;
+        const uint16_t neighbor =
+            bins[i - 1u].rssi > bins[i + 1u].rssi
+                ? bins[i - 1u].rssi : bins[i + 1u].rssi;
+        const uint16_t prominence =
+            level > neighbor ? (uint16_t)(level - neighbor) : 0u;
+
+        if (level < threshold || level < bins[i - 1u].rssi ||
+            level < bins[i + 1u].rssi) continue;
+        if (level == bins[i - 1u].rssi && level == bins[i + 1u].rssi) continue;
+        if (prominence < state->config.min_peak_prominence) continue;
+        if (!found || level > best_level) {
+            found = true;
+            best_level = level;
+            *peak_index = i;
+        }
+    }
+    return found;
+}
+
+void d10s_spectrum_default_config(d10s_spectrum_config_t *config)
+{
+    if (config == NULL) return;
+    config->noise_percentile = 20u;
+    config->noise_margin = 12u;
+    config->min_peak_prominence = 5u;
+    config->confirm_sweeps = 3u;
+    config->confirm_tolerance_bins = 1u;
+}
+
+void d10s_spectrum_init(d10s_spectrum_state_t *state,
+                        const d10s_spectrum_config_t *config)
+{
+    d10s_spectrum_config_t defaults;
+    if (state == NULL) return;
+    d10s_spectrum_default_config(&defaults);
+    clear_bytes(state, sizeof(*state));
+    state->config = config != NULL ? *config : defaults;
+    if (state->config.noise_percentile > 100u)
+        state->config.noise_percentile = 100u;
+    if (state->config.confirm_sweeps == 0u)
+        state->config.confirm_sweeps = 1u;
+}
+
+void d10s_spectrum_reset_tracking(d10s_spectrum_state_t *state)
+{
+    if (state == NULL) return;
+    state->pending_valid = false;
+    state->pending_bin = 0u;
+    state->pending_streak = 0u;
+    state->peak_hold_valid = false;
+    state->peak_hold_frequency_hz = 0u;
+    state->peak_hold_level = 0u;
+}
+
+bool d10s_spectrum_process(d10s_spectrum_state_t *state,
+                           const d10s_spectrum_bin_t *bins,
+                           size_t count,
+                           d10s_spectrum_result_t *result)
+{
+    uint16_t threshold;
+    size_t peak_index = 0u;
+    bool candidate_found;
+
+    if (state == NULL || bins == NULL || result == NULL ||
+        count < 3u || count > D10S_SPECTRUM_MAX_BINS ||
+        !valid_frequency_grid(bins, count)) return false;
+
+    clear_bytes(result, sizeof(*result));
+    if (!estimate_noise_floor(state, bins, count)) return false;
+    threshold = clamp_u16((uint32_t)state->noise_floor + state->config.noise_margin);
+    result->noise_floor = state->noise_floor;
+    result->open_threshold = threshold;
+
+    candidate_found = find_peak(state, bins, count, threshold, &peak_index);
+    if (!candidate_found) {
+        state->pending_valid = false;
+        state->pending_streak = 0u;
+    } else {
+        const uint32_t frequency = refined_frequency(bins, peak_index);
+        result->candidate_valid = true;
+        result->candidate_frequency_hz = frequency;
+        result->candidate_level = bins[peak_index].rssi;
+
+        if (state->pending_valid &&
+            (peak_index + state->config.confirm_tolerance_bins >= state->pending_bin) &&
+            (state->pending_bin + state->config.confirm_tolerance_bins >= peak_index)) {
+            if (state->pending_streak < UINT8_MAX) ++state->pending_streak;
+        } else {
+            state->pending_valid = true;
+            state->pending_streak = 1u;
+        }
+        state->pending_bin = (uint16_t)peak_index;
+        result->candidate_streak = state->pending_streak;
+
+        if (state->pending_streak >= state->config.confirm_sweeps) {
+            result->confirmed = true;
+            result->confirmed_frequency_hz = frequency;
+            result->confirmed_level = bins[peak_index].rssi;
+            if (!state->peak_hold_valid ||
+                bins[peak_index].rssi >= state->peak_hold_level) {
+                state->peak_hold_valid = true;
+                state->peak_hold_frequency_hz = frequency;
+                state->peak_hold_level = bins[peak_index].rssi;
+            }
+        }
+    }
+
+    result->peak_hold_valid = state->peak_hold_valid;
+    result->peak_hold_frequency_hz = state->peak_hold_frequency_hz;
+    result->peak_hold_level = state->peak_hold_level;
+    return true;
+}
