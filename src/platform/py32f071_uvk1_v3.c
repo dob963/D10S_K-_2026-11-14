@@ -208,7 +208,7 @@ bool d10s_py32f071_uvk1_v3_keypad_poll(
     d10s_py32f071_uvk1_v3_t *board,
     d10s_spectrum_key_t *key)
 {
-    static const d10s_py32f071_uvk1_v3_key_t keymap[5][4] = {
+    static const d10s_spectrum_key_t keymap[5][4] = {
         {D10S_KEY_SIDE1, D10S_KEY_SIDE2, D10S_KEY_NONE, D10S_KEY_NONE},
         {D10S_KEY_MENU, D10S_KEY_1, D10S_KEY_4, D10S_KEY_7},
         {D10S_KEY_UP, D10S_KEY_2, D10S_KEY_5, D10S_KEY_8},
@@ -216,7 +216,7 @@ bool d10s_py32f071_uvk1_v3_keypad_poll(
         {D10S_KEY_EXIT, D10S_KEY_STAR, D10S_KEY_0, D10S_KEY_F}
     };
     const uint32_t row_mask = 0xF000u;
-    d10s_py32f071_uvk1_v3_key_t detected = D10S_KEY_NONE;
+    d10s_spectrum_key_t detected = D10S_KEY_NONE;
     bool multiple = false;
     uint8_t column;
 
@@ -259,7 +259,7 @@ bool d10s_py32f071_uvk1_v3_keypad_poll(
                 }
             }
             if (pressed_count == 1u) {
-                const d10s_py32f071_uvk1_v3_key_t candidate =
+                const d10s_spectrum_key_t candidate =
                     keymap[column][pressed_row];
                 if (candidate != D10S_KEY_NONE) {
                     if (detected != D10S_KEY_NONE) multiple = true;
