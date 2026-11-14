@@ -26,6 +26,11 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
     scanner->rssi_compensation = 0u;
     scanner->attenuation_level = 0u;
     scanner->attenuation_configured = false;
+    scanner->published_generation = 0u;
+    scanner->published_band_index = 0u;
+    scanner->published_attenuation_level = 0u;
+    scanner->published_count = 0u;
+    scanner->published_valid = false;
     scanner->phase = SCANNER_PHASE_TUNE;
     return true;
 }
@@ -49,7 +54,50 @@ bool d10s_spectrum_scanner_set_attenuation(
     scanner->attenuation_level = level;
     scanner->rssi_compensation = measured_raw_rssi_offset;
     scanner->attenuation_configured = true;
+    scanner->published_valid = false;
     d10s_spectrum_reset_tracking(&scanner->detector);
+    return true;
+}
+
+bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
+                                     uint16_t settle_ms)
+{
+    if (scanner == 0 || settle_ms == 0u ||
+        scanner->phase != SCANNER_PHASE_TUNE || scanner->bin_index != 0u)
+        return false;
+    scanner->settle_ms = settle_ms;
+    return true;
+}
+
+bool d10s_spectrum_scanner_select_band(d10s_spectrum_scanner_t *scanner,
+                                       uint8_t band_index)
+{
+    if (scanner == 0 || scanner->phase != SCANNER_PHASE_TUNE ||
+        scanner->bin_index != 0u) return false;
+    if (!d10s_spectrum_plan_select_band(&scanner->plan, band_index))
+        return false;
+
+    scanner->published_valid = false;
+    scanner->current_frequency_hz = 0u;
+    d10s_spectrum_reset_tracking(&scanner->detector);
+    return true;
+}
+
+bool d10s_spectrum_scanner_snapshot(const d10s_spectrum_scanner_t *scanner,
+                                    const d10s_spectrum_bin_t **bins,
+                                    uint16_t *count,
+                                    uint8_t *band_index,
+                                    uint8_t *attenuation_level,
+                                    uint32_t *generation)
+{
+    if (scanner == 0 || bins == 0 || count == 0 ||
+        !scanner->published_valid) return false;
+    *bins = scanner->published_bins;
+    *count = scanner->published_count;
+    if (band_index != 0) *band_index = scanner->published_band_index;
+    if (attenuation_level != 0)
+        *attenuation_level = scanner->published_attenuation_level;
+    if (generation != 0) *generation = scanner->published_generation;
     return true;
 }
 
@@ -139,6 +187,17 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
                                    result)) {
             scanner->phase = SCANNER_PHASE_FAILED;
             return D10S_SCANNER_ERROR;
+        }
+
+        {
+            uint16_t i;
+            scanner->published_count = band->bin_count;
+            scanner->published_band_index = scanner->plan.active_band;
+            scanner->published_attenuation_level = scanner->attenuation_level;
+            for (i = 0u; i < band->bin_count; ++i)
+                scanner->published_bins[i] = scanner->bins[i];
+            ++scanner->published_generation;
+            scanner->published_valid = true;
         }
 
         changed = d10s_spectrum_plan_complete_sweep(&scanner->plan);
