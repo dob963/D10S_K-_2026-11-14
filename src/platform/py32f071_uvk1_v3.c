@@ -52,11 +52,11 @@ typedef struct {
     volatile uint32_t APBENR2;
 } d10s_rcc_regs_t;
 
-#define D10S_RCC   ((d10s_rcc_regs_t *)0x40021000u)
-#define D10S_SPI1  ((d10s_spi_regs_t *)0x40013000u)
-#define D10S_GPIOA ((d10s_gpio_regs_t *)0x50000000u)
-#define D10S_GPIOB ((d10s_gpio_regs_t *)0x50000400u)
-#define D10S_GPIOF ((d10s_gpio_regs_t *)0x50001400u)
+#define D10S_RCC   ((d10s_rcc_regs_t *)(uintptr_t)0x40021000u)
+#define D10S_SPI1  ((d10s_spi_regs_t *)(uintptr_t)0x40013000u)
+#define D10S_GPIOA ((d10s_gpio_regs_t *)(uintptr_t)0x50000000u)
+#define D10S_GPIOB ((d10s_gpio_regs_t *)(uintptr_t)0x50000400u)
+#define D10S_GPIOF ((d10s_gpio_regs_t *)(uintptr_t)0x50001400u)
 
 #define D10S_RCC_GPIOA_EN (1u << 0)
 #define D10S_RCC_GPIOB_EN (1u << 1)
@@ -139,8 +139,6 @@ static void pin_alternate_init(d10s_gpio_regs_t *gpio, uint8_t pin,
 static bool gpio_init(d10s_py32f071_uvk1_v3_t *board)
 {
     if (board == NULL) return false;
-    if (board->gpio_ready) return true;
-
     D10S_RCC->IOPENR |= D10S_RCC_GPIOA_EN |
                        D10S_RCC_GPIOB_EN |
                        D10S_RCC_GPIOF_EN;
