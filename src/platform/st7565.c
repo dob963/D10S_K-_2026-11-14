@@ -76,7 +76,7 @@ bool d10s_st7565_flush_page(d10s_st7565_t *d, uint8_t page,
     if (!d->port.data_mode(true, d->port.context)) ok = false;
     for (i = 0u; i < D10S_ST7565_WIDTH && ok; ++i)
         ok = d->port.write_byte(pixels[i], d->port.context);
-    if (!d->port.chip_select(true, d->port.context)) ok = false;
+    if (!d->port.chip_select(false, d->port.context)) ok = false;
     return ok;
 }
 
