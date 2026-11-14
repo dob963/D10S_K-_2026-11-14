@@ -13,4 +13,6 @@ Derived register defaults and receive/LNA state transitions from:
 
 The D10S files are modified adaptations: register writes use the D10S bus API, receiver callbacks are separated from the scanner's frequency write, and profile failures attempt a fail-closed stop. The D10S source files contain a notice identifying these changes.
 
+Relevant attribution from the upstream repository's NOTICE: the UV-K1/UV-K5 V3 port is joint work by muzkr and Armel / F4HWN, and the underlying BK4819-compatible driver carries the Dual Tachyon and muzkr copyright notices. Upstream project: https://github.com/armel/uv-k1-k5v3-firmware-custom. Attribution does not imply endorsement.
+
 No Karina or F4HWN Spectrum code is included in the D10S detector, planner, scanner, view, or framebuffer.
