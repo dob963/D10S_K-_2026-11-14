@@ -17,6 +17,11 @@ bool d10s_bk4829_frequency_supported(uint32_t frequency_hz);
 /* Datasheet frequency word: 10 Hz units. Reject unsupported/non-exact values. */
 bool d10s_bk4829_frequency_to_word(uint32_t frequency_hz,
                                    uint32_t *frequency_word);
+/* Writes REG_38 then REG_39; caller controls RX mode transitions. */
+bool d10s_bk4829_write_frequency(const d10s_bk4829_bus_port_t *port,
+                                 const d10s_bk4829_bus_timing_t *timing,
+                                 uint32_t frequency_hz);
+
 /* Raw 9-bit RSSI only. This function never reports dBm. */
 bool d10s_bk4829_read_raw_rssi(const d10s_bk4829_bus_port_t *port,
                                const d10s_bk4829_bus_timing_t *timing,
