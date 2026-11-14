@@ -9,8 +9,9 @@ add_library(d10s_spectrum_core
     src/spectrum/spectrum_detect.c
     src/spectrum/spectrum_plan.c
     src/spectrum/spectrum_scanner.c
+    src/ui/spectrum_view.c
 )
-target_include_directories(d10s_spectrum_core PUBLIC src/spectrum)
+target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
 
 add_executable(test_spectrum_detect tests/test_spectrum_detect.c)
