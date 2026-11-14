@@ -1,6 +1,6 @@
 # BK4829 hardware adapter contract
 
-Status: portable bus and scanner adapter implemented; an opt-in source-derived UV-K1 V3 RX-mode/LNA profile is present, but the physical board port is not verified.
+Status: portable bus/scanner adapter, source-derived RX-mode/LNA profile and a candidate PY32F071 GPIO/SPI callback backend are implemented. The pin map and timing are not physically verified on the user's board.
 
 ## Boundary
 
@@ -12,6 +12,7 @@ The portable scanner uses d10s_spectrum_radio_ops_t. The hardware adapter maps t
 - bk4829.c: frequency-word conversion, REG_38/REG_39 writes, and 9-bit REG_67 RSSI extraction.
 - bk4829_scanner_adapter.c: scanner bridge, including first RSSI conversion discard after each tune.
 - bk4829_uvk1_v3_profile.c: opt-in baseline and RX-mode sequence plus VHF/UHF LNA selector derived from the pinned upstream UV-K1 V3 BK4829 driver. See docs/bk4829-uvk1-v3-profile.md.
+- py32f071_uvk1_v3.c: candidate PF9/PB8/PB9 three-wire BK4829 GPIO callbacks and PA5/PA7/PB2/PA6 ST7565 SPI/GPIO callbacks. Calibrated delay callbacks must be supplied by the target application.
 
 ## Required callback behavior
 
@@ -36,14 +37,14 @@ The portable scanner uses d10s_spectrum_radio_ops_t. The hardware adapter maps t
 ## Bring-up gates
 
 1. Confirm exact UV-K1 V3 PCB revision and MCU marking.
-2. Check continuity and pin direction for PF9/PB8/PB9; these are only candidate pins from the pinned Armel target source.
+2. Check continuity and pin direction for PF9/PB8/PB9 and PA5/PA7/PB2/PA6; these are candidate pins from the pinned Armel target source and now have a source-level D10S GPIO/SPI backend.
 3. Confirm whether the radio's board uses the same BK4829 GPIO-controlled RF paths and 28 MHz split.
 4. Identify and verify the external RX-enable / RF-switch path; do not assume GPIO0 is connected in the same way.
 5. Verify BK4829 reset, clock, baseline init, RX mode, antenna switch and both LNA paths on a current-limited/debug setup.
 6. Verify tuning with known RF signals; current adapter returns programmed frequency, not a measured PLL lock frequency.
 7. Measure RSSI repeatability, first-sample discard, AGC settling and Delay/Turbo behavior by band.
 8. Measure ATT steps and only then supply compensation offsets.
-9. Port the ST7565 GPIO/SPI callbacks and validate display orientation/contrast.
+9. Supply calibrated millisecond/tick delay callbacks, then validate the ST7565 GPIO/SPI mapping, display orientation and contrast on the physical LCD.
 10. Complete startup/linker/vector integration; inspect the ARM map and RAM/stack budget.
 11. Test bootloader/DFU and normal startup on the exact radio before any BIN is called flashable.
 
