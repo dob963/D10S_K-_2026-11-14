@@ -33,7 +33,7 @@ Bootloader reported for the target unit: 7.03.01 (must be re-read before any rel
 - platform/: clock, GPIO, SPI, timing and display bus.
 - radio/: BK4829 bus, verified RX setup, tuning, RSSI and attenuation.
 - spectrum/: scheduler, noise estimator, peak confirmation/refinement and peak hold.
-- ui/: Karina-inspired layout, display primitives, cursor and settings. The portable 128x64 graph renderer is implemented; ST7565 transport and font integration are not yet wired.
+- ui/: Karina-inspired layout, display primitives, cursor and settings. The portable 128x64 graph renderer, framebuffer and callback-based ST7565 page transport are implemented and host-tested; the PY32F071 SPI/GPIO backend, physical panel validation and final font/layout tuning remain outstanding.
 - tests/: host-side deterministic tests for frequency grids, detector and state transitions.
 
 ## Release gates
