@@ -77,7 +77,7 @@ bool d10s_bk4829_uvk1_v3_resume_rx(uint32_t frequency_hz, void *context)
                    (uint16_t)(GPIO_STATE_BASE | lna_state))) return false;
 
     profile->current_frequency_hz = frequency_hz;
-    profile->receiver_on = true;
+    profile->rx_mode_configured = true;
     return true;
 }
 
@@ -91,7 +91,7 @@ bool d10s_bk4829_uvk1_v3_stop_rx(void *context)
 
     path_off = write_reg(profile, 0x33u, GPIO_STATE_BASE);
     receiver_off = write_reg(profile, 0x30u, 0x0000u);
-    profile->receiver_on = false;
+    profile->rx_mode_configured = false;
     return path_off && receiver_off;
 }
 
@@ -111,7 +111,7 @@ bool d10s_bk4829_uvk1_v3_initialize_rx(
         (initial_frequency_hz % 10u) != 0u) return false;
 
     profile->bus_valid = false;
-    profile->receiver_on = false;
+    profile->rx_mode_configured = false;
     profile->current_frequency_hz = 0u;
     profile->bus = *bus;
     profile->timing = *timing;
