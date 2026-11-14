@@ -118,7 +118,7 @@ ASSERT((ADDR(.isr_vector) & 0x7F) == 0,
        "Vector table must be 128-byte aligned")
 ASSERT(SIZEOF(.isr_vector) >= 192,
        "PY32F071 vector table is incomplete")
-ASSERT((_ebss + 0x800) <= _estack,
+ASSERT((_end + 0x800) <= _estack,
        "RAM overflow: 2 KiB minimum stack reservation not available")
 ASSERT((LOADADDR(.data) + SIZEOF(.data)) <=
        (ORIGIN(FLASH) + LENGTH(FLASH)),
