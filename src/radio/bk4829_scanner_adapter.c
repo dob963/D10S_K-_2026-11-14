@@ -2,6 +2,14 @@
 
 #include <stddef.h>
 
+static void fail_closed(d10s_bk4829_scanner_adapter_t *a)
+{
+    if (a == NULL) return;
+    a->ready = false;
+    a->discard_first_rssi = false;
+    if (a->stop_rx != NULL) (void)a->stop_rx(a->context);
+}
+
 static bool tune_hz(void *context, uint32_t requested_hz,
                     uint32_t *actual_hz)
 {
@@ -13,7 +21,7 @@ static bool tune_hz(void *context, uint32_t requested_hz,
 
     if (!d10s_bk4829_write_frequency(&a->bus, &a->timing, requested_hz) ||
         !a->resume_rx(requested_hz, a->context)) {
-        a->ready = false;
+        fail_closed(a);
         return false;
     }
 
@@ -31,13 +39,13 @@ static bool read_rssi(void *context, uint16_t *rssi)
 
     if (a->discard_first_rssi) {
         if (!d10s_bk4829_read_raw_rssi(&a->bus, &a->timing, &discarded)) {
-            a->ready = false;
+            fail_closed(a);
             return false;
         }
         a->discard_first_rssi = false;
     }
     if (!d10s_bk4829_read_raw_rssi(&a->bus, &a->timing, rssi)) {
-        a->ready = false;
+        fail_closed(a);
         return false;
     }
     return true;
@@ -49,11 +57,12 @@ bool d10s_bk4829_scanner_adapter_init(
     const d10s_bk4829_bus_timing_t *timing,
     d10s_bk4829_rx_init_fn initialize_rx,
     d10s_bk4829_rx_resume_fn resume_rx,
+    d10s_bk4829_rx_stop_fn stop_rx,
     uint32_t initial_frequency_hz,
     void *context)
 {
     if (a == NULL || bus == NULL || timing == NULL ||
-        initialize_rx == NULL || resume_rx == NULL ||
+        initialize_rx == NULL || resume_rx == NULL || stop_rx == NULL ||
         !d10s_bk4829_frequency_supported(initial_frequency_hz) ||
         (initial_frequency_hz % 10u) != 0u ||
         timing->half_period_ticks == 0u ||
@@ -65,9 +74,12 @@ bool d10s_bk4829_scanner_adapter_init(
     a->bus = *bus;
     a->timing = *timing;
     a->resume_rx = resume_rx;
+    a->stop_rx = stop_rx;
     a->context = context;
-    if (!initialize_rx(&a->bus, &a->timing, initial_frequency_hz, context))
+    if (!initialize_rx(&a->bus, &a->timing, initial_frequency_hz, context)) {
+        (void)stop_rx(context);
         return false;
+    }
     a->ready = true;
     return true;
 }
@@ -76,8 +88,7 @@ void d10s_bk4829_scanner_adapter_stop(
     d10s_bk4829_scanner_adapter_t *a)
 {
     if (a == NULL) return;
-    a->ready = false;
-    a->discard_first_rssi = false;
+    fail_closed(a);
 }
 
 void d10s_bk4829_scanner_adapter_bind(
