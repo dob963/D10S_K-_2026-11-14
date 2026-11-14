@@ -16,7 +16,9 @@ The code in src/spectrum/ currently provides:
 - Stable display snapshots: only complete sweeps are published; the displayed band and ATT setting are included with the snapshot.
 - Delay control: settling delay can be changed at a sweep boundary;
 - Optional Turbo: early RSSI-stability exit with a bounded maximum delay, all timing/tolerance values caller-configured;
-- ATT interface: manual level change at a sweep boundary, with caller-supplied measured compensation in raw RSSI units.
+- ATT interface: manual level change at a sweep boundary, with caller-supplied measured compensation in raw RSSI units;
+- 128x64 graph renderer: RSSI trace, grid, adaptive threshold line, held-peak marker, cursor, and frequency label from the published snapshot;
+- Display callback supports normal or moderately bold text without tying the view to a specific LCD driver.
 
 RSSI is raw relative 9-bit data (0..511), **not calibrated dBm**. No dB values or ATT offsets are invented.
 
@@ -36,11 +38,11 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-GitHub Actions runs the host tests and compiles all three portable C modules as freestanding ARM Cortex-M0+ objects.
+GitHub Actions runs the host tests and compiles all four portable C modules as freestanding ARM Cortex-M0+ objects.
 
 ## Current status — not a flashable firmware
 
-This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX driver, LCD/keyboard integration, the target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. Do not flash test outputs or intermediate objects.
+This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX driver, LCD/keyboard integration, the target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. The new 128x64 renderer is LCD-driver-independent; it is not yet wired to the ST7565 SPI/refresh driver. Do not flash test outputs or intermediate objects.
 
 The scanner currently allocates two 256-point buffers (about 4 KiB on the 32-bit ABI, before state and stack). The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
 
