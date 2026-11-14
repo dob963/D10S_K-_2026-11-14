@@ -63,6 +63,7 @@ The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit A
 - [BK4829 hardware adapter contract and bring-up gates](docs/bk4829-hardware-adapter-contract.md)
 - [BK4829 upstream RSSI and board evidence](docs/bk4829-upstream-evidence.md)
 - [BK4829 RF operating windows](docs/bk4829-rf-limits.md)
+- [ST7565 display backend and target port](docs/st7565-platform-port.md)
 - [Karina-inspired Spectrum behavior requirements](docs/reference-behavior.md)
 
 The UI direction is the requested Karina-style Spectrum workflow, not the F4HWN Spectrum screen. The reference behavior is documented separately; no Karina or F4HWN Spectrum source has been copied into the portable detector, band planner, or scanner.
