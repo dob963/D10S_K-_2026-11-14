@@ -61,7 +61,7 @@ The scanner reserves two 256-point buffers (about 4 KiB on a 32-bit ABI) plus th
 - BK4829 UV-K1 V3 profile: docs/bk4829-uvk1-v3-profile.md
 - ST7565 backend and target port: docs/st7565-platform-port.md
 - Integrated application layer: docs/application-layer.md
-- Karina-inspired Spectrum behavior: docs/reference-behavior.md
+- Spectrum behavior requirements and source review: docs/reference-behavior.md
 - Third-party notices: THIRD_PARTY_NOTICES.md
 
-The UI follows the requested Karina-inspired Spectrum workflow, not the F4HWN Spectrum screen. No Karina or F4HWN Spectrum source is copied into the D10S detector, scan planner, scanner, view renderer or framebuffer.
+The UI is an independent advanced Spectrum design. No application source from other firmware projects is copied into the D10S detector, scan planner, scanner, view renderer or framebuffer.
