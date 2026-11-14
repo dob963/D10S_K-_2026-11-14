@@ -15,6 +15,7 @@ SPECTRUM_HEADERS = \
 	src/spectrum/spectrum_plan.h \
 	src/spectrum/spectrum_scanner.h \
 	src/ui/spectrum_view.h \
+	src/ui/spectrum_key.h \
 	src/platform/mono128x64.h \
 	src/app/spectrum_app.h \
 	src/platform/st7565.h \
