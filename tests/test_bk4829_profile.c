@@ -136,14 +136,14 @@ static void test_uvk1_profile_initializes_and_enables_rx_path(void)
     CHECK(write_seen(&fake, 0x38u, (uint16_t)word));
     CHECK(write_seen(&fake, 0x39u, (uint16_t)(word >> 16)));
     CHECK(write_seen(&fake, 0x33u, 0x9008u));
-    CHECK(write_seen(&fake, 0x33u, 0x9048u));
+    CHECK(!write_seen(&fake, 0x33u, 0x9048u));
 
     before = fake.register_count;
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(27000000u, &profile));
     CHECK(profile.current_frequency_hz == 27000000u);
     CHECK(write_seen(&fake, 0x33u, 0x9004u));
-    CHECK(write_seen(&fake, 0x33u, 0x9044u));
-    CHECK(fake.register_count == before + 2u);
+    CHECK(!write_seen(&fake, 0x33u, 0x9044u));
+    CHECK(fake.register_count == before + 1u);
 
     before = fake.register_count;
     CHECK(!d10s_bk4829_uvk1_v3_resume_rx(600000000u, &profile));
