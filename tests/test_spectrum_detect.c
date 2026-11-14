@@ -1,7 +1,14 @@
 #include "spectrum_detect.h"
 
-#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#define CHECK(condition) do { \
+    if (!(condition)) { \
+        fprintf(stderr, "%s:%d: check failed: %s\n", __FILE__, __LINE__, #condition); \
+        exit(EXIT_FAILURE); \
+    } \
+} while (0)
 
 static void make_noise_sweep(d10s_spectrum_bin_t *bins, size_t count, uint16_t base)
 {
@@ -23,7 +30,7 @@ static void test_confirmation_and_peak_hold(void)
     for (sweep = 0u; sweep < 3u; ++sweep) {
         make_noise_sweep(bins, 21u, 100u);
         bins[10].rssi = 160u;
-        assert(d10s_spectrum_process(&state, bins, 21u, &result));
+        CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
         assert(result.candidate_valid);
         assert(result.candidate_streak == (uint8_t)(sweep + 1u));
         assert(result.confirmed == (sweep == 2u));
