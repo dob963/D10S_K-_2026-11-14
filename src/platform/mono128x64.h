@@ -25,5 +25,8 @@ const uint8_t *d10s_mono128x64_page(const d10s_mono128x64_t *display,
                                     uint8_t page);
 bool d10s_mono128x64_flush(const d10s_mono128x64_t *display,
                            d10s_st7565_t *controller);
+bool d10s_mono128x64_present(d10s_mono128x64_t *display,
+                             d10s_st7565_t *controller,
+                             const d10s_spectrum_view_model_t *model);
 
 #endif
