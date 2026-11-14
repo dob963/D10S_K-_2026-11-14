@@ -28,6 +28,7 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -c src/spectrum/spectrum_scanner.c -o /tmp/d10s_spectrum_scanner_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/app -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -c src/app/spectrum_app.c -o /tmp/d10s_spectrum_app_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/ui -c src/ui/spectrum_view.c -o /tmp/d10s_spectrum_view_arm.o
+          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/ui -c src/ui/spectrum_key.c -o /tmp/d10s_spectrum_key_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/ui -Isrc/platform -c src/platform/mono128x64.c -o /tmp/d10s_mono128x64_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/platform -c src/platform/st7565.c -o /tmp/d10s_st7565_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_bus.c -o /tmp/d10s_bk4829_bus_arm.o
