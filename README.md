@@ -52,6 +52,8 @@ The scanner currently allocates two 256-point buffers (about 4 KiB on the 32-bit
 - [Evidence and release gates](docs/evidence-and-release-gates.md)
 - [Spectrum algorithm and scanner](docs/spectrum-algorithm.md)
 - [Upstream platform review](docs/upstream-review.md)
+- [BK4829 hardware adapter contract and bring-up gates](docs/bk4829-hardware-adapter-contract.md)
+- [BK4829 upstream RSSI and board evidence](docs/bk4829-upstream-evidence.md)
 - [Karina-inspired Spectrum behavior requirements](docs/reference-behavior.md)
 
 The UI direction is the requested Karina-style Spectrum workflow, not the F4HWN Spectrum screen. The reference behavior is documented separately; no Karina or F4HWN Spectrum source has been copied into the portable detector, band planner, or scanner.
