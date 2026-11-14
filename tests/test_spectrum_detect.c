@@ -186,6 +186,19 @@ static void test_rejects_irregular_frequency_grid(void)
 
 #include "spectrum_plan.h"
 
+
+static void test_rejects_rssi_above_nine_bit_range(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[3] = {
+        {100000u, 100u}, {110000u, 512u}, {120000u, 100u}
+    };
+    d10s_spectrum_init(&state, NULL);
+    CHECK(!d10s_spectrum_process(&state, bins, 3u, &result));
+    CHECK(!state.noise_initialized);
+}
+
 static void test_band_grid_boundaries(void)
 {
     const d10s_spectrum_band_t bands[] = {
@@ -266,6 +279,7 @@ int main(void)
     test_rejects_invalid_frequency_grid();
     test_rejects_irregular_frequency_grid();
     test_band_reset_clears_old_noise_and_peak();
+    test_rejects_rssi_above_nine_bit_range();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
