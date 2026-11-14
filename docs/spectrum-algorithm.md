@@ -20,6 +20,8 @@ The scanner keeps a work buffer and a separate published buffer. The display acc
 
 The Delay setter accepts a new nonzero settle interval only at the beginning of a sweep. This prevents changing timing while a frequency is already waiting for settling or while a sweep contains mixed acquisition conditions.
 
+Turbo is an optional adaptive RSSI-stability polling mode. It waits for the configured minimum settle time, samples RSSI at the configured poll interval, and accepts a measurement when the configured number of consecutive readings stay within the configured raw-RSSI delta. If stability is not reached, it takes a final measurement at the Delay maximum and advances, so a noisy receiver cannot stall the scan indefinitely. Turbo defaults off. The minimum delay, poll interval, stability tolerance and stable sample count are all supplied by the application; they must be tuned from real-radio logs. A stable early reading is not proof of RF settling on every receiver, so Turbo must not be treated as hardware-validated until compared with normal-delay sweeps.
+
 The radio adapter supplies only `tune_hz(requested, &actual)` and `read_rssi(&raw_value)`. This keeps all BK4829 register access and the board's LNA/RF path out of the portable scanner until those details are verified for the exact PCB.
 
 ## ATT handling
@@ -47,6 +49,7 @@ The scanner exposes a manual ATT callback. ATT changes are allowed only at a swe
 - Frequency movement tolerance: 1 bin
 - Maximum bins: 256
 - Maximum bands: 8
+- Turbo: disabled by default; min delay, poll interval, raw-RSSI stability delta and stable sample count are application-supplied
 
 These values are initial algorithm defaults, not hardware-calibrated constants. They must be tuned using measured sweeps from the exact UV-K1 board and receiver configuration.
 
@@ -54,4 +57,4 @@ The percentile estimator assumes that most bins in a sweep are not occupied by s
 
 ## Current validation
 
-The portable C modules are covered by host tests for detector confirmation, single-sweep spike rejection, rolling noise-floor robustness, 9-bit RSSI validation, sub-bin interpolation, band-grid validation and rotation, simulated tune/settle/read acquisition, ATT compensation and failure handling, complete-sweep snapshots, manual band invalidation and sweep-boundary Delay changes. The scanner contains two fixed 256-bin buffers; this reserves approximately 4 KiB on the current 32-bit data layout, excluding detector state and stack. Clang reports a maximum single stack frame of 592 bytes in the percentile estimator; callers must account for nested call depth and interrupt stack in the final RAM budget. All three portable modules compile as freestanding ARM Cortex-M0+ objects with Clang. Neither check validates RF performance, the BK4829 register sequence, LCD rendering, bootloader compatibility, or a flashable application image.
+The portable C modules are covered by host tests for detector confirmation, single-sweep spike rejection, rolling noise-floor robustness, 9-bit RSSI validation, sub-bin interpolation, band-grid validation and rotation, simulated tune/settle/read acquisition, ATT compensation and failure handling, complete-sweep snapshots, manual band invalidation, sweep-boundary Delay changes, early Turbo exit on stable RSSI, and Turbo maximum-delay fallback. The scanner contains two fixed 256-bin buffers; this reserves approximately 4 KiB on the current 32-bit data layout, excluding detector state and stack. Clang reports a maximum single stack frame of 592 bytes in the percentile estimator; callers must account for nested call depth and interrupt stack in the final RAM budget. All three portable modules compile as freestanding ARM Cortex-M0+ objects with Clang. Neither check validates RF performance, the BK4829 register sequence, LCD rendering, bootloader compatibility, or a flashable application image.
