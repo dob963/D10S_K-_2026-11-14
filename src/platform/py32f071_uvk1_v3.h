@@ -30,7 +30,8 @@ typedef struct {
 /*
  * Pin mapping follows the pinned UV-K1 V3 platform reference and remains
  * subject to continuity checks on the actual PCB revision.
- * Delay callbacks are mandatory; their timing must be measured/calibrated.
+ * Either supply calibrated delay callbacks or initialize the built-in SysTick
+ * backend with the measured core clock before requesting the _systick ports.
  */
 bool d10s_py32f071_uvk1_v3_systick_init(
     d10s_py32f071_uvk1_v3_t *board,
