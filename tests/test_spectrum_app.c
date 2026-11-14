@@ -113,7 +113,7 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(!hw.selected);
     CHECK(app.last_result.confirmed);
     CHECK(app.last_result.confirmed_level == 180u);
-    CHECK(app.framebuffer.bytes[0] != 0u);
+    CHECK(app.framebuffer.bytes[1] != 0u);
     d10s_spectrum_app_stop(&app);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_ERROR);
 }
