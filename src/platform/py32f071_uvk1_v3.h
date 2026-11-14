@@ -47,6 +47,9 @@ bool d10s_py32f071_uvk1_v3_systick_init_from_rcc(
     uint32_t hse_clock_hz);
 uint32_t d10s_py32f071_uvk1_v3_millis(
     d10s_py32f071_uvk1_v3_t *board);
+bool d10s_py32f071_uvk1_v3_set_backlight(
+    d10s_py32f071_uvk1_v3_t *board,
+    bool enabled);
 bool d10s_py32f071_uvk1_v3_keypad_init(
     d10s_py32f071_uvk1_v3_t *board);
 bool d10s_py32f071_uvk1_v3_keypad_poll(
