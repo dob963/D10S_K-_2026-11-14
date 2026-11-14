@@ -73,6 +73,41 @@ static void test_noise_floor_tracks_background(void)
     assert(result.noise_floor >= 110u);
 }
 
+static void test_one_noisy_sweep_does_not_drag_noise_floor(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    uint16_t baseline;
+
+    d10s_spectrum_init(&state, NULL);
+    make_noise_sweep(bins, 21u, 80u);
+    assert(d10s_spectrum_process(&state, bins, 21u, &result));
+    baseline = result.noise_floor;
+    make_noise_sweep(bins, 21u, 130u);
+    assert(d10s_spectrum_process(&state, bins, 21u, &result));
+    make_noise_sweep(bins, 21u, 80u);
+    assert(d10s_spectrum_process(&state, bins, 21u, &result));
+    assert(result.noise_floor == baseline);
+}
+
+static void test_nine_bit_rssi_is_preserved(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    unsigned sweep;
+
+    d10s_spectrum_init(&state, NULL);
+    for (sweep = 0u; sweep < 3u; ++sweep) {
+        make_noise_sweep(bins, 21u, 200u);
+        bins[10].rssi = 500u;
+        assert(d10s_spectrum_process(&state, bins, 21u, &result));
+    }
+    assert(result.confirmed);
+    assert(result.confirmed_level == 500u);
+}
+
 static void test_sub_bin_frequency_refinement(void)
 {
     d10s_spectrum_config_t config;
@@ -124,6 +159,8 @@ int main(void)
     test_confirmation_and_peak_hold();
     test_single_sweep_spike_is_not_confirmed();
     test_noise_floor_tracks_background();
+    test_one_noisy_sweep_does_not_drag_noise_floor();
+    test_nine_bit_rssi_is_preserved();
     test_sub_bin_frequency_refinement();
     test_rejects_invalid_frequency_grid();
     test_rejects_irregular_frequency_grid();
