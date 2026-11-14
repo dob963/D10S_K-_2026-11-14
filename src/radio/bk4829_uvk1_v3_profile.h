@@ -24,7 +24,7 @@ typedef struct {
     d10s_bk4829_bus_timing_t timing;
     uint32_t current_frequency_hz;
     bool bus_valid;
-    bool receiver_on;
+    bool rx_mode_configured;
 } d10s_bk4829_uvk1_v3_profile_t;
 
 /*
