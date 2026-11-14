@@ -34,3 +34,4 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/platform -c src/platform/st7565.c -o /tmp/d10s_st7565_arm.o
       - name: Verify Makefile build and tests
         run: make clean && make test
+          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_scanner_adapter.c -o /tmp/d10s_bk4829_scanner_adapter_arm.o
