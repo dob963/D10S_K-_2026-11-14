@@ -9,7 +9,8 @@
 
 typedef struct {
     void *context;
-    bool (*tune_hz)(void *context, uint32_t frequency_hz);
+    bool (*tune_hz)(void *context, uint32_t requested_hz,
+                    uint32_t *actual_hz);
     bool (*read_rssi)(void *context, uint16_t *rssi);
 } d10s_spectrum_radio_ops_t;
 
