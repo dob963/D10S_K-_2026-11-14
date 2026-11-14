@@ -74,7 +74,8 @@ static bool radio_read(void *context, uint16_t *rssi)
 static void test_complete_spectrum_application_pipeline(void)
 {
     const d10s_spectrum_band_t bands[] = {
-        {144000000u, 144004000u, 5u, 1u}
+        {144000000u, 144004000u, 5u, 1u},
+        {145000000u, 145004000u, 5u, 1u}
     };
     fake_hardware_t hw = {0};
     const d10s_st7565_port_t lcd_port = {
@@ -94,9 +95,8 @@ static void test_complete_spectrum_application_pipeline(void)
     hw.first_hz = 144000000u;
     CHECK(d10s_st7565_init(&display, &lcd_port, &lcd_config));
     hw.bytes_written = 0u;
-    CHECK(d10s_spectrum_app_init(&app, bands, 1u, &radio, &display,
+    CHECK(d10s_spectrum_app_init(&app, bands, 2u, &radio, &display,
                                  NULL, 1u));
-    CHECK(d10s_spectrum_app_set_cursor(&app, true, 2u));
     CHECK(d10s_spectrum_app_set_bold_labels(&app, true));
 
     for (now_ms = 0u; now_ms < 45u; ++now_ms) {
@@ -114,6 +114,30 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(app.last_result.confirmed);
     CHECK(app.last_result.confirmed_level == 180u);
     CHECK(app.framebuffer.bytes[1] != 0u);
+    CHECK(app.scanner.published_count == 5u);
+
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_MENU));
+    CHECK(app.cursor_enabled && app.cursor_bin == 2u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_UP));
+    CHECK(app.cursor_bin == 1u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_SIDE1));
+    CHECK(app.cursor_bin == 3u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_SIDE2));
+    CHECK(app.cursor_bin == 1u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_DOWN));
+    CHECK(app.cursor_bin == 2u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_F));
+    CHECK(!app.bold_labels);
+
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_2));
+    CHECK(app.pending_band_valid && app.pending_band_index == 1u);
+    CHECK(d10s_spectrum_app_tick(&app, now_ms) != D10S_APP_ERROR);
+    CHECK(!app.pending_band_valid && app.scanner.plan.active_band == 1u);
+
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_EXIT));
+    CHECK(!app.cursor_enabled);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_0));
+    CHECK(app.cursor_enabled && app.cursor_bin == 2u);
     d10s_spectrum_app_stop(&app);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_ERROR);
 }
