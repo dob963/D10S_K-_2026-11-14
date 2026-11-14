@@ -140,6 +140,15 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(d10s_spectrum_app_tick(&app, now_ms) != D10S_APP_ERROR);
     CHECK(!app.pending_band_valid && app.scanner.plan.active_band == 1u);
 
+    /* Complete one sweep on the newly selected band before pausing. */
+    {
+        unsigned warm_tick;
+        for (warm_tick = 1u; warm_tick <= 30u; ++warm_tick)
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + warm_tick) !=
+                  D10S_APP_ERROR);
+        now_ms += 30u;
+    }
+
     /* Freeze the last complete sweep for inspection, without more RF scans. */
     {
         const uint32_t tune_before_pause = hw.tune_calls;
