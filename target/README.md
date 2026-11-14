@@ -11,7 +11,7 @@ This folder contains the first integrated target entry point for the receive-onl
 - Reported memory: 128 KiB flash / 16 KiB SRAM; application flash region is configured as 118 KiB.
 - Initial scan spans: 144–146 MHz and 430–440 MHz, 129 bins (128 exact intervals) per band. The grids are validated to divide evenly in Hz.
 - Initial settle: 8 ms per bin. This is a provisional value, not a hardware-measured optimum.
-- Initial mode: receive-only. No PTT, transmit, beacon or messenger path is implemented.
+- Initial mode: receive-only. Key 9 freezes the last complete sweep for inspection and resumes scanning on the next press. No PTT, transmit, beacon or messenger path is implemented.
 
 ## Startup and linker
 
