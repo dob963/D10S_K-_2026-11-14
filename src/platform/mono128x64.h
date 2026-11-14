@@ -2,6 +2,7 @@
 #define D10S_MONO128X64_H
 
 #include "spectrum_view.h"
+#include "st7565.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -22,5 +23,7 @@ void d10s_mono128x64_bind(d10s_mono128x64_t *display,
                           d10s_spectrum_canvas_t *canvas);
 const uint8_t *d10s_mono128x64_page(const d10s_mono128x64_t *display,
                                     uint8_t page);
+bool d10s_mono128x64_flush(const d10s_mono128x64_t *display,
+                           d10s_st7565_t *controller);
 
 #endif
