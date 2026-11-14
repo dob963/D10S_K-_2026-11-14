@@ -18,7 +18,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - 128x64 Spectrum graph with RSSI trace, threshold line, peak marker, cursor and frequency label.
 - 1-bit framebuffer with normal and moderately bold 5x7 text.
 - ST7565 page-addressing and eight-page flush controller, with UV-K1 V3 power sequencing, page clearing, reverse-SEG orientation and column offset defaults.
-- A PY32F071 GPIO/SPI callback backend now maps the source-derived UV-K1 V3 pins; calibrated delay callbacks, physical pinout confirmation, keypad integration and LCD validation remain outstanding.
+- PY32F071 GPIO/SPI callbacks and a debounced keypad matrix scanner are implemented against the source-derived UV-K1 V3 pin map. Physical pinout, debounce, display and key-to-control behavior still need radio validation.
 
 ### BK4829
 - Three-wire register read/write bus, timing calculation, frequency conversion and raw 9-bit REG_67 RSSI.
@@ -44,7 +44,7 @@ GitHub Actions executes host tests, Makefile tests and freestanding ARM Cortex-M
 
 ## Current status — not a flashable firmware
 
-The portable Spectrum application and source-derived UV-K1 V3 BK4829 profile are now in the build and host test suites. They are **not yet validated on the user's physical radio**. The profile is an opt-in reference based on one upstream V3 source revision; it is not proof that the exact radio PCB has the same RF path, GPIO routing, LNA or switch wiring. A source-derived PY32F071 GPIO/SPI backend and a SysTick delay option are implemented. The built-in timing requires the measured core-clock frequency; alternatively, external calibrated delay callbacks can be supplied. The pin map has not been checked electrically on the user's PCB. The confirmed PCB revision, measured RX/AGC/LNA behavior, keypad integration, target startup/linker integration and complete linked firmware image are still missing.
+The portable Spectrum application and source-derived UV-K1 V3 BK4829 profile are now in the build and host test suites. They are **not yet validated on the user's physical radio**. The profile is an opt-in reference based on one upstream V3 source revision; it is not proof that the exact radio PCB has the same RF path, GPIO routing, LNA or switch wiring. A source-derived PY32F071 GPIO/SPI backend and a SysTick delay option are implemented. The built-in timing requires the measured core-clock frequency; alternatively, external calibrated delay callbacks can be supplied. The pin map has not been checked electrically on the user's PCB. The confirmed PCB revision, measured RX/AGC/LNA behavior, physical keypad/display validation, full ATT/Delay/Turbo controls, target startup/linker integration and complete linked firmware image are still missing.
 
 Do not flash intermediate objects, host test outputs or any file described as a smoke test. No flashable BIN is published in this repository.
 
