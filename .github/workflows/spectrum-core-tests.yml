@@ -19,7 +19,7 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Compile with warnings as errors
         run: cmake --build build --parallel
-      - name: Run tests
+      - name: Run CMake tests
         run: ctest --test-dir build --output-on-failure
       - name: Cross-compile portable modules for Cortex-M0+
         run: |
@@ -28,10 +28,10 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -c src/spectrum/spectrum_scanner.c -o /tmp/d10s_spectrum_scanner_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/ui -c src/ui/spectrum_view.c -o /tmp/d10s_spectrum_view_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/ui -Isrc/platform -c src/platform/mono128x64.c -o /tmp/d10s_mono128x64_arm.o
+          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/platform -c src/platform/st7565.c -o /tmp/d10s_st7565_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_bus.c -o /tmp/d10s_bk4829_bus_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829.c -o /tmp/d10s_bk4829_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_timing.c -o /tmp/d10s_bk4829_timing_arm.o
-          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/platform -c src/platform/st7565.c -o /tmp/d10s_st7565_arm.o
+          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_scanner_adapter.c -o /tmp/d10s_bk4829_scanner_adapter_arm.o
       - name: Verify Makefile build and tests
         run: make clean && make test
-          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_scanner_adapter.c -o /tmp/d10s_bk4829_scanner_adapter_arm.o
