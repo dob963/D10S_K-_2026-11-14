@@ -150,6 +150,28 @@ static void test_rejects_invalid_frequency_grid(void)
     assert(!d10s_spectrum_process(&state, bins, 3u, &result));
 }
 
+static void test_band_reset_clears_old_noise_and_peak(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    unsigned sweep;
+
+    d10s_spectrum_init(&state, NULL);
+    for (sweep = 0u; sweep < 3u; ++sweep) {
+        make_noise_sweep(bins, 21u, 80u);
+        bins[10].rssi = 160u;
+        CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    }
+    CHECK(result.peak_hold_valid);
+    d10s_spectrum_reset_tracking(&state);
+    make_noise_sweep(bins, 21u, 120u);
+    CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    CHECK(result.noise_floor >= 120u);
+    CHECK(!result.peak_hold_valid);
+    CHECK(!result.confirmed);
+}
+
 static void test_rejects_irregular_frequency_grid(void)
 {
     d10s_spectrum_state_t state;
@@ -171,6 +193,7 @@ int main(void)
     test_sub_bin_frequency_refinement();
     test_rejects_invalid_frequency_grid();
     test_rejects_irregular_frequency_grid();
+    test_band_reset_clears_old_noise_and_peak();
     puts("D10S Spectrum detector tests: PASS");
     return 0;
 }
