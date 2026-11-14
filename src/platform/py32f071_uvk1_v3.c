@@ -281,6 +281,9 @@ bool d10s_py32f071_uvk1_v3_keypad_init(
 {
     if (board == NULL || !gpio_init(board) || !board->systick_ready)
         return false;
+    board->key_state.candidate = D10S_KEY_NONE;
+    board->key_state.pressed = D10S_KEY_NONE;
+    board->key_state.stable_count = 0u;
     board->keypad_ready = true;
     return true;
 }
@@ -353,8 +356,8 @@ bool d10s_py32f071_uvk1_v3_keypad_poll(
     }
 
     D10S_GPIOB->BSRR = (1u << 6) | (1u << 5) | (1u << 4) | (1u << 3);
-    *key = multiple ? D10S_KEY_NONE : detected;
-    return true;
+    return d10s_spectrum_key_debounce(&board->key_state, detected,
+                                      multiple, key);
 }
 
 bool d10s_py32f071_uvk1_v3_build_bk4829_timing(
