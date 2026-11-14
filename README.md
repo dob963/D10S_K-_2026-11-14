@@ -28,4 +28,4 @@ The detector is also freestanding-compilable for ARM Cortex-M0+; this object-onl
 
 This repository does **not** yet contain a complete application, a verified BK4829 receiver startup sequence, a board-specific LCD/keyboard port, or a flashable BIN. Do not flash intermediate test objects or host-test outputs.
 
-See [architecture](docs/architecture.md), [evidence and release gates](docs/evidence-and-release-gates.md), [Spectrum algorithm](docs/spectrum-algorithm.md), and [upstream platform review](docs/upstream-review.md).
+See [architecture](docs/architecture.md), [evidence and release gates](docs/evidence-and-release-gates.md), [Spectrum algorithm](docs/spectrum-algorithm.md), [upstream platform review](docs/upstream-review.md), and [Spectrum behavior reference](docs/reference-behavior.md).
