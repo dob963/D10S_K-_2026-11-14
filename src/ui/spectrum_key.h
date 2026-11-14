@@ -1,6 +1,9 @@
 #ifndef D10S_SPECTRUM_KEY_H
 #define D10S_SPECTRUM_KEY_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 typedef enum {
     D10S_KEY_NONE = 0,
     D10S_KEY_0, D10S_KEY_1, D10S_KEY_2, D10S_KEY_3, D10S_KEY_4,
