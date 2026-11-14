@@ -6,6 +6,12 @@ The detector consumes one completed sweep: an ordered array of frequency/RSSI pa
 
 The caller must reset tracking when it changes band or frequency grid. The receiver driver remains responsible for tuning, waiting for settling, acquiring RSSI, and recording the actual tuned frequency in every bin.
 
+## Multi-band plan
+
+The portable scan-plan module accepts up to eight caller-defined bands. Each band defines start/stop frequency, bin count and dwell sweeps. The plan validates a positive integer, uniform bin spacing, exposes exact per-bin frequencies, rotates bands after the configured dwell, and resets its dwell counter on manual band selection. The application must call `d10s_spectrum_reset_tracking()` whenever the active band changes so old noise history and held peaks are not carried into a different RF range.
+
+No band limits are hard-coded: final ranges must come from the confirmed hardware variant and the selected scan plan.
+
 ## Processing path
 
 1. Copy and sort the sweep RSSI values using bounded insertion sort.
