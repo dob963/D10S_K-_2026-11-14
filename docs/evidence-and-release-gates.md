@@ -8,7 +8,7 @@ This document separates known project inputs from assumptions that must not be p
 - The user reports bootloader 7.03.01.
 - The intended RF chip is BK4829.
 - The intended display is ST7565 128x64.
-- Karina is the preferred Spectrum behavior/UI reference; F4HWN Spectrum is explicitly not the desired interface.
+- The Spectrum UI is an original D10S design; published behavior notes were reviewed as requirements, not copied as application source.
 
 ## Source-derived research leads
 - Armel's UV-K1/K5 V3 project is a useful source for PY32F071 platform/build conventions, but its Spectrum UI is not the design target.
@@ -28,9 +28,9 @@ This document separates known project inputs from assumptions that must not be p
 2. Confirm the exact UV-K1 PCB revision and MCU marking.
 3. Verify the BK4829 register profile and RF path selection for that board.
 4. Verify LCD wiring, SPI mode, orientation and backlight.
-5. Build the complete application with startup, linker script and all runtime modules.
-6. Validate ELF vector table, memory bounds, raw image origin and page padding.
-7. Validate the 7.03.01 DFU transfer format and recovery route.
-8. Run hardware tests with known VHF/UHF signals and document RSSI/noise/peak behavior.
+5. Complete target build, startup and linker integration. **Implemented in CI:** Cortex-M0+ objects, full PY32F071 ELF link, vector-table validation (including reserved IRQ30), application memory bounds, raw image size/origin and stack-frame report.
+6. Validate the 7.03.01 DFU transfer format, image page programming and recovery route on the exact radio.
+7. Run hardware tests with known VHF/UHF signals and document RF-path, PLL/AGC, RSSI/noise/peak behavior, LCD and keypad behavior.
+8. Measure the cumulative stack high-water mark and verify reset/recovery under power interruption.
 
 Until those gates are met, any output is source/test material, not a firmware image approved for flashing.
