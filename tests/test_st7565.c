@@ -35,6 +35,41 @@ static bool write_byte(uint8_t v, void *c) {
 static bool delay(uint16_t ms, void *c) {
     fake_lcd_t *f=c; CHECK(ms>0u); ++f->delays; return true;
 }
+static void test_spectrum_present_renders_and_flushes_complete_frame(void)
+{
+    fake_lcd_t f;
+    d10s_st7565_t lcd;
+    d10s_st7565_port_t port = {select, mode, write_byte, delay, &f};
+    d10s_st7565_config_t config = {4u, 31u, 4u, 7u, false, false,
+                                   false, 120u, 40u};
+    d10s_mono128x64_t framebuffer;
+    d10s_spectrum_bin_t bins[3] = {
+        {145000000u, 96u}, {145012500u, 155u}, {145025000u, 104u}
+    };
+    d10s_spectrum_view_model_t model = {
+        bins, 3u, 0u, 1u, 0u, false, 90u, 110u,
+        false, 0u, false, 0u, "VHF", true
+    };
+    unsigned i;
+    unsigned nonzero_data = 0u;
+
+    memset(&f, 0, sizeof(f));
+    CHECK(d10s_st7565_init(&lcd, &port, &config));
+    f.count = 0u;
+    CHECK(d10s_mono128x64_present(&framebuffer, &lcd, &model));
+    CHECK(f.count == D10S_ST7565_PAGES * 131u);
+    for (i = 3u; i < f.count; ++i) {
+        if (f.modes[i] && f.bytes[i] != 0u) ++nonzero_data;
+    }
+    CHECK(nonzero_data > 0u);
+    CHECK(!f.selected);
+
+    f.count = 0u;
+    model.count = 2u;
+    CHECK(!d10s_mono128x64_present(&framebuffer, &lcd, &model));
+    CHECK(f.count == 0u);
+}
+
 static void test_mono_framebuffer_flushes_all_st7565_pages(void)
 {
     fake_lcd_t f;
@@ -78,5 +113,6 @@ int main(void) {
     CHECK(f.count==8u*131u && !f.selected);
     CHECK(!d10s_st7565_flush_page(&lcd,8u,page));
     test_mono_framebuffer_flushes_all_st7565_pages();
+    test_spectrum_present_renders_and_flushes_complete_frame();
     puts("ST7565 transport tests: PASS"); return 0;
 }
