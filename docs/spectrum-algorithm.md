@@ -2,7 +2,7 @@
 
 ## Input contract
 
-The detector consumes one completed sweep: an ordered array of frequency/RSSI pairs. Frequencies must be strictly increasing and the array must contain 3 to 256 bins. RSSI is an unsigned relative measurement from the receiver path; it is not converted to dBm.
+The detector consumes one completed sweep: an ordered array of frequency/RSSI pairs. Frequencies must be strictly increasing with a constant bin spacing, and the array must contain 3 to 256 bins. Uniform spacing is required for valid three-point frequency interpolation. RSSI is an unsigned relative measurement from the receiver path; it is not converted to dBm.
 
 The caller must reset tracking when it changes band or frequency grid. The receiver driver remains responsible for tuning, waiting for settling, acquiring RSSI, and recording the actual tuned frequency in every bin.
 
