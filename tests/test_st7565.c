@@ -110,6 +110,15 @@ int main(void) {
           f.bytes[4] == 0xA1u && f.bytes[5] == 0xA6u &&
           f.bytes[6] == 0xA4u && f.bytes[7] == 0x24u &&
           f.bytes[8] == 0x81u && f.bytes[9] == 31u);
+    CHECK(f.count == 1066u && f.bytes[1065u] == 0xAFu);
+    for (unsigned page_index = 0u; page_index < D10S_ST7565_PAGES; ++page_index) {
+        const unsigned page_start = 17u + page_index * 131u;
+        CHECK(f.bytes[page_start] == (uint8_t)(0xB0u | page_index));
+        CHECK(f.bytes[page_start + 1u] == 0x10u &&
+              f.bytes[page_start + 2u] == 0x04u);
+        for (unsigned col = 0u; col < D10S_ST7565_WIDTH; ++col)
+            CHECK(f.bytes[page_start + 3u + col] == 0u);
+    }
     f.count=0u; f.select_asserts=0u; f.select_releases=0u;
     CHECK(d10s_st7565_flush_page(&lcd,3u,page));
     CHECK(f.count==131u && f.bytes[0]==0xB3u &&
