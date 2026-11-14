@@ -147,7 +147,7 @@ static void draw_header(const d10s_spectrum_canvas_t *canvas,
                  model->band_label != 0 ? model->band_label : label, style);
     canvas->text(canvas->context, 91u, 1u, att, style);
     if (model->turbo_enabled)
-        canvas->text(canvas->context, 111u, 1u, "T", style);
+        canvas->text(canvas->context, 122u, 1u, "T", style);
 }
 
 bool d10s_spectrum_view_cursor_frequency(
