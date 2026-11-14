@@ -53,6 +53,12 @@ int main(void) {
     for(unsigned i=0;i<16u;i++) b.input[i]=true;
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
     assert(d10s_bk4829_read_raw_rssi(&p,&t,&rssi) && rssi==511u);
+    assert(d10s_bk4829_frequency_supported(18000000u));
+    assert(d10s_bk4829_frequency_supported(580000000u));
+    assert(d10s_bk4829_frequency_supported(760000000u));
+    assert(d10s_bk4829_frequency_supported(1160000000u));
+    assert(!d10s_bk4829_frequency_supported(600000000u));
+    assert(!d10s_bk4829_frequency_supported(1300000000u));
     assert(d10s_bk4829_frequency_to_word(144000000u,&word) && word==14400000u);
     assert(!d10s_bk4829_frequency_to_word(144000001u,&word));
     assert(!d10s_bk4829_frequency_to_word(144000000u,0));
