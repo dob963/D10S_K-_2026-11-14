@@ -30,10 +30,12 @@ static bool initialize(const d10s_bk4829_bus_port_t *p,
 static bool resume(uint32_t hz, void *c) {
     fake_t *f=c; ++f->resume_calls; f->resumed_hz=hz; return true;
 }
+static bool stop_rx(void *c) { ++((fake_t *)c)->stop_calls; return true; }
 static void append_bits(fake_t *f, uint16_t value) {
     for(unsigned i=0u;i<16u;i++)
         f->input[f->input_count++]=((value>>(15u-i))&1u)!=0u;
 }
+
 int main(void) {
     fake_t f; d10s_bk4829_scanner_adapter_t adapter;
     d10s_spectrum_radio_ops_t ops={0};
@@ -43,7 +45,7 @@ int main(void) {
     memset(&f,0,sizeof(f)); f.csn=true; f.output=true;
     bus=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&f};
     assert(d10s_bk4829_scanner_adapter_init(&adapter,&bus,&timing,
-                                             initialize,resume,
+                                             initialize,resume,stop_rx,
                                              144000000u,&f));
     assert(f.init_calls==1u && f.initial_hz==144000000u);
     d10s_bk4829_scanner_adapter_bind(&adapter,&ops);
@@ -53,13 +55,14 @@ int main(void) {
     assert(actual==144025000u && f.resume_calls==1u &&
            f.resumed_hz==144025000u);
 
-    append_bits(&f,0x0123u); /* discarded first post-tune sample */
-    append_bits(&f,0x0156u); /* returned sample */
+    append_bits(&f,0x0123u); /* discard first post-tune sample */
+    append_bits(&f,0x0156u); /* return second sample */
     assert(ops.read_rssi(ops.context,&rssi) && rssi==0x0156u);
-    append_bits(&f,0x0100u); /* no second discard without another tune */
+    append_bits(&f,0x0100u); /* no extra discard before next tune */
     assert(ops.read_rssi(ops.context,&rssi) && rssi==0x0100u);
 
     d10s_bk4829_scanner_adapter_stop(&adapter);
+    assert(f.stop_calls==1u);
     assert(!ops.read_rssi(ops.context,&rssi));
     puts("BK4829 scanner adapter tests: PASS"); return 0;
 }
