@@ -2,28 +2,32 @@
 
 ## Selected platform reference
 
-Repository: [armel/uv-k1-k5v3-firmware-custom](https://github.com/armel/uv-k1-k5v3-firmware-custom)
+Repository: https://github.com/armel/uv-k1-k5v3-firmware-custom
 
-Reviewed branch commit: `3261ca7883d5b0b60c0905d8766612dee7b4191d` (main, 2026-10-30). GitHub identifies the project license as Apache-2.0. Any later reuse of its code must retain applicable copyright notices, license terms, and attribution.
+Reviewed revision: 3261ca7883d5b0b60c0905d8766612dee7b4191d. The repository declares Apache-2.0. Any derived code must retain required license and copyright notices.
 
-This is the current strongest public reference for the PY32F071 UV-K1 / UV-K5 V3 platform layer. It provides the target startup, HAL, linker script, display and keyboard drivers, BK4829-named RF driver, and a reproducible build environment.
+This source provides a useful PY32F071 UV-K1/UV-K5 V3 platform reference: startup, HAL, linker configuration, ST7565, keyboard, board GPIO and the driver file App/driver/bk4829.c.
 
-## Useful findings from the reviewed source
+## BK4829 findings traced in the pinned source
 
-- `App/CMakeLists.txt` compiles `App/driver/bk4829.c`; `ENABLE_SPECTRUM` adds `App/app/spectrum.c`.
-- The RF driver uses the historical `BK4819_*` API and register names. This is not merely inferred from filenames: the driver comments explicitly mention stock BK4829 behavior, and `App/radio.c` contains BK4829-specific modulation notes.
-- The driver reads relative/raw RSSI as `BK4819_ReadRegister(BK4819_REG_67) & 0x01FF`, i.e. a 9-bit value. The D10S core therefore preserves raw relative units and does not claim dBm.
-- Frequency tuning is represented through registers 0x38 and 0x39. The driver also includes an explicit VHF/UHF RF-path selector using BK4819 GPIO outputs for the VHF and UHF LNA paths.
-- The build preset is CMake/Ninja with an ARM GNU toolchain file; the upstream firmware script builds in Docker. This is a realistic route to a complete target image after the D10S application and feature set are integrated.
+- The RF source uses historical BK4819_* API and register names while the file and target describe BK4829. This is a project-specific compatibility layer, not a general guarantee for all chips or all boards.
+- The RSSI getter reads register 0x67 and masks 0x01FF; D10S preserves this raw 9-bit range and does not claim dBm.
+- Frequency tuning writes registers 0x38 and 0x39; the radio interface uses 10 Hz frequency units.
+- The upstream BK4819_Init() contains the baseline register sequence now isolated in the optional D10S V3 profile.
+- BK4819_RX_TurnOn() writes the RX register sequence REG_37=0x9F1F, REG_30=0x0000, then REG_30=0xBFF1.
+- BK4819_PickRXFilterPathBasedOnFrequency() selects a VHF path below 28 MHz and UHF path otherwise using BK4829 GPIO output bits; the upstream mapping uses GPIO4 for VHF LNA, GPIO3 for UHF LNA and GPIO0 for RX enable.
+- The upstream board file maps BK4829 CSN/SCK/SDA to PF9/PB8/PB9 and ST7565 SCK/MOSI/A0/CS to PA5/PA7/PA6/PB2. These are candidate pins for that source's board target only. They are **not verified for the user's actual PCB revision**.
 
-## What D10S reuses and what it does not
+## D10S integration
 
-Use this project as a reviewed reference for the target platform, MCU support, register transport, LCD/keypad integration, and build layout. Keep the Spectrum algorithm and user interface independent.
+The source-derived register profile is in src/radio/bk4829_uvk1_v3_profile.c. It retains the source baseline sequence and RX setup while adapting writes to the D10S bus API. Frequency tuning is kept in the scanner adapter, so the profile's RX-resume callback selects LNA and enables RX without duplicating the synthesizer writes.
 
-The F4HWN Spectrum source is not adopted as the D10S interface. Its scan/render implementation is useful for understanding the platform, but D10S uses its own detector and will implement the requested Karina-inspired interaction and typography separately.
+No automatic assumption is made that a repository name or radio model is proof of identical PCB routing. Confirm actual board revision, MCU marking, pin continuity, RF switch and LNA topology before selecting this profile on hardware.
 
-Do not copy the upstream RF startup or LNA path as a blind register table. Before integration, trace the full init and receive path in the pinned source, verify the exact UV-K1 board revision and PCB routing, then perform hardware tests. The existence of a working upstream firmware for the same model family is strong evidence for a starting point, not proof that every RF register, GPIO or initialization step is correct for every hardware revision.
+## Spectrum direction
 
-## Current D10S implementation
+D10S retains an independent detector and interface. The chosen visual/behavioral direction is Karina-inspired; F4HWN's Spectrum screen is not the selected UI. No Karina or F4HWN Spectrum source code is copied into D10S.
 
-The first independent processing module is in `src/spectrum/spectrum_detect.c`. It receives one completed sweep from a future radio-acquisition layer. It is host-tested and cross-compiles to a freestanding Cortex-M0+ object; it is not yet linked with the upstream platform or a complete application image.
+## Evidence limits
+
+The profile compiles and is exercised by a fake-bus register-write test. That proves the D10S code emits the expected words to the bus abstraction. It does not prove RF reception, RF switch state, LNA gain, AGC settling, correct actual PCB GPIO mapping, LCD or bootloader behavior. A complete target image and physical radio validation remain mandatory.
