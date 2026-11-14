@@ -10,7 +10,7 @@ On each application tick it:
 5. renders the 128x64 graph into the monochrome framebuffer;
 6. transfers all eight framebuffer pages through the ST7565 controller.
 
-The application exposes wrapper functions for cursor, font weight, Delay, Turbo, ATT and manual band selection. A key handler maps the basic UV-K1 keypad to cursor movement (UP/DOWN and side keys), cursor toggle/center (MENU/0), cursor clear (EXIT), font weight (F), peak-hold marker visibility (STAR), deferred band selection (1–8) at a sweep boundary, and scan freeze/resume (9). Freeze republishes the last complete snapshot with an `H` header marker, stops further tune/RSSI operations, and resumes from the existing scanner state. ATT/Delay/Turbo key menus are not enabled until their hardware settings are validated.
+The application exposes wrapper functions for cursor, font weight, Delay, Turbo, ATT and manual band selection. A key handler maps the basic UV-K1 keypad to cursor movement (UP/DOWN and side keys), cursor toggle/center (MENU/0), cursor clear (EXIT), font weight (F), peak-hold marker visibility (STAR), deferred band selection (1–8) at a sweep boundary, and scan freeze/resume (9). Freeze republishes the last complete snapshot with an `H` header marker and stops further tune/RSSI operations. On resume, the incomplete sweep is discarded and scanning restarts at bin zero of the selected band, while the last published graph remains visible until the next full sweep. ATT/Delay/Turbo key menus are not enabled until their hardware settings are validated.
 
 ## Test coverage
 
