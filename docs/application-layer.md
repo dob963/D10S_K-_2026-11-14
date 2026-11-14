@@ -10,7 +10,7 @@ On each application tick it:
 5. renders the 128x64 graph into the monochrome framebuffer;
 6. transfers all eight framebuffer pages through the ST7565 controller.
 
-The application exposes wrapper functions for cursor, font weight, Delay, Turbo, ATT and manual band selection. A key handler maps the basic UV-K1 keypad to cursor movement, cursor toggle/center, font weight and deferred band selection at a sweep boundary. ATT/Delay/Turbo key menus are not enabled until their hardware settings are validated.
+The application exposes wrapper functions for cursor, font weight, Delay, Turbo, ATT and manual band selection. A key handler maps the basic UV-K1 keypad to cursor movement (UP/DOWN and side keys), cursor toggle/center (MENU/0), cursor clear (EXIT), font weight (F), peak-hold marker visibility (STAR), and deferred band selection (1–8) at a sweep boundary. ATT/Delay/Turbo key menus are not enabled until their hardware settings are validated.
 
 ## Test coverage
 
