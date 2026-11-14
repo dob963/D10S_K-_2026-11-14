@@ -1,4 +1,5 @@
 #include "st7565.h"
+#include "mono128x64.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,6 +35,30 @@ static bool write_byte(uint8_t v, void *c) {
 static bool delay(uint16_t ms, void *c) {
     fake_lcd_t *f=c; CHECK(ms>0u); ++f->delays; return true;
 }
+static void test_mono_framebuffer_flushes_all_st7565_pages(void)
+{
+    fake_lcd_t f;
+    d10s_st7565_t lcd;
+    d10s_bk4829_bus_port_t unused;
+    d10s_st7565_port_t port = {select, mode, write_byte, delay, &f};
+    d10s_st7565_config_t config = {4u, 31u, 4u, 7u, false, false,
+                                   false, 120u, 40u};
+    d10s_mono128x64_t framebuffer;
+    (void)unused;
+
+    memset(&f, 0, sizeof(f));
+    d10s_mono128x64_clear(&framebuffer, false);
+    d10s_mono128x64_pixel(&framebuffer, 0u, 0u, true);
+    d10s_mono128x64_pixel(&framebuffer, 127u, 63u, true);
+    CHECK(d10s_st7565_init(&lcd, &port, &config));
+    f.count = 0u;
+    CHECK(d10s_mono128x64_flush(&framebuffer, &lcd));
+    CHECK(f.count == D10S_ST7565_PAGES * 131u);
+    CHECK(f.bytes[3u] == 0x01u);
+    CHECK(f.bytes[7u * 131u + 3u + 127u] == 0x80u);
+    CHECK(!f.selected);
+}
+
 int main(void) {
     fake_lcd_t f; d10s_st7565_t lcd;
     d10s_st7565_port_t port={select,mode,write_byte,delay,&f};
@@ -54,5 +79,6 @@ int main(void) {
     CHECK(d10s_st7565_flush_frame(&lcd,(const uint8_t (*)[128])frame));
     CHECK(f.count==8u*131u && !f.selected);
     CHECK(!d10s_st7565_flush_page(&lcd,8u,page));
+    test_mono_framebuffer_flushes_all_st7565_pages();
     puts("ST7565 transport tests: PASS"); return 0;
 }
