@@ -467,6 +467,105 @@ static void test_scanner_att_failure_does_not_change_state(void)
     CHECK(scanner.rssi_compensation == 0u);
 }
 
+static void test_scanner_publishes_only_complete_sweeps(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u},
+        {430000000u, 430004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    const d10s_spectrum_bin_t *snapshot = 0;
+    uint16_t count = 0u;
+    uint8_t band_index = 0u;
+    uint8_t att = 0u;
+    uint32_t generation = 0u;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 2u, NULL, 1u));
+    CHECK(!d10s_spectrum_scanner_snapshot(&scanner, &snapshot, &count,
+                                          &band_index, &att, &generation));
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(changed);
+    CHECK(d10s_spectrum_scanner_snapshot(&scanner, &snapshot, &count,
+                                         &band_index, &att, &generation));
+    CHECK(count == 5u);
+    CHECK(band_index == 0u);
+    CHECK(att == 0u);
+    CHECK(generation == 1u);
+    CHECK(snapshot[0].frequency_hz == 144000000u);
+    CHECK(snapshot[4].frequency_hz == 144004000u);
+
+    /* The following sweep is in progress: published data must not be overwritten. */
+    CHECK(d10s_spectrum_scanner_tick(&scanner, &ops, now_ms,
+                                     &result, &changed) == D10S_SCANNER_BUSY);
+    CHECK(d10s_spectrum_scanner_snapshot(&scanner, &snapshot, &count,
+                                         &band_index, &att, &generation));
+    CHECK(generation == 1u);
+    CHECK(band_index == 0u);
+    CHECK(snapshot[0].frequency_hz == 144000000u);
+}
+
+static void test_scanner_manual_band_change_invalidates_snapshot(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u},
+        {430000000u, 430004000u, 5u, 1u}
+    };
+    d10s_spectrum_scanner_t scanner;
+    const d10s_spectrum_bin_t *snapshot = 0;
+    uint16_t count = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 2u, NULL, 1u));
+    scanner.published_valid = true;
+    CHECK(d10s_spectrum_scanner_select_band(&scanner, 1u));
+    CHECK(scanner.plan.active_band == 1u);
+    CHECK(!scanner.detector.noise_initialized);
+    CHECK(!d10s_spectrum_scanner_snapshot(&scanner, &snapshot, &count,
+                                          0, 0, 0));
+    CHECK(!d10s_spectrum_scanner_select_band(&scanner, 1u));
+}
+
+static void test_scanner_delay_changes_only_between_sweeps(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 5u));
+    CHECK(d10s_spectrum_scanner_set_delay(&scanner, 2u));
+    CHECK(scanner.settle_ms == 2u);
+    CHECK(d10s_spectrum_scanner_tick(&scanner, &ops, now_ms,
+                                     &result, &changed) == D10S_SCANNER_BUSY);
+    CHECK(!d10s_spectrum_scanner_set_delay(&scanner, 8u));
+    now_ms += 2u;
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(d10s_spectrum_scanner_set_delay(&scanner, 8u));
+    CHECK(scanner.settle_ms == 8u);
+    CHECK(!d10s_spectrum_scanner_set_delay(&scanner, 0u));
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -484,6 +583,9 @@ int main(void)
     test_scanner_rejects_radio_failures();
     test_scanner_att_compensation_and_boundary_rules();
     test_scanner_att_failure_does_not_change_state();
+    test_scanner_publishes_only_complete_sweeps();
+    test_scanner_manual_band_change_invalidates_snapshot();
+    test_scanner_delay_changes_only_between_sweeps();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
