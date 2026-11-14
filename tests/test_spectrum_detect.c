@@ -277,11 +277,13 @@ typedef struct {
     bool fail_read;
 } fake_radio_t;
 
-static bool fake_radio_tune(void *context, uint32_t frequency_hz)
+static bool fake_radio_tune(void *context, uint32_t requested_hz,
+                            uint32_t *actual_hz)
 {
     fake_radio_t *radio = (fake_radio_t *)context;
-    if (radio->fail_tune) return false;
-    radio->frequency_hz = frequency_hz;
+    if (radio->fail_tune || actual_hz == 0) return false;
+    radio->frequency_hz = requested_hz;
+    *actual_hz = requested_hz;
     ++radio->tune_calls;
     return true;
 }
