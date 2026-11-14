@@ -56,6 +56,8 @@ The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit A
 
 ## Engineering references
 
+- [Third-party source and license audit](docs/third-party-license-audit.md) — source provenance, license checks, attribution requirements and reuse gates.
+
 - [Architecture contract](docs/architecture.md)
 - [Evidence and release gates](docs/evidence-and-release-gates.md)
 - [Spectrum algorithm and scanner](docs/spectrum-algorithm.md)
