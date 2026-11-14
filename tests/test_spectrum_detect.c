@@ -656,12 +656,12 @@ static void fake_canvas_text(void *context, uint8_t x, uint8_t y,
     if (value != 0 && value[0] == '1' && value[1] == '4' &&
         value[2] == '4' && value[3] == '.' &&
         value[4] == '0' && value[5] == '0' && value[6] == '2' &&
-        value[7] == '\\0') canvas->saw_frequency = true;
+        value[7] == '\0') canvas->saw_frequency = true;
     if (value != 0 && value[0] == 'B' && value[1] == '1' && value[2] == '/')
         canvas->saw_band = true;
     if (value != 0 && value[0] == 'A' && value[1] == '2')
         canvas->saw_att = true;
-    if (value != 0 && value[0] == 'T' && value[1] == '\\0')
+    if (value != 0 && value[0] == 'T' && value[1] == '\0')
         canvas->saw_turbo = true;
 }
 
