@@ -40,8 +40,7 @@ static void test_spectrum_present_renders_and_flushes_complete_frame(void)
     fake_lcd_t f;
     d10s_st7565_t lcd;
     d10s_st7565_port_t port = {select, mode, write_byte, delay, &f};
-    d10s_st7565_config_t config = {4u, 31u, 4u, 7u, false, false,
-                                   false, 120u, 40u};
+    d10s_st7565_config_t config;
     d10s_mono128x64_t framebuffer;
     d10s_spectrum_bin_t bins[3] = {
         {145000000u, 96u}, {145012500u, 155u}, {145025000u, 104u}
@@ -54,6 +53,7 @@ static void test_spectrum_present_renders_and_flushes_complete_frame(void)
     unsigned nonzero_data = 0u;
 
     memset(&f, 0, sizeof(f));
+    d10s_st7565_uvk1_v3_default_config(&config);
     CHECK(d10s_st7565_init(&lcd, &port, &config));
     f.count = 0u;
     CHECK(d10s_mono128x64_present(&framebuffer, &lcd, &model));
@@ -80,6 +80,7 @@ static void test_mono_framebuffer_flushes_all_st7565_pages(void)
     d10s_mono128x64_t framebuffer;
 
     memset(&f, 0, sizeof(f));
+    d10s_st7565_uvk1_v3_default_config(&config);
     d10s_mono128x64_clear(&framebuffer, false);
     d10s_mono128x64_pixel(&framebuffer, 0u, 0u, true);
     d10s_mono128x64_pixel(&framebuffer, 127u, 63u, true);
@@ -95,12 +96,20 @@ static void test_mono_framebuffer_flushes_all_st7565_pages(void)
 int main(void) {
     fake_lcd_t f; d10s_st7565_t lcd;
     d10s_st7565_port_t port={select,mode,write_byte,delay,&f};
-    d10s_st7565_config_t config={4u,31u,4u,7u,false,false,false,120u,40u};
+    d10s_st7565_config_t config;
     uint8_t page[128]; uint8_t frame[8][128];
     memset(&f,0,sizeof(f)); memset(page,0xA5,sizeof(page));
+    d10s_st7565_uvk1_v3_default_config(&config);
     memset(frame,0x5A,sizeof(frame));
     CHECK(d10s_st7565_init(&lcd,&port,&config));
-    CHECK(lcd.initialized && !f.selected && f.delays==2u);
+    CHECK(lcd.initialized && !f.selected && f.delays==4u);
+    CHECK(config.column_offset == 4u && config.contrast == 31u &&
+          config.reverse_segment && !config.reverse_common && !config.inverse);
+    CHECK(f.bytes[0] == 0xAEu && f.bytes[1] == 0xE2u &&
+          f.bytes[2] == 0xA2u && f.bytes[3] == 0xC0u &&
+          f.bytes[4] == 0xA1u && f.bytes[5] == 0xA6u &&
+          f.bytes[6] == 0xA4u && f.bytes[7] == 0x24u &&
+          f.bytes[8] == 0x81u && f.bytes[9] == 31u);
     f.count=0u; f.select_asserts=0u; f.select_releases=0u;
     CHECK(d10s_st7565_flush_page(&lcd,3u,page));
     CHECK(f.count==131u && f.bytes[0]==0xB3u &&
