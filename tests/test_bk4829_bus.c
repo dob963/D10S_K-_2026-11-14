@@ -80,9 +80,12 @@ int main(void) {
         d10s_bk4829_bus_timing_t built = {0u, 0u};
         CHECK(!d10s_bk4829_build_timing(0u, &built));
         CHECK(d10s_bk4829_build_timing(1000000u, &built));
-        CHECK(built.half_period_ticks == 1u && built.turnaround_ticks == 1u);
+        CHECK(built.half_period_ticks == 35u && built.turnaround_ticks == 35u);
         CHECK(d10s_bk4829_build_timing(48000000u, &built));
-        CHECK(built.half_period_ticks == 2u && built.turnaround_ticks == 48u);
+        CHECK(built.half_period_ticks == 35u && built.turnaround_ticks == 35u);
+        CHECK(d10s_bk4829_build_timing(72000000u, &built));
+        CHECK(built.half_period_ticks == 35u && built.turnaround_ticks == 35u);
+        CHECK(!d10s_bk4829_build_timing(72000001u, &built));
     }
     puts("BK4829 bus tests: PASS"); return 0;
 }
