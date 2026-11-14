@@ -12,6 +12,12 @@ The portable scan-plan module accepts up to eight caller-defined bands. The call
 
 No band limits are hard-coded: final ranges must come from the confirmed hardware variant and the selected scan plan.
 
+## Non-blocking scanner
+
+The scanner state machine calls a hardware adapter in three phases: tune, wait for a caller-supplied settling interval, then read raw RSSI. It stores the adapter-reported actual tuned frequency for each bin, rejects RSSI outside 0..511, and emits one completed sweep at a time. On a band change it resets noise history, candidate confirmation and peak hold. The timer comparison is wrap-safe for a 32-bit millisecond counter. Adapter failures stop the scanner in an error state; a caller must reinitialize it to resume.
+
+The radio adapter supplies only `tune_hz(requested, &actual)` and `read_rssi(&raw_value)`. This keeps all BK4829 register access and the board's LNA/RF path out of the portable scanner until those details are verified for the exact PCB.
+
 ## Processing path
 
 1. Copy and sort the sweep RSSI values using bounded insertion sort.
@@ -39,4 +45,4 @@ The percentile estimator assumes that most bins in a sweep are not occupied by s
 
 ## Current validation
 
-The portable C module passes host unit tests for confirmation, single-sweep spike rejection, rolling noise-floor robustness and tracking, preservation of all 9 RSSI bits, sub-bin interpolation, and invalid/irregular frequency-grid rejection. Clang reports a maximum single stack frame of 592 bytes in the percentile estimator; callers should account for its nested call stack and interrupt stack in the final RAM budget. It also compiles as a freestanding ARM Cortex-M0+ object with Clang. Neither check validates RF performance, the BK4829 register sequence, LCD rendering, bootloader compatibility, or a flashable application image.
+The portable C modules are covered by host tests for detector confirmation, single-sweep spike rejection, rolling noise-floor robustness, 9-bit RSSI validation, sub-bin interpolation, band-grid validation and rotation, actual-frequency acquisition, settle timing, and scanner fault handling. Clang reports a maximum single stack frame of 592 bytes in the percentile estimator; callers should account for its nested call stack and interrupt stack in the final RAM budget. It also compiles as a freestanding ARM Cortex-M0+ object with Clang. Neither check validates RF performance, the BK4829 register sequence, LCD rendering, bootloader compatibility, or a flashable application image.
