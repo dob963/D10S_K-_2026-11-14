@@ -168,9 +168,16 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
         return true;
 
     case D10S_KEY_9:
-        if (!app->paused && !app->scanner.published_valid) return false;
-        app->paused = !app->paused;
-        app->pause_frame_pending = app->paused;
+        if (!app->paused) {
+            if (!app->scanner.published_valid ||
+                !d10s_spectrum_scanner_restart_sweep(&app->scanner))
+                return false;
+            app->paused = true;
+            app->pause_frame_pending = true;
+        } else {
+            app->paused = false;
+            app->pause_frame_pending = false;
+        }
         return true;
 
     case D10S_KEY_1:
