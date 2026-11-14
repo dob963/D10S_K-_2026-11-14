@@ -44,4 +44,4 @@ clean:
 
 build/test_bk4829_scanner_adapter: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_scanner_adapter.c
 	mkdir -p build
-	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) $(RADIO_SOURCES) tests/test_bk4829_scanner_adapter.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) $(RADIO_SOURCES) tests/test_bk4829_scanner_adapter.c -o $@
