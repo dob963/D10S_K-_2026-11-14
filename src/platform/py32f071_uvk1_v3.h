@@ -35,9 +35,16 @@ typedef struct {
  * Either supply calibrated delay callbacks or initialize the built-in SysTick
  * backend with the measured core clock before requesting the _systick ports.
  */
+bool d10s_py32f071_uvk1_v3_clock_from_registers(
+    uint32_t rcc_cr, uint32_t rcc_icscr, uint32_t rcc_cfgr,
+    uint32_t rcc_pllcfgr, uint32_t hse_clock_hz,
+    uint32_t *core_clock_hz);
 bool d10s_py32f071_uvk1_v3_systick_init(
     d10s_py32f071_uvk1_v3_t *board,
     uint32_t measured_core_clock_hz);
+bool d10s_py32f071_uvk1_v3_systick_init_from_rcc(
+    d10s_py32f071_uvk1_v3_t *board,
+    uint32_t hse_clock_hz);
 uint32_t d10s_py32f071_uvk1_v3_millis(
     d10s_py32f071_uvk1_v3_t *board);
 bool d10s_py32f071_uvk1_v3_keypad_init(
