@@ -8,7 +8,7 @@ typedef struct {
     bool csn, clock, output;
     bool input[64];
     unsigned input_count, input_index;
-    unsigned init_calls, resume_calls;
+    unsigned init_calls, resume_calls, stop_calls;
     uint32_t initial_hz, resumed_hz;
 } fake_t;
 
