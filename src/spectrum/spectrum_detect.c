@@ -31,9 +31,11 @@ static bool estimate_noise_floor(d10s_spectrum_state_t *state,
                                  size_t count)
 {
     uint16_t sorted[D10S_SPECTRUM_MAX_BINS];
+    uint16_t history[D10S_NOISE_HISTORY_SWEEPS];
     size_t i;
     size_t percentile_index;
     uint16_t observation;
+    uint16_t rolling_observation;
 
     if (count == 0u || count > D10S_SPECTRUM_MAX_BINS) return false;
 
@@ -42,12 +44,25 @@ static bool estimate_noise_floor(d10s_spectrum_state_t *state,
     percentile_index = ((count - 1u) * state->config.noise_percentile) / 100u;
     observation = sorted[percentile_index];
 
+    state->noise_history[state->noise_history_next] = observation;
+    state->noise_history_next = (uint8_t)((state->noise_history_next + 1u) %
+                                          D10S_NOISE_HISTORY_SWEEPS);
+    if (state->noise_history_count < D10S_NOISE_HISTORY_SWEEPS)
+        ++state->noise_history_count;
+
+    for (i = 0u; i < state->noise_history_count; ++i)
+        history[i] = state->noise_history[i];
+    sort_u16(history, state->noise_history_count);
+    percentile_index = ((state->noise_history_count - 1u) *
+                        state->config.noise_history_percentile) / 100u;
+    rolling_observation = history[percentile_index];
+
     if (!state->noise_initialized) {
-        state->noise_floor = observation;
+        state->noise_floor = rolling_observation;
         state->noise_initialized = true;
     } else {
         const uint32_t filtered =
-            ((uint32_t)state->noise_floor * 3u + observation + 2u) / 4u;
+            ((uint32_t)state->noise_floor * 3u + rolling_observation + 2u) / 4u;
         state->noise_floor = clamp_u16(filtered);
     }
     return true;
@@ -126,6 +141,7 @@ void d10s_spectrum_default_config(d10s_spectrum_config_t *config)
 {
     if (config == NULL) return;
     config->noise_percentile = 20u;
+    config->noise_history_percentile = 50u;
     config->noise_margin = 12u;
     config->min_peak_prominence = 5u;
     config->confirm_sweeps = 3u;
@@ -142,6 +158,8 @@ void d10s_spectrum_init(d10s_spectrum_state_t *state,
     state->config = config != NULL ? *config : defaults;
     if (state->config.noise_percentile > 100u)
         state->config.noise_percentile = 100u;
+    if (state->config.noise_history_percentile > 100u)
+        state->config.noise_history_percentile = 100u;
     if (state->config.confirm_sweeps == 0u)
         state->config.confirm_sweeps = 1u;
 }
