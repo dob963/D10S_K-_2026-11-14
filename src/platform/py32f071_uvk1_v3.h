@@ -2,6 +2,7 @@
 #define D10S_PY32F071_UVK1_V3_H
 
 #include "bk4829_bus.h"
+#include "bk4829_timing.h"
 #include "st7565.h"
 
 #include <stdbool.h>
@@ -19,6 +20,11 @@ typedef struct {
     void *delay_ticks_context;
     bool gpio_ready;
     bool spi_ready;
+    bool systick_ready;
+    uint32_t core_clock_hz;
+    uint32_t systick_last;
+    uint32_t milliseconds;
+    uint64_t cycle_remainder;
 } d10s_py32f071_uvk1_v3_t;
 
 /*
@@ -26,6 +32,22 @@ typedef struct {
  * subject to continuity checks on the actual PCB revision.
  * Delay callbacks are mandatory; their timing must be measured/calibrated.
  */
+bool d10s_py32f071_uvk1_v3_systick_init(
+    d10s_py32f071_uvk1_v3_t *board,
+    uint32_t measured_core_clock_hz);
+uint32_t d10s_py32f071_uvk1_v3_millis(
+    d10s_py32f071_uvk1_v3_t *board);
+bool d10s_py32f071_uvk1_v3_build_bk4829_timing(
+    const d10s_py32f071_uvk1_v3_t *board,
+    d10s_bk4829_bus_timing_t *timing);
+
+bool d10s_py32f071_uvk1_v3_display_port_init_systick(
+    d10s_py32f071_uvk1_v3_t *board,
+    d10s_st7565_port_t *port);
+bool d10s_py32f071_uvk1_v3_radio_bus_port_init_systick(
+    d10s_py32f071_uvk1_v3_t *board,
+    d10s_bk4829_bus_port_t *port);
+
 bool d10s_py32f071_uvk1_v3_display_port_init(
     d10s_py32f071_uvk1_v3_t *board,
     d10s_st7565_port_t *port,
