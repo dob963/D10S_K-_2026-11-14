@@ -11,6 +11,7 @@ add_library(d10s_spectrum_core
     src/spectrum/spectrum_scanner.c
     src/ui/spectrum_view.c
     src/platform/mono128x64.c
+    src/platform/st7565.c
     src/radio/bk4829_bus.c
     src/radio/bk4829.c
     src/radio/bk4829_timing.c
@@ -29,3 +30,8 @@ add_executable(test_bk4829_bus tests/test_bk4829_bus.c)
 target_link_libraries(test_bk4829_bus PRIVATE d10s_spectrum_core)
 target_compile_options(test_bk4829_bus PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME bk4829_bus COMMAND test_bk4829_bus)
+
+add_executable(test_st7565 tests/test_st7565.c)
+target_link_libraries(test_st7565 PRIVATE d10s_spectrum_core)
+target_compile_options(test_st7565 PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME st7565_transport COMMAND test_st7565)
