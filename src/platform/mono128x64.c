@@ -108,3 +108,12 @@ const uint8_t *d10s_mono128x64_page(const d10s_mono128x64_t *display,
     if (display == 0 || page >= D10S_MONO128X64_PAGE_COUNT) return 0;
     return &display->bytes[(uint16_t)page * D10S_MONO128X64_PAGE_BYTES];
 }
+
+bool d10s_mono128x64_flush(const d10s_mono128x64_t *display,
+                           d10s_st7565_t *controller)
+{
+    if (display == 0 || controller == 0) return false;
+    return d10s_st7565_flush_frame(
+        controller,
+        (const uint8_t (*)[D10S_MONO128X64_PAGE_BYTES])display->bytes);
+}
