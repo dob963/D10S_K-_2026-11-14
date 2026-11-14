@@ -24,7 +24,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - Three-wire register read/write bus, timing calculation, frequency conversion and raw 9-bit REG_67 RSSI.
 - Scanner adapter discards the first RSSI conversion after a tune and returns the following one.
 - `d10s_bk4829_uvk1_v3_radio_init()` binds the source-derived profile and scanner adapter into the exact radio-ops interface consumed by the Spectrum app; it still requires a separately verified board GPIO bus.
-- Opt-in source-derived UV-K1 V3 RX register profile in src/radio/bk4829_uvk1_v3_profile.c. It includes the upstream baseline register sequence, RX-mode setup and VHF/UHF LNA selector, adapted to the D10S bus API. It deliberately does not assert GPIO0 as an external RX-enable output before the physical board routing is verified. Source and license attribution are recorded in THIRD_PARTY_NOTICES.md.
+- Opt-in source-derived UV-K1 V3 RX register profile in src/radio/bk4829_uvk1_v3_profile.c. It includes the upstream baseline register sequence, RX-mode setup and VHF/UHF LNA selector, adapted to the D10S bus API. It asserts the source-documented GPIO0 RX_ENABLE output alongside the selected internal LNA path; it never asserts GPIO1 PA_ENABLE and contains no transmit code. Physical RF-path operation remains unverified. Source and license attribution are recorded in THIRD_PARTY_NOTICES.md.
 
 RSSI is raw relative data, **not calibrated dBm**. ATT offsets, Delay and Turbo parameters are not claimed calibrated.
 
