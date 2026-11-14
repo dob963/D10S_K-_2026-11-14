@@ -35,7 +35,7 @@ test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/t
 
 build/test_spectrum_detect: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_detect.c
 	mkdir -p build
-	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) tests/test_spectrum_detect.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) src/radio/bk4829_timing.c tests/test_spectrum_detect.c -o $@
 
 build/test_bk4829_bus: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_bus.c
 	mkdir -p build
@@ -43,7 +43,7 @@ build/test_bk4829_bus: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_bus.c
 
 build/test_st7565: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_st7565.c
 	mkdir -p build
-	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) tests/test_st7565.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) src/radio/bk4829_timing.c tests/test_st7565.c -o $@
 
 clean:
 	rm -rf build
