@@ -9,7 +9,7 @@ This folder contains the first integrated target entry point for the receive-onl
 - Display: ST7565, 128x64.
 - Application origin: `0x08002800`.
 - Reported memory: 128 KiB flash / 16 KiB SRAM; application flash region is configured as 118 KiB.
-- Initial scan spans: 144–146 MHz and 430–440 MHz, 128 bins per band.
+- Initial scan spans: 144–146 MHz and 430–440 MHz, 129 bins (128 exact intervals) per band. The grids are validated to divide evenly in Hz.
 - Initial settle: 8 ms per bin. This is a provisional value, not a hardware-measured optimum.
 - Initial mode: receive-only. No PTT, transmit, beacon or messenger path is implemented.
 
