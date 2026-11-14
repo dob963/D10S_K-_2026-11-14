@@ -34,7 +34,7 @@ The repository is Apache-2.0 for the reviewed BK4829 source component; file-leve
 | Keypad columns | PB6..PB3, output | `board.c` GPIO init | Candidate mapping |
 | PTT input | PB10, input pull-up | `board.c` GPIO init | Not used; D10S remains receive-only |
 
-The BK4829 interface is bit-banged three-wire I/O. The LCD uses SPI1 in master mode, 8-bit, MSB-first, CPOL high, second-edge phase, software NSS and a /64 prescaler in the reference driver.
+The BK4829 interface is bit-banged three-wire I/O. The LCD uses SPI1 in master mode, 8-bit, MSB-first, CPOL high, second-edge phase, software NSS and a /64 prescaler in the reference driver. The D10S keypad scanner reads the PB15..PB12 rows against PB6..PB3 columns, samples each column three times with 10 microsecond spacing, rejects ambiguous multi-key states, and maps the numeric/navigation keys independently. PTT is intentionally not scanned as an action.
 
 ## ST7565 behavior recorded for D10S
 
