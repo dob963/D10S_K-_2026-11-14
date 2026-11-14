@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install host and ARM compilation tools
-        run: sudo apt-get update && sudo apt-get install -y build-essential cmake clang
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake clang gcc-arm-none-eabi binutils-arm-none-eabi
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Compile with warnings as errors
@@ -38,5 +38,47 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_uvk1_v3_profile.c -o /tmp/d10s_bk4829_uvk1_v3_profile_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_uvk1_v3_radio.c -o /tmp/d10s_bk4829_uvk1_v3_radio_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -Isrc/platform -Isrc/ui -c src/platform/py32f071_uvk1_v3.c -o /tmp/d10s_py32f071_uvk1_v3_arm.o
+      - name: Link complete PY32F071 application and validate image layout
+        run: |
+          mkdir -p build/target
+          TARGET_SOURCES="
+            target/startup.c
+            target/main.c
+            src/spectrum/spectrum_detect.c
+            src/spectrum/spectrum_plan.c
+            src/spectrum/spectrum_scanner.c
+            src/ui/spectrum_view.c
+            src/ui/spectrum_key.c
+            src/app/spectrum_app.c
+            src/platform/mono128x64.c
+            src/platform/st7565.c
+            src/platform/py32f071_uvk1_v3.c
+            src/radio/bk4829_bus.c
+            src/radio/bk4829.c
+            src/radio/bk4829_timing.c
+            src/radio/bk4829_scanner_adapter.c
+            src/radio/bk4829_uvk1_v3_profile.c
+            src/radio/bk4829_uvk1_v3_radio.c
+          "
+          OBJECTS=""
+          for source in $TARGET_SOURCES; do
+            object="build/target/$(echo "$source" | tr '/.' '__').o"
+            arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -std=c11 -Os \
+              -ffreestanding -fno-common -ffunction-sections -fdata-sections \
+              -fno-unwind-tables -fno-asynchronous-unwind-tables \
+              -Wall -Wextra -Werror \
+              -Isrc/spectrum -Isrc/ui -Isrc/app -Isrc/platform -Isrc/radio \
+              -c "$source" -o "$object"
+            OBJECTS="$OBJECTS $object"
+          done
+          arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -nostdlib \
+            -Wl,-T,target/py32f071xB.ld \
+            -Wl,--gc-sections -Wl,--build-id=none \
+            -Wl,-Map=build/target/D10S_K1.map \
+            $OBJECTS -lgcc -o build/target/D10S_K1.elf
+          arm-none-eabi-size build/target/D10S_K1.elf
+          arm-none-eabi-objcopy -O binary build/target/D10S_K1.elf \
+            build/target/D10S_K1.intermediate.bin
+          python3 target/validate_image.py build/target/D10S_K1.intermediate.bin
       - name: Verify Makefile build and tests
         run: make clean && make test
