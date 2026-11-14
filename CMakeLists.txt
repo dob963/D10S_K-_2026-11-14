@@ -10,6 +10,7 @@ add_library(d10s_spectrum_core
     src/spectrum/spectrum_plan.c
     src/spectrum/spectrum_scanner.c
     src/ui/spectrum_view.c
+    src/app/spectrum_app.c
     src/platform/mono128x64.c
     src/platform/st7565.c
     src/radio/bk4829_bus.c
@@ -41,3 +42,8 @@ add_executable(test_bk4829_scanner_adapter tests/test_bk4829_scanner_adapter.c)
 target_link_libraries(test_bk4829_scanner_adapter PRIVATE d10s_spectrum_core)
 target_compile_options(test_bk4829_scanner_adapter PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME bk4829_scanner_adapter COMMAND test_bk4829_scanner_adapter)
+
+add_executable(test_spectrum_app tests/test_spectrum_app.c)
+target_link_libraries(test_spectrum_app PRIVATE d10s_spectrum_core)
+target_compile_options(test_spectrum_app PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME spectrum_application COMMAND test_spectrum_app)
