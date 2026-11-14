@@ -72,10 +72,7 @@ bool d10s_bk4829_uvk1_v3_resume_rx(uint32_t frequency_hz, void *context)
     lna_state = frequency_hz < VHF_LNA_LIMIT_HZ
         ? GPIO_VHF_LNA : GPIO_UHF_LNA;
 
-    /* Program the synthesizer in the register order used by the target. */
-    if (!d10s_bk4829_write_frequency(&profile->bus, &profile->timing,
-                                     frequency_hz)) return false;
-
+    /* The adapter programs REG_38/39 before invoking this RX-path callback. */
     /* Select one LNA path, then enable the external RX path. */
     if (!write_reg(profile, 0x33u,
                    (uint16_t)(GPIO_STATE_BASE | lna_state)) ||
@@ -133,6 +130,8 @@ bool d10s_bk4829_uvk1_v3_initialize_rx(
     if (!write_reg(profile, 0x37u, 0x9F1Fu) ||
         !write_reg(profile, 0x30u, 0x0000u) ||
         !write_reg(profile, 0x30u, 0xBFF1u) ||
+        !d10s_bk4829_write_frequency(&profile->bus, &profile->timing,
+                                     initial_frequency_hz) ||
         !d10s_bk4829_uvk1_v3_resume_rx(initial_frequency_hz, profile)) {
         (void)d10s_bk4829_uvk1_v3_stop_rx(profile);
         return false;
