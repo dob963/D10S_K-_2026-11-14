@@ -35,3 +35,8 @@ add_executable(test_st7565 tests/test_st7565.c)
 target_link_libraries(test_st7565 PRIVATE d10s_spectrum_core)
 target_compile_options(test_st7565 PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME st7565_transport COMMAND test_st7565)
+
+add_executable(test_bk4829_scanner_adapter tests/test_bk4829_scanner_adapter.c)
+target_link_libraries(test_bk4829_scanner_adapter PRIVATE d10s_spectrum_core)
+target_compile_options(test_bk4829_scanner_adapter PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME bk4829_scanner_adapter COMMAND test_bk4829_scanner_adapter)
