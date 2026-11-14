@@ -618,7 +618,7 @@ static void test_turbo_honors_max_delay_when_rssi_never_stabilizes(void)
     bool changed = false;
     uint32_t now_ms = 0u;
 
-    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 5u));
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 8u));
     CHECK(d10s_spectrum_scanner_set_turbo(&scanner, true, 2u, 1u, 0u, 2u));
     CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
                                &result, &changed) == D10S_SCANNER_SWEEP_READY);
