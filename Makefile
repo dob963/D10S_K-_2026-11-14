@@ -32,6 +32,7 @@ test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/t
 	./build/test_st7565
 	./build/test_bk4829_scanner_adapter
 	./build/test_spectrum_app
+	./build/test_py32_clock
 	./build/test_bk4829_profile
 
 build/test_spectrum_detect: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_detect.c
@@ -60,3 +61,7 @@ build/test_spectrum_app: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) $(RADIO_SOURCES
 build/test_bk4829_profile: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_profile.c
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) $(RADIO_SOURCES) tests/test_bk4829_profile.c -o $@
+
+build/test_py32_clock: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) src/radio/bk4829_timing.c tests/test_py32_clock.c
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) src/radio/bk4829_timing.c tests/test_py32_clock.c -o $@
