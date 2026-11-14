@@ -26,6 +26,7 @@ typedef struct {
     uint8_t band_count;
     uint8_t attenuation_level;
     bool turbo_enabled;
+    bool hold_enabled;
     uint16_t noise_floor;
     uint16_t open_threshold;
     bool peak_hold_valid;
