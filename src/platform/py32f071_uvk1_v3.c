@@ -1,5 +1,7 @@
 #include "py32f071_uvk1_v3.h"
 
+#include <limits.h>
+
 #include <stddef.h>
 
 /*
@@ -84,6 +86,118 @@ typedef struct {
 #define D10S_PIN_PF9 9u
 
 #define D10S_SPI_TIMEOUT 100000u
+
+typedef struct {
+    volatile uint32_t CTRL;
+    volatile uint32_t LOAD;
+    volatile uint32_t VAL;
+    volatile uint32_t CALIB;
+} d10s_systick_regs_t;
+
+#define D10S_SYSTICK ((d10s_systick_regs_t *)(uintptr_t)0xE000E010u)
+#define D10S_SYSTICK_RELOAD 0x00FFFFFFu
+#define D10S_SYSTICK_ENABLE (1u << 0)
+#define D10S_SYSTICK_CORE_CLOCK (1u << 2)
+#define D10S_MAX_DELAY_CHUNK 65535u
+
+static bool systick_delay_ticks(uint16_t ticks, void *context)
+{
+    d10s_py32f071_uvk1_v3_t *board =
+        (d10s_py32f071_uvk1_v3_t *)context;
+    uint32_t start;
+    uint32_t current;
+    if (board == NULL || !board->systick_ready) return false;
+    if (ticks == 0u) return true;
+
+    start = D10S_SYSTICK->VAL & D10S_SYSTICK_RELOAD;
+    do {
+        current = D10S_SYSTICK->VAL & D10S_SYSTICK_RELOAD;
+        if (((start - current) & D10S_SYSTICK_RELOAD) >= ticks)
+            return true;
+    } while (true);
+}
+
+static bool systick_delay_ms(uint16_t milliseconds, void *context)
+{
+    d10s_py32f071_uvk1_v3_t *board =
+        (d10s_py32f071_uvk1_v3_t *)context;
+    uint64_t remaining;
+    if (board == NULL || !board->systick_ready) return false;
+    remaining = ((uint64_t)board->core_clock_hz * milliseconds + 999u) /
+                1000u;
+    while (remaining != 0u) {
+        const uint16_t chunk = (uint16_t)(
+            remaining > D10S_MAX_DELAY_CHUNK
+                ? D10S_MAX_DELAY_CHUNK : remaining);
+        if (!systick_delay_ticks(chunk, board)) return false;
+        remaining -= chunk;
+    }
+    return true;
+}
+
+bool d10s_py32f071_uvk1_v3_systick_init(
+    d10s_py32f071_uvk1_v3_t *board,
+    uint32_t measured_core_clock_hz)
+{
+    if (board == NULL || measured_core_clock_hz < 1000000u ||
+        measured_core_clock_hz > 72000000u) return false;
+
+    D10S_SYSTICK->CTRL = 0u;
+    D10S_SYSTICK->LOAD = D10S_SYSTICK_RELOAD;
+    D10S_SYSTICK->VAL = 0u;
+    D10S_SYSTICK->CTRL = D10S_SYSTICK_ENABLE | D10S_SYSTICK_CORE_CLOCK;
+
+    board->core_clock_hz = measured_core_clock_hz;
+    board->systick_last = D10S_SYSTICK->VAL & D10S_SYSTICK_RELOAD;
+    board->milliseconds = 0u;
+    board->cycle_remainder = 0u;
+    board->systick_ready = true;
+    return true;
+}
+
+uint32_t d10s_py32f071_uvk1_v3_millis(d10s_py32f071_uvk1_v3_t *board)
+{
+    uint32_t current;
+    uint32_t elapsed;
+    uint64_t scaled_cycles;
+    if (board == NULL || !board->systick_ready) return 0u;
+
+    current = D10S_SYSTICK->VAL & D10S_SYSTICK_RELOAD;
+    elapsed = (board->systick_last - current) & D10S_SYSTICK_RELOAD;
+    board->systick_last = current;
+    scaled_cycles = board->cycle_remainder + (uint64_t)elapsed * 1000u;
+    board->milliseconds += (uint32_t)(scaled_cycles /
+                                      board->core_clock_hz);
+    board->cycle_remainder = scaled_cycles % board->core_clock_hz;
+    return board->milliseconds;
+}
+
+bool d10s_py32f071_uvk1_v3_build_bk4829_timing(
+    const d10s_py32f071_uvk1_v3_t *board,
+    d10s_bk4829_bus_timing_t *timing)
+{
+    if (board == NULL || !board->systick_ready || timing == NULL)
+        return false;
+    return d10s_bk4829_build_timing(board->core_clock_hz, timing);
+}
+
+bool d10s_py32f071_uvk1_v3_display_port_init_systick(
+    d10s_py32f071_uvk1_v3_t *board,
+    d10s_st7565_port_t *port)
+{
+    if (board == NULL || !board->systick_ready) return false;
+    return d10s_py32f071_uvk1_v3_display_port_init(
+        board, port, systick_delay_ms, board);
+}
+
+bool d10s_py32f071_uvk1_v3_radio_bus_port_init_systick(
+    d10s_py32f071_uvk1_v3_t *board,
+    d10s_bk4829_bus_port_t *port)
+{
+    if (board == NULL || !board->systick_ready) return false;
+    return d10s_py32f071_uvk1_v3_radio_bus_port_init(
+        board, port, systick_delay_ticks, board);
+}
 
 static void pin_write(d10s_gpio_regs_t *gpio, uint8_t pin, bool high)
 {
