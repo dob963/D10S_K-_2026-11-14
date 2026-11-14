@@ -98,6 +98,7 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(d10s_spectrum_app_init(&app, bands, 2u, &radio, &display,
                                  NULL, 1u));
     CHECK(d10s_spectrum_app_set_bold_labels(&app, true));
+    CHECK(!d10s_spectrum_app_handle_key(&app, D10S_KEY_9));
 
     for (now_ms = 0u; now_ms < 45u; ++now_ms) {
         const d10s_spectrum_app_status_t status =
@@ -138,6 +139,40 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(app.pending_band_valid && app.pending_band_index == 1u);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) != D10S_APP_ERROR);
     CHECK(!app.pending_band_valid && app.scanner.plan.active_band == 1u);
+
+    /* Freeze the last complete sweep for inspection, without more RF scans. */
+    {
+        const uint32_t tune_before_pause = hw.tune_calls;
+        const uint32_t read_before_pause = hw.read_calls;
+        const uint32_t bytes_before_pause = hw.bytes_written;
+        unsigned idle_tick;
+        CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_9));
+        CHECK(app.paused && app.pause_frame_pending);
+        CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_FRAME_UPDATED);
+        CHECK(app.paused && !app.pause_frame_pending);
+        CHECK(hw.bytes_written == bytes_before_pause + 8u * 131u);
+
+        for (idle_tick = 1u; idle_tick <= 10u; ++idle_tick)
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + idle_tick) ==
+                  D10S_APP_IDLE);
+        CHECK(hw.tune_calls == tune_before_pause);
+        CHECK(hw.read_calls == read_before_pause);
+        CHECK(hw.bytes_written == bytes_before_pause + 8u * 131u);
+
+        CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_STAR));
+        CHECK(app.pause_frame_pending);
+        CHECK(d10s_spectrum_app_tick(&app, now_ms + 11u) ==
+              D10S_APP_FRAME_UPDATED);
+        CHECK(!app.pause_frame_pending && app.paused);
+        CHECK(hw.tune_calls == tune_before_pause);
+        CHECK(hw.read_calls == read_before_pause);
+
+        CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_9));
+        CHECK(!app.paused);
+        CHECK(d10s_spectrum_app_tick(&app, now_ms + 100u) != D10S_APP_ERROR);
+        CHECK(d10s_spectrum_app_tick(&app, now_ms + 101u) != D10S_APP_ERROR);
+        CHECK(hw.read_calls > read_before_pause);
+    }
 
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_EXIT));
     CHECK(!app.cursor_enabled);
