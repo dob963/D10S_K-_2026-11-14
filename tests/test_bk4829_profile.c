@@ -109,7 +109,7 @@ static bool write_seen(const fake_bus_t *bus, uint8_t address, uint16_t value)
     return false;
 }
 
-static void test_uvk1_profile_initializes_and_enables_rx_path(void)
+static void test_uvk1_profile_initializes_and_selects_lna_path(void)
 {
     fake_bus_t fake = {0};
     d10s_bk4829_uvk1_v3_profile_t profile = {0};
