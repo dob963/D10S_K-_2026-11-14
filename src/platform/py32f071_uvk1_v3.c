@@ -267,6 +267,15 @@ static bool systick_delay_us(d10s_py32f071_uvk1_v3_t *board,
     return true;
 }
 
+bool d10s_py32f071_uvk1_v3_set_backlight(
+    d10s_py32f071_uvk1_v3_t *board,
+    bool enabled)
+{
+    if (board == NULL || !board->gpio_ready) return false;
+    pin_write(D10S_GPIOF, D10S_PIN_PF8, enabled);
+    return true;
+}
+
 bool d10s_py32f071_uvk1_v3_keypad_init(
     d10s_py32f071_uvk1_v3_t *board)
 {
