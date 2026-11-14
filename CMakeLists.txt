@@ -11,8 +11,10 @@ add_library(d10s_spectrum_core
     src/spectrum/spectrum_scanner.c
     src/ui/spectrum_view.c
     src/platform/mono128x64.c
+    src/radio/bk4829_bus.c
+    src/radio/bk4829.c
 )
-target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform)
+target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform src/radio)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
 
 add_executable(test_spectrum_detect tests/test_spectrum_detect.c)
@@ -21,3 +23,8 @@ target_compile_options(test_spectrum_detect PRIVATE -Wall -Wextra -Werror -pedan
 
 enable_testing()
 add_test(NAME spectrum_detector COMMAND test_spectrum_detect)
+
+add_executable(test_bk4829_bus tests/test_bk4829_bus.c)
+target_link_libraries(test_bk4829_bus PRIVATE d10s_spectrum_core)
+target_compile_options(test_bk4829_bus PRIVATE -Wall -Wextra -Werror -pedantic)
+add_test(NAME bk4829_bus COMMAND test_bk4829_bus)
