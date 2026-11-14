@@ -5,10 +5,12 @@
 
 static void fail_closed(d10s_bk4829_scanner_adapter_t *a)
 {
+    bool was_ready;
     if (a == NULL) return;
+    was_ready = a->ready;
     a->ready = false;
     a->discard_first_rssi = false;
-    if (a->stop_rx != NULL) (void)a->stop_rx(a->context);
+    if (was_ready && a->stop_rx != NULL) (void)a->stop_rx(a->context);
 }
 
 static bool tune_hz(void *context, uint32_t requested_hz,
@@ -25,7 +27,6 @@ static bool tune_hz(void *context, uint32_t requested_hz,
         fail_closed(a);
         return false;
     }
-
     *actual_hz = requested_hz;
     a->discard_first_rssi = true;
     return true;
@@ -37,7 +38,6 @@ static bool read_rssi(void *context, uint16_t *rssi)
         (d10s_bk4829_scanner_adapter_t *)context;
     uint16_t discarded;
     if (a == NULL || !a->ready || rssi == NULL) return false;
-
     if (a->discard_first_rssi) {
         if (!d10s_bk4829_read_raw_rssi(&a->bus, &a->timing, &discarded)) {
             fail_closed(a);
@@ -62,16 +62,15 @@ bool d10s_bk4829_scanner_adapter_init(
     uint32_t initial_frequency_hz,
     void *context)
 {
-    if (a == NULL || bus == NULL || timing == NULL ||
-        initialize_rx == NULL || resume_rx == NULL || stop_rx == NULL ||
+    if (a == NULL) return false;
+    memset(a, 0, sizeof(*a));
+    if (bus == NULL || timing == NULL || initialize_rx == NULL ||
+        resume_rx == NULL || stop_rx == NULL ||
         !d10s_bk4829_frequency_supported(initial_frequency_hz) ||
         (initial_frequency_hz % 10u) != 0u ||
         timing->half_period_ticks == 0u ||
-        timing->turnaround_ticks == 0u)
-        return false;
+        timing->turnaround_ticks == 0u) return false;
 
-    a->ready = false;
-    a->discard_first_rssi = false;
     a->bus = *bus;
     a->timing = *timing;
     a->resume_rx = resume_rx;
