@@ -50,7 +50,7 @@ GitHub Actions runs host tests, a Makefile build/test pass, and freestanding ARM
 
 ## Current status — not a flashable firmware
 
-This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI backend, keyboard integration, target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. The BK4829 files are low-level portable primitives; they do not yet initialize the receiver or provide a complete retune/AGC/LNA sequence. The ST7565 driver is callback-based and is not yet connected to the physical radio pins. Do not flash test outputs or intermediate objects.
+This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI backend, keyboard integration, target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. The BK4829 scanner adapter now connects the portable bus/RSSI primitives to the Spectrum scanner, but it deliberately requires board-supplied initialization, RX-resume and standby callbacks; no complete verified receiver/AGC/LNA profile is present. The ST7565 driver is callback-based and is not yet connected to the physical radio pins. Do not flash test outputs or intermediate objects.
 
 The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit ABI, before state and stack). The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
 
