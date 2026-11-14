@@ -40,6 +40,15 @@ typedef struct {
     uint8_t attenuation_level;
     uint8_t phase;
     bool attenuation_configured;
+    bool turbo_enabled;
+    bool turbo_have_sample;
+    uint16_t turbo_min_settle_ms;
+    uint16_t turbo_poll_interval_ms;
+    uint16_t turbo_previous_rssi;
+    uint32_t turbo_next_poll_ms;
+    uint8_t turbo_stable_delta;
+    uint8_t turbo_stable_samples;
+    uint8_t turbo_stable_count;
 } d10s_spectrum_scanner_t;
 
 /* Bands are caller-owned and must outlive the scanner instance. */
@@ -51,6 +60,13 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
 void d10s_spectrum_scanner_stop(d10s_spectrum_scanner_t *scanner);
 bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
                                      uint16_t settle_ms);
+/* In Turbo, settle_ms is the maximum; all stability timings are caller-set. */
+bool d10s_spectrum_scanner_set_turbo(d10s_spectrum_scanner_t *scanner,
+                                     bool enabled,
+                                     uint16_t min_settle_ms,
+                                     uint16_t poll_interval_ms,
+                                     uint8_t stable_delta,
+                                     uint8_t stable_samples);
 bool d10s_spectrum_scanner_select_band(d10s_spectrum_scanner_t *scanner,
                                        uint8_t band_index);
 bool d10s_spectrum_scanner_snapshot(const d10s_spectrum_scanner_t *scanner,
