@@ -14,7 +14,8 @@ The code in src/spectrum/ currently provides:
 - Non-blocking scanner: tune, settle and RSSI-read phases through a hardware adapter.
 - Actual-frequency tracking: every point uses the frequency returned by the radio adapter.
 - Stable display snapshots: only complete sweeps are published; the displayed band and ATT setting are included with the snapshot.
-- Delay control: settling delay can be changed at a sweep boundary.
+- Delay control: settling delay can be changed at a sweep boundary;
+- Optional Turbo: early RSSI-stability exit with a bounded maximum delay, all timing/tolerance values caller-configured;
 - ATT interface: manual level change at a sweep boundary, with caller-supplied measured compensation in raw RSSI units.
 
 RSSI is raw relative 9-bit data (0..511), **not calibrated dBm**. No dB values or ATT offsets are invented.
