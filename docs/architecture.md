@@ -20,7 +20,7 @@ Bootloader reported for the target unit: 7.03.01 (must be re-read before any rel
 6. Peak hold and stable display update.
 7. ATT state tracked explicitly; attenuation changes must not silently shift the reported level. Any compensation is measured in raw RSSI units.
 8. Completed sweeps are published as stable, band-tagged snapshots; no partial buffer is exposed to the display.
-9. Delay can be changed only at a sweep boundary. Turbo remains a separate adaptive acquisition policy, not a blind reduction of settling time.
+9. Delay can be changed only at a sweep boundary. Turbo uses optional RSSI-stability polling bounded by a caller-configured maximum delay; it stays disabled until hardware timings are measured.
 10. Optional blacklist and signal-memory handling, kept separate from the acquisition loop.
 11. EXP/cursor frequency derived from the displayed snapshot's stored frequency data and band tag.
 
@@ -33,7 +33,7 @@ Bootloader reported for the target unit: 7.03.01 (must be re-read before any rel
 - platform/: clock, GPIO, SPI, timing and display bus.
 - radio/: BK4829 bus, verified RX setup, tuning, RSSI and attenuation.
 - spectrum/: scheduler, noise estimator, peak confirmation/refinement and peak hold.
-- ui/: Karina-inspired layout, display primitives, cursor and settings.
+- ui/: Karina-inspired layout, display primitives, cursor and settings. The portable 128x64 graph renderer is implemented; ST7565 transport and font integration are not yet wired.
 - tests/: host-side deterministic tests for frequency grids, detector and state transitions.
 
 ## Release gates
