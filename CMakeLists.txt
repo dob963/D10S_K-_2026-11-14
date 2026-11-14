@@ -55,3 +55,8 @@ add_executable(test_bk4829_profile tests/test_bk4829_profile.c)
 target_link_libraries(test_bk4829_profile PRIVATE d10s_spectrum_core)
 target_compile_options(test_bk4829_profile PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME bk4829_uvk1_v3_profile COMMAND test_bk4829_profile)
+
+add_executable(test_py32_clock tests/test_py32_clock.c)
+target_link_libraries(test_py32_clock PRIVATE d10s_spectrum_core)
+target_compile_options(test_py32_clock PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME py32_clock COMMAND test_py32_clock)
