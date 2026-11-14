@@ -59,19 +59,25 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
     }
 
     switch (scanner->phase) {
-    case SCANNER_PHASE_TUNE:
+    case SCANNER_PHASE_TUNE: {
+        uint32_t requested_frequency_hz = 0u;
+        uint32_t actual_frequency_hz = 0u;
         if (!d10s_spectrum_plan_frequency(&scanner->plan,
                                           scanner->bin_index,
-                                          &scanner->current_frequency_hz) ||
-            !radio->tune_hz(radio->context, scanner->current_frequency_hz)) {
+                                          &requested_frequency_hz) ||
+            !radio->tune_hz(radio->context, requested_frequency_hz,
+                            &actual_frequency_hz) ||
+            actual_frequency_hz < band->start_hz ||
+            actual_frequency_hz > band->stop_hz) {
             scanner->phase = SCANNER_PHASE_FAILED;
             return D10S_SCANNER_ERROR;
         }
-        scanner->bins[scanner->bin_index].frequency_hz =
-            scanner->current_frequency_hz;
+        scanner->current_frequency_hz = actual_frequency_hz;
+        scanner->bins[scanner->bin_index].frequency_hz = actual_frequency_hz;
         scanner->settle_started_ms = now_ms;
         scanner->phase = SCANNER_PHASE_SETTLE;
         return D10S_SCANNER_BUSY;
+    }
 
     case SCANNER_PHASE_SETTLE:
         if ((uint32_t)(now_ms - scanner->settle_started_ms) < scanner->settle_ms)
