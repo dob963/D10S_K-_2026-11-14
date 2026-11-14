@@ -1,6 +1,7 @@
 #include "bk4829_scanner_adapter.h"
 
 #include <stddef.h>
+#include <string.h>
 
 static void fail_closed(d10s_bk4829_scanner_adapter_t *a)
 {
