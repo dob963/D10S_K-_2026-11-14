@@ -12,7 +12,7 @@ Do not copy code from a project whose license is missing, unclear, incompatible 
 
 | Project | Purpose of review | License status | D10S code reuse |
 |---|---|---|---|
-| [armel/uv-k1-k5v3-firmware-custom](https://github.com/armel/uv-k1-k5v3-firmware-custom) | PY32F071 platform, BK4829, LCD/keypad and build conventions | Apache-2.0 reported by GitHub for reviewed revision `3261ca7883d5b0b60c0905d8766612dee7b4191d`; preserve all applicable notices if code is later imported | No source code imported in the current portable modules |
+| [armel/uv-k1-k5v3-firmware-custom](https://github.com/armel/uv-k1-k5v3-firmware-custom) | PY32F071 platform, BK4829, LCD/keypad and build conventions | Apache-2.0 verified at pinned revision `3261ca7883d5b0b60c0905d8766612dee7b4191d`; source header, LICENSE and NOTICE reviewed | Modified BK4829 reference profile in `src/radio/bk4829_uvk1_v3_profile.c/.h`; notices and license copy included |
 | [autumn1rain/karina-v3-k1](https://github.com/autumn1rain/karina-v3-k1) | Spectrum workflow and visual/interaction requirements | Apache-2.0 as recorded during repository review; re-check the exact revision and notices before any code reuse | No Karina source imported; behavioral reference only |
 | [Dim0s/quansheng-UV-K5v3-K1-firmware-pack](https://github.com/Dim0s/quansheng-UV-K5v3-K1-firmware-pack) | Maintainer notes about Spectrum behavior and known defects | License not verified in this audit | Notes only; no code imported |
 | KA52M K1/V3 firmware | BK4829 driver and Spectrum implementation research lead | Exact repository/revision and license not yet verified in this audit | No code imported |
@@ -22,7 +22,7 @@ This table records the state of the review, not a blanket legal opinion about th
 
 ## Current D10S repository licensing
 
-At this audit, the repository has no project-level `LICENSE` file. Therefore no open-source license has yet been granted for original D10S code. Public visibility on GitHub is not a license to reuse it. Do not add a license or advertise D10S as open source until the project owner has selected and approved the license.
+At this audit, the repository has no project-level `LICENSE` file. Therefore no open-source license has yet been granted for original D10S code. The Apache-2.0 file under `LICENSES/` applies to the identified source-derived BK4829 profile only; it does not license the whole D10S repository. Public visibility on GitHub is not a license to reuse it. Do not add a license or advertise D10S as open source until the project owner has selected and approved the license.
 
 ## Required import checklist
 
