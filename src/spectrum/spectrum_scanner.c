@@ -134,6 +134,26 @@ bool d10s_spectrum_scanner_snapshot(const d10s_spectrum_scanner_t *scanner,
     return true;
 }
 
+bool d10s_spectrum_scanner_restart_sweep(d10s_spectrum_scanner_t *scanner)
+{
+    if (scanner == 0 || scanner->phase == SCANNER_PHASE_STOPPED ||
+        scanner->phase == SCANNER_PHASE_FAILED) return false;
+
+    /*
+     * A paused scan may resume in the middle of a sweep. Discard its partial
+     * bins and restart at bin zero, preserving the last published snapshot
+     * and detector history until a new full sweep is ready.
+     */
+    scanner->bin_index = 0u;
+    scanner->current_frequency_hz = 0u;
+    scanner->settle_started_ms = 0u;
+    scanner->turbo_have_sample = false;
+    scanner->turbo_stable_count = 0u;
+    scanner->turbo_next_poll_ms = 0u;
+    scanner->phase = SCANNER_PHASE_TUNE;
+    return true;
+}
+
 void d10s_spectrum_scanner_stop(d10s_spectrum_scanner_t *scanner)
 {
     if (scanner == 0) return;
