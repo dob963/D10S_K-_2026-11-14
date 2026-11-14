@@ -19,12 +19,12 @@ target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedanti
 
 add_executable(test_spectrum_detect tests/test_spectrum_detect.c)
 target_link_libraries(test_spectrum_detect PRIVATE d10s_spectrum_core)
-target_compile_options(test_spectrum_detect PRIVATE -Wall -Wextra -Werror -pedantic)
+target_compile_options(test_spectrum_detect PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 
 enable_testing()
 add_test(NAME spectrum_detector COMMAND test_spectrum_detect)
 
 add_executable(test_bk4829_bus tests/test_bk4829_bus.c)
 target_link_libraries(test_bk4829_bus PRIVATE d10s_spectrum_core)
-target_compile_options(test_bk4829_bus PRIVATE -Wall -Wextra -Werror -pedantic)
+target_compile_options(test_bk4829_bus PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME bk4829_bus COMMAND test_bk4829_bus)
