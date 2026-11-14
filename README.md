@@ -8,7 +8,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - Integrated coordinator in src/app/spectrum_app.c connects scanner, detector, snapshots, graph renderer, framebuffer and ST7565 controller.
 - Adaptive noise floor: per-sweep percentile, rolling five-sweep history and smoothing.
 - Relative peak detection, local prominence, three-sweep confirmation, parabolic frequency refinement and confirmed peak hold.
-- Multi-band plan: up to eight validated bands with uniform grids and per-band dwell.
+- Multi-band plan: up to eight validated bands with uniform grids and per-band dwell. Initial target spans (144–146 MHz and 430–440 MHz) use 129 points each, checked by a dedicated host test for exact grid divisibility.
 - Non-blocking tune/settle/RSSI acquisition; each sample is tagged with the actual frequency returned by the radio adapter.
 - Only complete sweeps are published; manual band and ATT changes invalidate stale snapshots.
 - Delay control and optional adaptive Turbo polling, bounded by caller-provided timings.
