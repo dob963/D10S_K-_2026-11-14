@@ -16,6 +16,7 @@ typedef struct {
     bool csn, clock, output;
     bool input[16]; unsigned input_count, input_index;
     bool written[64]; unsigned written_count;
+    uint16_t delays[256]; unsigned delay_count;
     bool fail_delay;
 } fake_bus_t;
 static bool csn(bool v, void *c) { ((fake_bus_t *)c)->csn=v; return true; }
@@ -30,7 +31,10 @@ static bool rd(bool *v, void *c) {
     *v=b->input[b->input_index++]; return true;
 }
 static bool delay(uint16_t n, void *c) {
-    fake_bus_t *b=c; CHECK(n); if (b->fail_delay) { b->fail_delay=false; return false; }
+    fake_bus_t *b=c; CHECK(n);
+    CHECK(b->delay_count < sizeof(b->delays) / sizeof(b->delays[0]));
+    b->delays[b->delay_count++] = n;
+    if (b->fail_delay) { b->fail_delay=false; return false; }
     return true;
 }
 static void append(bool *o,unsigned *n,uint16_t v,uint8_t width) {
@@ -86,6 +90,14 @@ int main(void) {
         CHECK(d10s_bk4829_build_timing(72000000u, &built));
         CHECK(built.half_period_ticks == 35u && built.turnaround_ticks == 35u);
         CHECK(!d10s_bk4829_build_timing(72000001u, &built));
+
+        /* Verify that the bus consumes the generated 35-cycle timing. */
+        memset(&b, 0, sizeof(b)); b.csn=true; b.output=true;
+        p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
+        CHECK(d10s_bk4829_write_register(&p,&built,0x25u,0xA55Au));
+        CHECK(b.delay_count > 0u);
+        for (unsigned i=0u; i<b.delay_count; ++i)
+            CHECK(b.delays[i] == 35u);
     }
     puts("BK4829 bus tests: PASS"); return 0;
 }
