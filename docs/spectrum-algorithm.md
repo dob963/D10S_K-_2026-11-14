@@ -18,6 +18,10 @@ The scanner state machine calls a hardware adapter in three phases: tune, wait f
 
 The radio adapter supplies only `tune_hz(requested, &actual)` and `read_rssi(&raw_value)`. This keeps all BK4829 register access and the board's LNA/RF path out of the portable scanner until those details are verified for the exact PCB.
 
+## ATT handling
+
+The scanner exposes a manual ATT callback. ATT changes are allowed only at a sweep boundary; a mid-sweep change is rejected so one sweep cannot contain mixed gain settings. The application supplies a measured RSSI correction in raw units for that hardware ATT level. The scanner adds this correction to each raw sample with saturation at 511 and resets detector history when ATT changes. No ATT steps, dB values or compensation constants are hard-coded because they must be measured on the actual board and receiver path.
+
 ## Processing path
 
 1. Copy and sort the sweep RSSI values using bounded insertion sort.
