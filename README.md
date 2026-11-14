@@ -5,6 +5,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 ## Implemented portable modules
 
 ### Spectrum engine
+- Integrated application coordinator (`src/app/spectrum_app.c`) links the radio scan loop, detector, snapshot, view renderer, framebuffer and ST7565 frame transfer.
 - Adaptive noise floor: per-sweep percentile, rolling five-sweep history and IIR smoothing.
 - Relative peak detection: noise-relative threshold, local prominence and three-sweep confirmation by default.
 - Peak refinement: three-point parabolic interpolation.
@@ -51,7 +52,7 @@ GitHub Actions runs host tests, a Makefile build/test pass, and freestanding ARM
 
 ## Current status — not a flashable firmware
 
-This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI callback backend, keyboard integration, target startup/linker integration, or a flashable BIN. The scanner is tested with a simulated radio. The BK4829 scanner adapter connects the register bus and RSSI primitives to the Spectrum scanner, but deliberately requires board-supplied receiver initialization, RX-resume and standby callbacks; no complete verified receiver/AGC/LNA profile is present. The ST7565 controller can flush the framebuffer through callbacks, but the physical PY32F071 GPIO/SPI implementation and panel orientation/contrast still require validation. Do not flash test outputs or intermediate objects.
+This repository contains a tested portable Spectrum application pipeline, but not a target-ready radio firmware image. It still lacks a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI callback backend, keyboard integration, target startup/linker integration, and a flashable BIN. The complete Spectrum application pipeline is tested with a simulated radio and LCD controller. The BK4829 scanner adapter connects the register bus and RSSI primitives to the Spectrum scanner, but deliberately requires board-supplied receiver initialization, RX-resume and standby callbacks; no complete verified receiver/AGC/LNA profile is present. The ST7565 controller can flush the framebuffer through callbacks, but the physical PY32F071 GPIO/SPI implementation and panel orientation/contrast still require validation. Do not flash test outputs or intermediate objects.
 
 The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit ABI), in addition to the 1 KiB display framebuffer, detector state and stack. The combined application RAM budget remains to be proven from the final ARM link map. The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
 
