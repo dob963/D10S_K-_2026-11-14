@@ -2,29 +2,37 @@
 
 Independent, receive-only Spectrum Analyzer firmware project for the Quansheng UV-K1 / UV-K1(8) V3 target (reported platform: PY32F071 + BK4829). Exact PCB compatibility still needs confirmation.
 
-## Implemented portable core
+## Implemented portable modules
 
-The code in src/spectrum/ currently provides:
-
+### Spectrum engine
 - Adaptive noise floor: per-sweep percentile, rolling five-sweep history and IIR smoothing.
 - Relative peak detection: noise-relative threshold, local prominence and three-sweep confirmation by default.
 - Peak refinement: three-point parabolic interpolation.
 - Peak hold: updates only after a confirmed signal.
 - Multi-band plan: up to eight validated bands with an exact uniform frequency grid and per-band dwell.
 - Non-blocking scanner: tune, settle and RSSI-read phases through a hardware adapter.
-- Actual-frequency tracking: every point uses the frequency returned by the radio adapter.
-- Stable display snapshots: only complete sweeps are published; the displayed band and ATT setting are included with the snapshot.
-- Delay control: settling delay can be changed at a sweep boundary;
-- Optional Turbo: early RSSI-stability exit with a bounded maximum delay, all timing/tolerance values caller-configured;
-- ATT interface: manual level change at a sweep boundary, with caller-supplied measured compensation in raw RSSI units;
-- 128x64 graph renderer: RSSI trace, grid, adaptive threshold line, held-peak marker, cursor, and frequency label from the published snapshot;
-- Display callback supports normal or moderately bold text without tying the view to a specific LCD driver.
+- Actual-frequency tracking and stable display snapshots: only complete sweeps are published, with band and ATT metadata.
+- Delay control at sweep boundaries and optional Turbo stability polling bounded by caller-supplied timings.
+- ATT interface with caller-supplied compensation in raw RSSI units; no invented dB offsets.
 
-RSSI is raw relative 9-bit data (0..511), **not calibrated dBm**. No dB values or ATT offsets are invented.
+### Display
+- 128x64 graph renderer: RSSI trace, grid, adaptive threshold, held-peak marker, cursor and frequency label.
+- Monochrome framebuffer with normal or moderately bold text.
+- Callback-based ST7565 transport: panel command initialization, page addressing and eight-page framebuffer flush.
+- ST7565 host tests verify command/data ordering and the configured column offset. Physical PY32F071 SPI/GPIO wiring and panel validation remain outstanding.
 
-## Build and test the portable core
+### BK4829 primitives
+- Three-wire register read/write transport with bus-idle recovery on communication failures.
+- Timing calculation from the measured rate of the supplied delay callback; no assumed MCU clock.
+- Raw REG_67 RSSI extraction (9 bits, 0..511), with no dBm conversion.
+- Frequency-word conversion and REG_38/REG_39 programming in 10 Hz units.
+- Datasheet operating windows enforced: 18–580 MHz and 760–1160 MHz. The 580–760 MHz gap and frequencies above 1160 MHz are rejected. These are IC limits, not proof that every frequency is usable with the UV-K1 RF front end.
 
-Requirements: a C11 compiler and Make.
+RSSI is raw relative data, **not calibrated dBm**. No dB values or ATT offsets are invented.
+
+## Build and test
+
+Requirements: a C11 compiler and Make, or CMake.
 
 ```sh
 make test
@@ -38,13 +46,13 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-GitHub Actions runs the host tests and compiles all four portable C modules as freestanding ARM Cortex-M0+ objects.
+GitHub Actions runs host tests, a Makefile build/test pass, and freestanding ARM Cortex-M0+ compilation of the portable modules.
 
 ## Current status — not a flashable firmware
 
-This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX driver, LCD/keyboard integration, the target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. The new 128x64 renderer is LCD-driver-independent; it is not yet wired to the ST7565 SPI/refresh driver. Do not flash test outputs or intermediate objects.
+This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI backend, keyboard integration, target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. The BK4829 files are low-level portable primitives; they do not yet initialize the receiver or provide a complete retune/AGC/LNA sequence. The ST7565 driver is callback-based and is not yet connected to the physical radio pins. Do not flash test outputs or intermediate objects.
 
-The scanner currently allocates two 256-point buffers (about 4 KiB on the 32-bit ABI, before state and stack). The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
+The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit ABI, before state and stack). The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
 
 ## Engineering references
 
@@ -54,6 +62,7 @@ The scanner currently allocates two 256-point buffers (about 4 KiB on the 32-bit
 - [Upstream platform review](docs/upstream-review.md)
 - [BK4829 hardware adapter contract and bring-up gates](docs/bk4829-hardware-adapter-contract.md)
 - [BK4829 upstream RSSI and board evidence](docs/bk4829-upstream-evidence.md)
+- [BK4829 RF operating windows](docs/bk4829-rf-limits.md)
 - [Karina-inspired Spectrum behavior requirements](docs/reference-behavior.md)
 
 The UI direction is the requested Karina-style Spectrum workflow, not the F4HWN Spectrum screen. The reference behavior is documented separately; no Karina or F4HWN Spectrum source has been copied into the portable detector, band planner, or scanner.
