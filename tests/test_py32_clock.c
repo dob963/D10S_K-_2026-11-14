@@ -42,7 +42,7 @@ static void test_ahb_prescaler_and_invalid_sources(void)
 {
     uint32_t hz = 0u;
     CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
-        0u, (4u << 13), (0x10u << 8), 0u, 24000000u, &hz));
+        0u, (4u << 13), (8u << 8), 0u, 24000000u, &hz));
     CHECK(hz == 12000000u);
 
     CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
