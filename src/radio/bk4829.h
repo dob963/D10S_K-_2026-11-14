@@ -8,8 +8,13 @@
 
 #define D10S_BK4829_RSSI_REGISTER 0x67u
 #define D10S_BK4829_RSSI_MASK 0x01FFu
+#define D10S_BK4829_REG_FREQ_LOW 0x38u
+#define D10S_BK4829_REG_FREQ_HIGH 0x39u
 
-/* Datasheet frequency word: 10 Hz units. Reject non-exact 10 Hz values. */
+/* Datasheet RF operating windows; gaps and out-of-range values are rejected. */
+bool d10s_bk4829_frequency_supported(uint32_t frequency_hz);
+
+/* Datasheet frequency word: 10 Hz units. Reject unsupported/non-exact values. */
 bool d10s_bk4829_frequency_to_word(uint32_t frequency_hz,
                                    uint32_t *frequency_word);
 /* Raw 9-bit RSSI only. This function never reports dBm. */
