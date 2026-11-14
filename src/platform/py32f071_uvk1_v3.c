@@ -200,7 +200,7 @@ static bool display_write_byte(uint8_t value, void *context)
     d10s_py32f071_uvk1_v3_t *board =
         (d10s_py32f071_uvk1_v3_t *)context;
     uint32_t timeout;
-    volatile uint32_t received;
+    volatile uint32_t received = 0u;
     if (board == NULL || !board->spi_ready) return false;
 
     if ((D10S_SPI1->SR & D10S_SPI_SR_RXNE) != 0u)
@@ -228,7 +228,7 @@ static bool display_delay_ms(uint16_t milliseconds, void *context)
     d10s_py32f071_uvk1_v3_t *board =
         (d10s_py32f071_uvk1_v3_t *)context;
     return board != NULL && board->delay_ms != NULL &&
-           board->delay_ms(milliseconds, board->delay_context);
+           board->delay_ms(milliseconds, board->delay_ms_context);
 }
 
 static bool radio_set_csn(bool high, void *context)
@@ -288,7 +288,7 @@ static bool radio_delay_ticks(uint16_t ticks, void *context)
     d10s_py32f071_uvk1_v3_t *board =
         (d10s_py32f071_uvk1_v3_t *)context;
     return board != NULL && board->delay_ticks != NULL &&
-           board->delay_ticks(ticks, board->delay_context);
+           board->delay_ticks(ticks, board->delay_ticks_context);
 }
 
 bool d10s_py32f071_uvk1_v3_display_port_init(
@@ -300,7 +300,7 @@ bool d10s_py32f071_uvk1_v3_display_port_init(
     if (board == NULL || port == NULL || delay_ms == NULL ||
         !gpio_init(board)) return false;
     board->delay_ms = delay_ms;
-    board->delay_context = delay_context;
+    board->delay_ms_context = delay_context;
     if (!spi1_init()) return false;
     board->spi_ready = true;
 
@@ -321,7 +321,7 @@ bool d10s_py32f071_uvk1_v3_radio_bus_port_init(
     if (board == NULL || port == NULL || delay_ticks == NULL ||
         !gpio_init(board)) return false;
     board->delay_ticks = delay_ticks;
-    board->delay_context = delay_context;
+    board->delay_ticks_context = delay_context;
 
     port->set_csn_high = radio_set_csn;
     port->set_clock_high = radio_set_clock;
