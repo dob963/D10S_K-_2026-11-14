@@ -15,6 +15,8 @@ bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
         radio->read_rssi == NULL) return false;
 
     app->initialized = false;
+    app->pending_band_valid = false;
+    app->pending_band_index = 0u;
     if (!d10s_spectrum_scanner_init(&app->scanner, bands, band_count,
                                     detector_config, settle_ms)) return false;
     app->radio = *radio;
@@ -45,6 +47,13 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
 
     if (app == NULL || !app->initialized || app->display == NULL)
         return D10S_APP_ERROR;
+
+    if (app->pending_band_valid) {
+        if (app->scanner.plan.active_band == app->pending_band_index ||
+            d10s_spectrum_scanner_select_band(&app->scanner,
+                                               app->pending_band_index))
+            app->pending_band_valid = false;
+    }
 
     status = d10s_spectrum_scanner_tick(&app->scanner, &app->radio,
                                         now_ms, &result, &band_changed);
@@ -84,6 +93,79 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
 
     app->last_result = result;
     return D10S_APP_FRAME_UPDATED;
+}
+
+
+static bool set_cursor_position(d10s_spectrum_app_t *app,
+                                uint16_t count, uint16_t index)
+{
+    if (app == NULL || count < 3u) return false;
+    app->cursor_bin = (uint16_t)(index % count);
+    app->cursor_enabled = true;
+    return true;
+}
+
+bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
+                                  d10s_spectrum_key_t key)
+{
+    uint16_t count;
+    uint16_t cursor;
+    if (app == NULL || !app->initialized) return false;
+
+    count = app->scanner.published_count;
+    switch (key) {
+    case D10S_KEY_MENU:
+        if (app->cursor_enabled) {
+            app->cursor_enabled = false;
+            return true;
+        }
+        return set_cursor_position(app, count, (uint16_t)(count / 2u));
+
+    case D10S_KEY_EXIT:
+        app->cursor_enabled = false;
+        return true;
+
+    case D10S_KEY_0:
+        return set_cursor_position(app, count, (uint16_t)(count / 2u));
+
+    case D10S_KEY_UP:
+    case D10S_KEY_DOWN:
+    case D10S_KEY_SIDE1:
+    case D10S_KEY_SIDE2:
+        if (count < 3u) return false;
+        cursor = app->cursor_enabled ? app->cursor_bin
+                                     : (uint16_t)(count / 2u);
+        if (key == D10S_KEY_UP)
+            cursor = (uint16_t)((cursor + count - 1u) % count);
+        else if (key == D10S_KEY_DOWN)
+            cursor = (uint16_t)((cursor + 1u) % count);
+        else if (key == D10S_KEY_SIDE1)
+            cursor = (uint16_t)((cursor + count - (8u % count)) % count);
+        else
+            cursor = (uint16_t)((cursor + (8u % count)) % count);
+        return set_cursor_position(app, count, cursor);
+
+    case D10S_KEY_F:
+        return d10s_spectrum_app_set_bold_labels(app, !app->bold_labels);
+
+    case D10S_KEY_1:
+    case D10S_KEY_2:
+    case D10S_KEY_3:
+    case D10S_KEY_4:
+    case D10S_KEY_5:
+    case D10S_KEY_6:
+    case D10S_KEY_7:
+    case D10S_KEY_8:
+        app->pending_band_index = (uint8_t)(key - D10S_KEY_1);
+        if (app->pending_band_index >= app->scanner.plan.band_count)
+            return false;
+        app->pending_band_valid =
+            app->pending_band_index != app->scanner.plan.active_band;
+        return true;
+
+    default:
+        return false;
+    }
 }
 
 bool d10s_spectrum_app_set_cursor(d10s_spectrum_app_t *app,
@@ -146,5 +228,6 @@ void d10s_spectrum_app_stop(d10s_spectrum_app_t *app)
 {
     if (app == NULL || !app->initialized) return;
     d10s_spectrum_scanner_stop(&app->scanner);
+    app->pending_band_valid = false;
     app->initialized = false;
 }
