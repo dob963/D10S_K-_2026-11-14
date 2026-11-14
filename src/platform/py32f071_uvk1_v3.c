@@ -175,6 +175,9 @@ uint32_t d10s_py32f071_uvk1_v3_millis(d10s_py32f071_uvk1_v3_t *board)
 }
 
 
+static void pin_write(d10s_gpio_regs_t *gpio, uint8_t pin, bool high);
+static bool gpio_init(d10s_py32f071_uvk1_v3_t *board);
+
 static bool systick_delay_us(d10s_py32f071_uvk1_v3_t *board,
                              uint16_t microseconds)
 {
