@@ -15,16 +15,17 @@ SPECTRUM_HEADERS = \
 	src/ui/spectrum_view.h \
 	src/platform/mono128x64.h \
 	src/platform/st7565.h
-RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timing.c
-RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h
+RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timing.c src/radio/bk4829_scanner_adapter.c
+RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h src/radio/bk4829_scanner_adapter.h
 INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio
 
 .PHONY: test clean
 
-test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565
+test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter
 	./build/test_spectrum_detect
 	./build/test_bk4829_bus
 	./build/test_st7565
+	./build/test_bk4829_scanner_adapter
 
 build/test_spectrum_detect: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_detect.c
 	mkdir -p build
@@ -40,3 +41,7 @@ build/test_st7565: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_st7565.c
 
 clean:
 	rm -rf build
+
+build/test_bk4829_scanner_adapter: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_scanner_adapter.c
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) $(RADIO_SOURCES) tests/test_bk4829_scanner_adapter.c -o $@
