@@ -47,14 +47,23 @@ const d10s_vector_table_t d10s_vectors = {
     .pendsv = Default_Handler,
     .systick = Default_Handler,
     .external_irq = {
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler,
-        Default_Handler, Default_Handler, Default_Handler, Default_Handler
+        [0] = Default_Handler,  [1] = Default_Handler,
+        [2] = Default_Handler,  [3] = Default_Handler,
+        [4] = Default_Handler,  [5] = Default_Handler,
+        [6] = Default_Handler,  [7] = Default_Handler,
+        [8] = Default_Handler,  [9] = Default_Handler,
+        [10] = Default_Handler, [11] = Default_Handler,
+        [12] = Default_Handler, [13] = Default_Handler,
+        [14] = Default_Handler, [15] = Default_Handler,
+        [16] = Default_Handler, [17] = Default_Handler,
+        [18] = Default_Handler, [19] = Default_Handler,
+        [20] = Default_Handler, [21] = Default_Handler,
+        [22] = Default_Handler, [23] = Default_Handler,
+        [24] = Default_Handler, [25] = Default_Handler,
+        [26] = Default_Handler, [27] = Default_Handler,
+        [28] = Default_Handler, [29] = Default_Handler,
+        [30] = 0, /* Reserved: PY32F071 has no IRQ number 30. */
+        [31] = Default_Handler /* USB_IRQn */
     }
 };
 
