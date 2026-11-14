@@ -1,3 +1,0 @@
-[submodule "platform/uv-k1-k5v3-firmware-custom"]
-	path = platform/uv-k1-k5v3-firmware-custom
-	url = https://github.com/armel/uv-k1-k5v3-firmware-custom.git
