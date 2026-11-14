@@ -31,3 +31,4 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_bus.c -o /tmp/d10s_bk4829_bus_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829.c -o /tmp/d10s_bk4829_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_timing.c -o /tmp/d10s_bk4829_timing_arm.o
+          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/platform -c src/platform/st7565.c -o /tmp/d10s_st7565_arm.o
