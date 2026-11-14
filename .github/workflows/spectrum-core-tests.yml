@@ -35,5 +35,6 @@ jobs:
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/radio -c src/radio/bk4829_timing.c -o /tmp/d10s_bk4829_timing_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_scanner_adapter.c -o /tmp/d10s_bk4829_scanner_adapter_arm.o
           clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_uvk1_v3_profile.c -o /tmp/d10s_bk4829_uvk1_v3_profile_arm.o
+          clang --target=arm-none-eabi -mcpu=cortex-m0plus -mthumb -std=c11 -ffreestanding -Wall -Wextra -Werror -pedantic -Isrc/spectrum -Isrc/radio -c src/radio/bk4829_uvk1_v3_radio.c -o /tmp/d10s_bk4829_uvk1_v3_radio_arm.o
       - name: Verify Makefile build and tests
         run: make clean && make test
