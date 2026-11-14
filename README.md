@@ -23,7 +23,10 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - One presentation entry point now clears the framebuffer, renders a validated Spectrum snapshot, and flushes all eight LCD pages; invalid snapshots are rejected without sending a partial frame.
 - Host tests verify command/data ordering, page layout, framebuffer-to-controller transfer and configured column offset. The PY32F071 GPIO/SPI callback implementation and physical panel validation remain outstanding.
 
-### BK4829 primitives
+### BK4829 primitives and reference profile
+- An opt-in UV-K1 V3 initialization/LNA profile is derived from the pinned Apache-2.0 upstream BK4829 driver; source revision and attribution are recorded in `THIRD_PARTY_NOTICES.md`.
+- The profile preserves the upstream GPIO3/UHF-LNA and GPIO4/VHF-LNA selection. It deliberately does not toggle GPIO0 because no board-level RX-enable mapping has been verified.
+- The profile is source-derived and host-tested only. It is not hardware-validated and must not be treated as a verified receiver setup for an unconfirmed PCB revision.
 - Three-wire register read/write transport with bus-idle recovery on communication failures.
 - Timing calculation from the measured rate of the supplied delay callback; no assumed MCU clock.
 - Raw REG_67 RSSI extraction (9 bits, 0..511), with no dBm conversion.
