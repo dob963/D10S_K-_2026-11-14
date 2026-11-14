@@ -1,4 +1,5 @@
 #include "bk4829.h"
+#include "bk4829_timing.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -62,5 +63,14 @@ int main(void) {
     assert(b.csn && b.clock && b.output);
     assert(!d10s_bk4829_write_register(&p,&t,0x80u,0u));
     assert(!d10s_bk4829_read_register(&p,&t,0x20u,0));
+    {
+        d10s_bk4829_bus_timing_t built = {0u, 0u};
+        assert(!d10s_bk4829_build_timing(0u, &built));
+        assert(d10s_bk4829_build_timing(1000000u, &built));
+        assert(built.half_period_ticks == 1u && built.turnaround_ticks == 1u);
+        assert(d10s_bk4829_build_timing(48000000u, &built));
+        assert(built.half_period_ticks == 2u && built.turnaround_ticks == 48u);
+        assert(!d10s_bk4829_build_timing(100000000000u, &built));
+    }
     puts("BK4829 bus tests: PASS"); return 0;
 }
