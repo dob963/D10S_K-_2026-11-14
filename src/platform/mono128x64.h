@@ -3,7 +3,6 @@
 
 #include "spectrum_view.h"
 #include "st7565.h"
-#include "st7565.h"
 
 #include <stdbool.h>
 #include <stdint.h>
