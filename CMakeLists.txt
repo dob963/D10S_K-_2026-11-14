@@ -18,7 +18,7 @@ add_library(d10s_spectrum_core
     src/radio/bk4829_timing.c
     src/radio/bk4829_scanner_adapter.c
 )
-target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform src/radio)
+target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform src/radio src/app)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
 
 add_executable(test_spectrum_detect tests/test_spectrum_detect.c)
