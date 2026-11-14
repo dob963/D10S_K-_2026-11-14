@@ -438,6 +438,7 @@ static void pin_alternate_init(d10s_gpio_regs_t *gpio, uint8_t pin,
 static bool gpio_init(d10s_py32f071_uvk1_v3_t *board)
 {
     if (board == NULL) return false;
+    if (board->gpio_ready) return true;
     D10S_RCC->IOPENR |= D10S_RCC_GPIOA_EN |
                        D10S_RCC_GPIOB_EN |
                        D10S_RCC_GPIOF_EN;
