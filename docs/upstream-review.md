@@ -26,7 +26,7 @@ No automatic assumption is made that a repository name or radio model is proof o
 
 ## Spectrum direction
 
-D10S retains an independent detector and interface. The chosen visual/behavioral direction is Karina-inspired; F4HWN's Spectrum screen is not the selected UI. No Karina or F4HWN Spectrum source code is copied into D10S.
+D10S retains an independent detector and interface. Its layout, scan flow and typography are designed as an original advanced Spectrum interface. No application source from other firmware projects is copied into D10S.
 
 ## Evidence limits
 
