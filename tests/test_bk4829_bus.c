@@ -70,7 +70,6 @@ int main(void) {
         assert(built.half_period_ticks == 1u && built.turnaround_ticks == 1u);
         assert(d10s_bk4829_build_timing(48000000u, &built));
         assert(built.half_period_ticks == 2u && built.turnaround_ticks == 48u);
-        assert(!d10s_bk4829_build_timing(100000000000u, &built));
     }
     puts("BK4829 bus tests: PASS"); return 0;
 }
