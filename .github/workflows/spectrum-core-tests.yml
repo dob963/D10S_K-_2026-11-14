@@ -43,6 +43,7 @@ jobs:
           mkdir -p build/target
           TARGET_SOURCES="
             target/startup.c
+            target/runtime.c
             target/main.c
             src/spectrum/spectrum_detect.c
             src/spectrum/spectrum_plan.c
@@ -64,7 +65,7 @@ jobs:
           for source in $TARGET_SOURCES; do
             object="build/target/$(echo "$source" | tr '/.' '__').o"
             arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -std=c11 -Os \
-              -ffreestanding -fno-common -ffunction-sections -fdata-sections \
+              -ffreestanding -fno-builtin -fno-common -ffunction-sections -fdata-sections \
               -fno-unwind-tables -fno-asynchronous-unwind-tables \
               -Wall -Wextra -Werror \
               -Isrc/spectrum -Isrc/ui -Isrc/app -Isrc/platform -Isrc/radio \
