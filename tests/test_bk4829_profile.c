@@ -122,7 +122,7 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(d10s_bk4829_uvk1_v3_initialize_rx(&port, &timing, initial_hz,
                                             &profile));
     CHECK(profile.bus_valid);
-    CHECK(profile.receiver_on);
+    CHECK(profile.rx_mode_configured);
     CHECK(profile.current_frequency_hz == initial_hz);
     CHECK(fake.register_count > 50u);
     CHECK(fake.writes[0].address == 0x00u);
@@ -160,7 +160,7 @@ static void test_uvk1_profile_stops_rx_and_lna(void)
     CHECK(d10s_bk4829_uvk1_v3_initialize_rx(&port, &timing, 433000000u,
                                             &profile));
     CHECK(d10s_bk4829_uvk1_v3_stop_rx(&profile));
-    CHECK(!profile.receiver_on);
+    CHECK(!profile.rx_mode_configured);
     CHECK(write_seen(&fake, 0x33u, 0x9000u));
     CHECK(write_seen(&fake, 0x30u, 0x0000u));
 }
@@ -175,7 +175,7 @@ static void test_uvk1_profile_fails_closed_on_bus_error(void)
     fake.fail_delay_at = 5u;
     CHECK(!d10s_bk4829_uvk1_v3_initialize_rx(&port, &timing, 145000000u,
                                              &profile));
-    CHECK(!profile.receiver_on);
+    CHECK(!profile.rx_mode_configured);
     CHECK(profile.bus_valid);
 }
 
