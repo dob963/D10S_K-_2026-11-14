@@ -9,8 +9,8 @@ The caller must reset tracking when it changes band or frequency grid. The recei
 ## Processing path
 
 1. Copy and sort the sweep RSSI values using bounded insertion sort.
-2. Select the configured percentile (default 20th) as the current noise observation.
-3. Smooth the noise-floor estimate with a 3:1 previous/current IIR update.
+2. Select the configured percentile (default 20th) as the current sweep's noise observation.
+3. Keep the last five sweep observations, select their configured rolling percentile (default median/50th), then smooth the floor with a 3:1 previous/current IIR update.
 4. Set the opening threshold to noise floor plus a configurable margin.
 5. Search interior bins for the strongest local maximum meeting the threshold and prominence requirement.
 6. Require the candidate to remain within the configured bin tolerance for consecutive sweeps (default 3).
@@ -19,7 +19,8 @@ The caller must reset tracking when it changes band or frequency grid. The recei
 
 ## Defaults and limits
 
-- Percentile: 20
+- Per-sweep percentile: 20
+- Rolling history: 5 sweeps, 50th percentile
 - Noise margin: 12 raw RSSI units
 - Minimum local prominence: 5 raw RSSI units
 - Confirmations: 3 consecutive sweeps
@@ -32,4 +33,4 @@ The percentile estimator assumes that most bins in a sweep are not occupied by s
 
 ## Current validation
 
-The portable C module passes host unit tests for confirmation, single-sweep spike rejection, background noise-floor tracking, sub-bin interpolation, and invalid frequency-grid rejection. It also compiles as a freestanding ARM Cortex-M0+ object with Clang. Neither check validates RF performance, the BK4829 register sequence, LCD rendering, bootloader compatibility, or a flashable application image.
+The portable C module passes host unit tests for confirmation, single-sweep spike rejection, rolling noise-floor robustness and tracking, preservation of all 9 RSSI bits, sub-bin interpolation, and invalid/irregular frequency-grid rejection. Clang reports a maximum single stack frame of 592 bytes in the percentile estimator; callers should account for its nested call stack and interrupt stack in the final RAM budget. It also compiles as a freestanding ARM Cortex-M0+ object with Clang. Neither check validates RF performance, the BK4829 register sequence, LCD rendering, bootloader compatibility, or a flashable application image.
