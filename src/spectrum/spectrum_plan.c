@@ -73,6 +73,7 @@ bool d10s_spectrum_plan_complete_sweep(d10s_spectrum_plan_t *plan)
     if (plan->sweeps_on_band < band->dwell_sweeps) return false;
 
     plan->sweeps_on_band = 0u;
+    if (plan->band_count == 1u) return false;
     plan->active_band = (uint8_t)((plan->active_band + 1u) % plan->band_count);
     return true;
 }
