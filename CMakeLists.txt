@@ -17,6 +17,7 @@ add_library(d10s_spectrum_core
     src/radio/bk4829.c
     src/radio/bk4829_timing.c
     src/radio/bk4829_scanner_adapter.c
+    src/radio/bk4829_uvk1_v3_profile.c
 )
 target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform src/radio src/app)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
@@ -47,3 +48,8 @@ add_executable(test_spectrum_app tests/test_spectrum_app.c)
 target_link_libraries(test_spectrum_app PRIVATE d10s_spectrum_core)
 target_compile_options(test_spectrum_app PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME spectrum_application COMMAND test_spectrum_app)
+
+add_executable(test_bk4829_profile tests/test_bk4829_profile.c)
+target_link_libraries(test_bk4829_profile PRIVATE d10s_spectrum_core)
+target_compile_options(test_bk4829_profile PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME bk4829_uvk1_v3_profile COMMAND test_bk4829_profile)
