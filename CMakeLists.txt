@@ -18,6 +18,7 @@ add_library(d10s_spectrum_core
     src/radio/bk4829_timing.c
     src/radio/bk4829_scanner_adapter.c
     src/radio/bk4829_uvk1_v3_profile.c
+    src/radio/bk4829_uvk1_v3_radio.c
 )
 target_include_directories(d10s_spectrum_core PUBLIC src/spectrum src/ui src/platform src/radio src/app)
 target_compile_options(d10s_spectrum_core PRIVATE -Wall -Wextra -Werror -pedantic)
