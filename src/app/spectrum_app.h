@@ -25,6 +25,8 @@ typedef struct {
     bool cursor_enabled;
     bool bold_labels;
     bool peak_hold_visible;
+    bool paused;
+    bool pause_frame_pending;
     bool initialized;
     bool pending_band_valid;
     uint8_t pending_band_index;
