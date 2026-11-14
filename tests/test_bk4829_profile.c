@@ -109,6 +109,16 @@ static bool write_seen(const fake_bus_t *bus, uint8_t address, uint16_t value)
     return false;
 }
 
+static bool gpio1_pa_enable_seen(const fake_bus_t *bus)
+{
+    uint8_t i;
+    for (i = 0u; i < bus->register_count; ++i) {
+        if (bus->writes[i].address == 0x33u &&
+            (bus->writes[i].value & 0x0020u) != 0u) return true;
+    }
+    return false;
+}
+
 static void test_uvk1_profile_initializes_and_selects_lna_path(void)
 {
     fake_bus_t fake = {0};
@@ -137,12 +147,14 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(write_seen(&fake, 0x39u, (uint16_t)(word >> 16)));
     CHECK(!write_seen(&fake, 0x33u, 0x9008u));
     CHECK(write_seen(&fake, 0x33u, 0x9048u));
+    CHECK(!gpio1_pa_enable_seen(&fake));
 
     before = fake.register_count;
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(27000000u, &profile));
     CHECK(profile.current_frequency_hz == 27000000u);
     CHECK(!write_seen(&fake, 0x33u, 0x9004u));
     CHECK(write_seen(&fake, 0x33u, 0x9044u));
+    CHECK(!gpio1_pa_enable_seen(&fake));
     CHECK(fake.register_count == before + 1u);
 
     before = fake.register_count;
@@ -163,6 +175,7 @@ static void test_uvk1_profile_stops_rx_and_lna(void)
     CHECK(!profile.rx_mode_configured);
     CHECK(write_seen(&fake, 0x33u, 0x9000u));
     CHECK(write_seen(&fake, 0x30u, 0x0000u));
+    CHECK(!gpio1_pa_enable_seen(&fake));
 }
 
 static void test_uvk1_profile_fails_closed_on_bus_error(void)
@@ -208,6 +221,7 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     CHECK(!radio.profile.rx_mode_configured);
     CHECK(write_seen(&fake, 0x33u, 0x9000u));
     CHECK(write_seen(&fake, 0x30u, 0x0000u));
+    CHECK(!gpio1_pa_enable_seen(&fake));
 }
 
 int main(void)
