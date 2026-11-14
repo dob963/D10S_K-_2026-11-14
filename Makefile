@@ -26,7 +26,7 @@ INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
 .PHONY: test clean
 
-test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_bk4829_profile
+test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_bk4829_profile build/test_py32_clock
 	./build/test_spectrum_detect
 	./build/test_bk4829_bus
 	./build/test_st7565
