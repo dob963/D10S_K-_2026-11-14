@@ -23,7 +23,33 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
     scanner->current_frequency_hz = 0u;
     scanner->bin_index = 0u;
     scanner->settle_ms = settle_ms;
+    scanner->rssi_compensation = 0u;
+    scanner->attenuation_level = 0u;
+    scanner->attenuation_configured = false;
     scanner->phase = SCANNER_PHASE_TUNE;
+    return true;
+}
+
+bool d10s_spectrum_scanner_set_attenuation(
+                                d10s_spectrum_scanner_t *scanner,
+                                const d10s_spectrum_radio_ops_t *radio,
+                                uint8_t level,
+                                uint16_t measured_raw_rssi_offset)
+{
+    if (scanner == 0 || radio == 0 || radio->set_attenuation == 0)
+        return false;
+    if (scanner->phase != SCANNER_PHASE_TUNE || scanner->bin_index != 0u)
+        return false;
+    if (scanner->attenuation_configured &&
+        scanner->attenuation_level == level &&
+        scanner->rssi_compensation == measured_raw_rssi_offset)
+        return true;
+    if (!radio->set_attenuation(radio->context, level)) return false;
+
+    scanner->attenuation_level = level;
+    scanner->rssi_compensation = measured_raw_rssi_offset;
+    scanner->attenuation_configured = true;
+    d10s_spectrum_reset_tracking(&scanner->detector);
     return true;
 }
 
@@ -94,7 +120,12 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
             scanner->phase = SCANNER_PHASE_FAILED;
             return D10S_SCANNER_ERROR;
         }
-        scanner->bins[scanner->bin_index].rssi = rssi;
+        {
+            uint32_t compensated = (uint32_t)rssi + scanner->rssi_compensation;
+            if (compensated > D10S_SPECTRUM_MAX_RSSI)
+                compensated = D10S_SPECTRUM_MAX_RSSI;
+            scanner->bins[scanner->bin_index].rssi = (uint16_t)compensated;
+        }
 
         if ((uint16_t)(scanner->bin_index + 1u) < band->bin_count) {
             ++scanner->bin_index;
