@@ -132,12 +132,14 @@ static void draw_header(const d10s_spectrum_canvas_t *canvas,
                         const d10s_spectrum_view_model_t *model)
 {
     char label[8] = "B0/0";
-    char att[6] = "A0";
+    char att[5] = "A000";
     const uint8_t style = model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u;
 
     label[1] = (char)('1' + model->band_index);
     label[3] = (char)('0' + (model->band_count % 10u));
-    att[1] = (char)('0' + (model->attenuation_level % 10u));
+    att[1] = (char)('0' + ((model->attenuation_level / 100u) % 10u));
+    att[2] = (char)('0' + ((model->attenuation_level / 10u) % 10u));
+    att[3] = (char)('0' + (model->attenuation_level % 10u));
 
     if (canvas->text == 0) return;
     canvas->text(canvas->context, 0u, 1u, "D10S", style);
@@ -176,10 +178,17 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
     if (canvas == 0 || canvas->pixel == 0 || model == 0 ||
         model->bins == 0 || model->count < 3u ||
         model->count > D10S_SPECTRUM_MAX_BINS ||
-        model->band_count == 0u || model->band_index >= model->band_count ||
+        model->band_count == 0u || model->band_count > D10S_VIEW_MAX_BANDS ||
+        model->band_index >= model->band_count ||
         model->noise_floor > D10S_SPECTRUM_MAX_RSSI ||
         model->open_threshold > D10S_SPECTRUM_MAX_RSSI) return false;
     if (model->cursor_valid && model->cursor_bin >= model->count) return false;
+
+    for (i = 0u; i < model->count; ++i) {
+        if (model->bins[i].rssi > D10S_SPECTRUM_MAX_RSSI) return false;
+        if (i > 0u && model->bins[i].frequency_hz <=
+                      model->bins[i - 1u].frequency_hz) return false;
+    }
 
     min_level = model->noise_floor > 12u
         ? (uint16_t)(model->noise_floor - 12u) : 0u;
