@@ -8,7 +8,8 @@ SPECTRUM_SOURCES = \
 	src/app/spectrum_app.c \
 	src/ui/spectrum_view.c \
 	src/platform/mono128x64.c \
-	src/platform/st7565.c
+	src/platform/st7565.c \
+	src/platform/py32f071_uvk1_v3.c
 SPECTRUM_HEADERS = \
 	src/spectrum/spectrum_detect.h \
 	src/spectrum/spectrum_plan.h \
@@ -16,7 +17,8 @@ SPECTRUM_HEADERS = \
 	src/ui/spectrum_view.h \
 	src/platform/mono128x64.h \
 	src/app/spectrum_app.h \
-	src/platform/st7565.h
+	src/platform/st7565.h \
+	src/platform/py32f071_uvk1_v3.h
 RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timing.c src/radio/bk4829_scanner_adapter.c src/radio/bk4829_uvk1_v3_profile.c src/radio/bk4829_uvk1_v3_radio.c
 RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h src/radio/bk4829_scanner_adapter.h src/radio/bk4829_uvk1_v3_profile.h src/radio/bk4829_uvk1_v3_radio.h
 INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
