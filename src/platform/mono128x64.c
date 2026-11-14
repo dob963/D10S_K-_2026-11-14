@@ -117,3 +117,17 @@ bool d10s_mono128x64_flush(const d10s_mono128x64_t *display,
         controller,
         (const uint8_t (*)[D10S_MONO128X64_PAGE_BYTES])display->bytes);
 }
+
+
+bool d10s_mono128x64_present(d10s_mono128x64_t *display,
+                             d10s_st7565_t *controller,
+                             const d10s_spectrum_view_model_t *model)
+{
+    d10s_spectrum_canvas_t canvas;
+
+    if (display == 0 || controller == 0 || model == 0) return false;
+    d10s_mono128x64_clear(display, false);
+    d10s_mono128x64_bind(display, &canvas);
+    if (!d10s_spectrum_view_render(&canvas, model)) return false;
+    return d10s_mono128x64_flush(display, controller);
+}
