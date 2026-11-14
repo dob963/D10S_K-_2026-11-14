@@ -276,6 +276,8 @@ typedef struct {
     uint16_t peak_level;
     bool fail_tune;
     bool fail_read;
+    bool fail_att;
+    uint8_t attenuation_level;
 } fake_radio_t;
 
 static bool fake_radio_tune(void *context, uint32_t requested_hz,
@@ -298,6 +300,14 @@ static bool fake_radio_read(void *context, uint16_t *rssi)
     *rssi = index == 2u ? radio->peak_level :
             (uint16_t)(radio->noise_level + (index & 1u));
     ++radio->read_calls;
+    return true;
+}
+
+static bool fake_radio_set_att(void *context, uint8_t level)
+{
+    fake_radio_t *radio = (fake_radio_t *)context;
+    if (radio->fail_att) return false;
+    radio->attenuation_level = level;
     return true;
 }
 
@@ -329,7 +339,7 @@ static void test_scanner_acquires_and_confirms_signal(void)
         .noise_level = 100u, .peak_level = 160u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -399,6 +409,59 @@ static void test_scanner_rejects_radio_failures(void)
                                      &result, &changed) == D10S_SCANNER_ERROR);
 }
 
+static void test_scanner_att_compensation_and_boundary_rules(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 2u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 100u, .peak_level = 160u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 1u));
+    CHECK(d10s_spectrum_scanner_set_attenuation(&scanner, &ops, 2u, 20u));
+    CHECK(fake.attenuation_level == 2u);
+    CHECK(scanner.attenuation_configured);
+    CHECK(scanner.rssi_compensation == 20u);
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(result.candidate_valid);
+    CHECK(result.candidate_level == 180u);
+
+    CHECK(d10s_spectrum_scanner_set_attenuation(&scanner, &ops, 1u, 10u));
+    CHECK(fake.attenuation_level == 1u);
+    CHECK(!scanner.detector.noise_initialized);
+    CHECK(!scanner.detector.peak_hold_valid);
+}
+
+static void test_scanner_att_failure_does_not_change_state(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 2u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 100u, .peak_level = 160u, .fail_att = true
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 1u));
+    CHECK(!d10s_spectrum_scanner_set_attenuation(&scanner, &ops, 3u, 15u));
+    CHECK(!scanner.attenuation_configured);
+    CHECK(scanner.rssi_compensation == 0u);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -414,6 +477,8 @@ int main(void)
     test_scanner_acquires_and_confirms_signal();
     test_scanner_resets_detector_on_band_change();
     test_scanner_rejects_radio_failures();
+    test_scanner_att_compensation_and_boundary_rules();
+    test_scanner_att_failure_does_not_change_state();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
