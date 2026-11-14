@@ -45,7 +45,7 @@ The reviewed K1 driver states that the panel has no usable hardware reset pin an
 4. Start line zero; clear all eight pages while display is off; then display on.
 5. Pixel writes start at column offset 4.
 
-D10S now implements this startup order in its own callback-based ST7565 driver and exposes `d10s_st7565_uvk1_v3_default_config()` for the recorded K1 settings. `src/platform/py32f071_uvk1_v3.c` provides candidate GPIO/SPI callbacks for the mapped pins. It requires externally supplied, calibrated millisecond and tick delay functions. Host tests validate command order, power-up waits, page clearing, column offset and full-frame writes. This is a software-level conformance test, not a physical LCD test.
+D10S now implements this startup order in its own callback-based ST7565 driver and exposes `d10s_st7565_uvk1_v3_default_config()` for the recorded K1 settings. `src/platform/py32f071_uvk1_v3.c` provides candidate GPIO/SPI callbacks for the mapped pins. It accepts externally calibrated millisecond/tick delay functions or can use its built-in SysTick backend after the measured core-clock frequency is supplied. Host tests validate command order, power-up waits, page clearing, column offset and full-frame writes. This is a software-level conformance test, not a physical LCD test.
 
 ## MCU and memory-layout lead
 
