@@ -4,6 +4,7 @@
 #include "mono128x64.h"
 #include "spectrum_scanner.h"
 #include "st7565.h"
+#include "spectrum_key.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -24,6 +25,8 @@ typedef struct {
     bool cursor_enabled;
     bool bold_labels;
     bool initialized;
+    bool pending_band_valid;
+    uint8_t pending_band_index;
     d10s_spectrum_result_t last_result;
 } d10s_spectrum_app_t;
 
@@ -37,6 +40,8 @@ bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
 d10s_spectrum_app_status_t d10s_spectrum_app_tick(
                             d10s_spectrum_app_t *app,
                             uint32_t now_ms);
+bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
+                                  d10s_spectrum_key_t key);
 bool d10s_spectrum_app_set_cursor(d10s_spectrum_app_t *app,
                                   bool enabled,
                                   uint16_t bin_index);
