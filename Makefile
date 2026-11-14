@@ -15,10 +15,11 @@ SPECTRUM_HEADERS = \
 	src/spectrum/spectrum_scanner.h \
 	src/ui/spectrum_view.h \
 	src/platform/mono128x64.h \
+	src/app/spectrum_app.h \
 	src/platform/st7565.h
 RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timing.c src/radio/bk4829_scanner_adapter.c
 RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h src/radio/bk4829_scanner_adapter.h
-INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio
+INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
 .PHONY: test clean
 
