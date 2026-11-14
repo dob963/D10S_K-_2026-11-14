@@ -13,6 +13,7 @@ add_library(d10s_spectrum_core
     src/app/spectrum_app.c
     src/platform/mono128x64.c
     src/platform/st7565.c
+    src/platform/py32f071_uvk1_v3.c
     src/radio/bk4829_bus.c
     src/radio/bk4829.c
     src/radio/bk4829_timing.c
