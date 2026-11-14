@@ -17,12 +17,13 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 ### Display
 - 128x64 Spectrum graph with RSSI trace, threshold line, peak marker, cursor and frequency label.
 - 1-bit framebuffer with normal and moderately bold 5x7 text.
-- ST7565 page-addressing and eight-page flush controller.
+- ST7565 page-addressing and eight-page flush controller, with UV-K1 V3 power sequencing, page clearing, reverse-SEG orientation and column offset defaults.
 - Physical PY32F071 GPIO/SPI callbacks, keypad integration, orientation and contrast validation remain outstanding.
 
 ### BK4829
 - Three-wire register read/write bus, timing calculation, frequency conversion and raw 9-bit REG_67 RSSI.
 - Scanner adapter discards the first RSSI conversion after a tune and returns the following one.
+- `d10s_bk4829_uvk1_v3_radio_init()` binds the source-derived profile and scanner adapter into the exact radio-ops interface consumed by the Spectrum app; it still requires a separately verified board GPIO bus.
 - Opt-in source-derived UV-K1 V3 RX register profile in src/radio/bk4829_uvk1_v3_profile.c. It includes the upstream baseline register sequence, RX-mode setup and VHF/UHF LNA selector, adapted to the D10S bus API. It deliberately does not assert GPIO0 as an external RX-enable output before the physical board routing is verified. Source and license attribution are recorded in THIRD_PARTY_NOTICES.md.
 
 RSSI is raw relative data, **not calibrated dBm**. ATT offsets, Delay and Turbo parameters are not claimed calibrated.
