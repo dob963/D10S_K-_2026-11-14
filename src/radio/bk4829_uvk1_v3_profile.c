@@ -48,7 +48,6 @@ static const register_write_t baseline[] = {
 };
 
 #define GPIO_STATE_BASE 0x9000u
-#define GPIO_RX_ENABLE  0x0040u
 #define GPIO_UHF_LNA    0x0008u
 #define GPIO_VHF_LNA    0x0004u
 #define VHF_LNA_LIMIT_HZ 28000000u
@@ -73,12 +72,10 @@ bool d10s_bk4829_uvk1_v3_resume_rx(uint32_t frequency_hz, void *context)
         ? GPIO_VHF_LNA : GPIO_UHF_LNA;
 
     /* The adapter programs REG_38/39 before invoking this RX-path callback. */
-    /* Select one LNA path, then enable the external RX path. */
+    /* Match the pinned upstream GPIO3/UHF and GPIO4/VHF LNA selection.
+     * Do not toggle GPIO0: no board-level RX-enable mapping is verified. */
     if (!write_reg(profile, 0x33u,
-                   (uint16_t)(GPIO_STATE_BASE | lna_state)) ||
-        !write_reg(profile, 0x33u,
-                   (uint16_t)(GPIO_STATE_BASE | lna_state | GPIO_RX_ENABLE)))
-        return false;
+                   (uint16_t)(GPIO_STATE_BASE | lna_state))) return false;
 
     profile->current_frequency_hz = frequency_hz;
     profile->receiver_on = true;
