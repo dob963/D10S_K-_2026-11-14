@@ -7,6 +7,7 @@ SPECTRUM_SOURCES = \
 	src/spectrum/spectrum_scanner.c \
 	src/app/spectrum_app.c \
 	src/ui/spectrum_view.c \
+	src/ui/spectrum_key.c \
 	src/platform/mono128x64.c \
 	src/platform/st7565.c \
 	src/platform/py32f071_uvk1_v3.c
@@ -26,13 +27,14 @@ INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
 .PHONY: test clean
 
-test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_bk4829_profile build/test_py32_clock
+test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_bk4829_profile build/test_py32_clock build/test_spectrum_key
 	./build/test_spectrum_detect
 	./build/test_bk4829_bus
 	./build/test_st7565
 	./build/test_bk4829_scanner_adapter
 	./build/test_spectrum_app
 	./build/test_py32_clock
+	./build/test_spectrum_key
 	./build/test_bk4829_profile
 
 build/test_spectrum_detect: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_detect.c
@@ -65,3 +67,7 @@ build/test_bk4829_profile: $(RADIO_SOURCES) $(RADIO_HEADERS) tests/test_bk4829_p
 build/test_py32_clock: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) src/radio/bk4829_timing.c tests/test_py32_clock.c
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) src/radio/bk4829_timing.c tests/test_py32_clock.c -o $@
+
+build/test_spectrum_key: src/ui/spectrum_key.c src/ui/spectrum_key.h tests/test_spectrum_key.c
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) src/ui/spectrum_key.c tests/test_spectrum_key.c -o $@
