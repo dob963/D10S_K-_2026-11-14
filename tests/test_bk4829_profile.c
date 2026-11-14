@@ -181,7 +181,7 @@ static void test_uvk1_profile_fails_closed_on_bus_error(void)
 
 int main(void)
 {
-    test_uvk1_profile_initializes_and_enables_rx_path();
+    test_uvk1_profile_initializes_and_selects_lna_path();
     test_uvk1_profile_stops_rx_and_lna();
     test_uvk1_profile_fails_closed_on_bus_error();
     puts("BK4829 UV-K1 V3 profile tests: PASS");
