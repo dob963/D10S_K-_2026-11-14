@@ -278,6 +278,7 @@ typedef struct {
     bool fail_read;
     bool fail_att;
     uint8_t attenuation_level;
+    uint8_t read_jitter;
 } fake_radio_t;
 
 static bool fake_radio_tune(void *context, uint32_t requested_hz,
@@ -299,6 +300,8 @@ static bool fake_radio_read(void *context, uint16_t *rssi)
     index = (radio->frequency_hz - radio->first_hz) / radio->step_hz;
     *rssi = index == 2u ? radio->peak_level :
             (uint16_t)(radio->noise_level + (index & 1u));
+    if (radio->read_jitter != 0u && (radio->read_calls & 1u) == 0u)
+        *rssi = (uint16_t)(*rssi + radio->read_jitter);
     ++radio->read_calls;
     return true;
 }
@@ -566,6 +569,63 @@ static void test_scanner_delay_changes_only_between_sweeps(void)
     CHECK(!d10s_spectrum_scanner_set_delay(&scanner, 0u));
 }
 
+static void test_turbo_exits_early_when_rssi_stabilizes(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 40u));
+    CHECK(!d10s_spectrum_scanner_set_turbo(&scanner, true, 40u, 1u, 0u, 2u));
+    CHECK(!d10s_spectrum_scanner_set_turbo(&scanner, true, 2u, 0u, 0u, 2u));
+    CHECK(!d10s_spectrum_scanner_set_turbo(&scanner, true, 2u, 1u, 0u, 1u));
+    CHECK(d10s_spectrum_scanner_set_turbo(&scanner, true, 2u, 1u, 0u, 2u));
+    CHECK(!d10s_spectrum_scanner_set_delay(&scanner, 2u));
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(fake.read_calls == 10u);
+    CHECK(now_ms < 100u);
+    CHECK(scanner.turbo_enabled);
+    CHECK(d10s_spectrum_scanner_set_turbo(&scanner, false, 0u, 0u, 0u, 0u));
+    CHECK(!scanner.turbo_enabled);
+}
+
+static void test_turbo_honors_max_delay_when_rssi_never_stabilizes(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u, .read_jitter = 1u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    bool changed = false;
+    uint32_t now_ms = 0u;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 5u));
+    CHECK(d10s_spectrum_scanner_set_turbo(&scanner, true, 2u, 1u, 0u, 2u));
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(fake.read_calls == 20u);
+    CHECK(now_ms >= 40u);
+}
+
 int main(void)
 {
     test_confirmation_and_peak_hold();
@@ -586,6 +646,8 @@ int main(void)
     test_scanner_publishes_only_complete_sweeps();
     test_scanner_manual_band_change_invalidates_snapshot();
     test_scanner_delay_changes_only_between_sweeps();
+    test_turbo_exits_early_when_rssi_stabilizes();
+    test_turbo_honors_max_delay_when_rssi_never_stabilizes();
     test_band_grid_boundaries();
     test_multi_band_dwell_and_rotation();
     test_invalid_band_definitions();
