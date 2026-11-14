@@ -135,13 +135,13 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(write_seen(&fake, 0x30u, 0xBFF1u));
     CHECK(write_seen(&fake, 0x38u, (uint16_t)word));
     CHECK(write_seen(&fake, 0x39u, (uint16_t)(word >> 16)));
-    CHECK(write_seen(&fake, 0x33u, 0x9008u));
+    CHECK(!write_seen(&fake, 0x33u, 0x9008u));
     CHECK(write_seen(&fake, 0x33u, 0x9048u));
 
     before = fake.register_count;
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(27000000u, &profile));
     CHECK(profile.current_frequency_hz == 27000000u);
-    CHECK(write_seen(&fake, 0x33u, 0x9004u));
+    CHECK(!write_seen(&fake, 0x33u, 0x9004u));
     CHECK(write_seen(&fake, 0x33u, 0x9044u));
     CHECK(fake.register_count == before + 1u);
 
@@ -201,7 +201,7 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     CHECK(actual_hz == 145125000u);
     CHECK(radio.profile.current_frequency_hz == 145125000u);
     CHECK(write_seen(&fake, 0x38u, (uint16_t)(145125000u / 10u)));
-    CHECK(write_seen(&fake, 0x33u, 0x9008u));
+    CHECK(!write_seen(&fake, 0x33u, 0x9008u));
 
     d10s_bk4829_uvk1_v3_radio_stop(&radio);
     CHECK(!radio.initialized);
