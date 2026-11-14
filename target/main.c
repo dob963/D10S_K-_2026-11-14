@@ -1,6 +1,7 @@
 #include "spectrum_app.h"
 #include "py32f071_uvk1_v3.h"
 #include "bk4829_uvk1_v3_radio.h"
+#include "scan_bands.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -19,12 +20,6 @@ static d10s_bk4829_bus_port_t radio_port;
 static d10s_bk4829_bus_timing_t radio_timing;
 static d10s_spectrum_radio_ops_t radio_ops;
 static d10s_spectrum_config_t detector_config;
-
-/* Conservative initial amateur-band spans; all tuning remains receive-only. */
-static const d10s_spectrum_band_t scan_bands[] = {
-    {144000000u, 146000000u, 128u, 1u},
-    {430000000u, 440000000u, 128u, 1u}
-};
 
 __attribute__((noreturn))
 static void fail_closed(void)
@@ -72,9 +67,8 @@ int main(void)
         fail_closed();
 
     d10s_spectrum_default_config(&detector_config);
-    if (!d10s_spectrum_app_init(&app, scan_bands,
-                                (uint8_t)(sizeof(scan_bands) /
-                                          sizeof(scan_bands[0])),
+    if (!d10s_spectrum_app_init(&app, D10S_SCAN_BANDS,
+                                D10S_SCAN_BAND_COUNT,
                                 &radio_ops, &display, &detector_config,
                                 D10S_SCAN_SETTLE_MS))
         fail_closed();
