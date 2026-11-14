@@ -174,6 +174,105 @@ uint32_t d10s_py32f071_uvk1_v3_millis(d10s_py32f071_uvk1_v3_t *board)
     return board->milliseconds;
 }
 
+
+static bool systick_delay_us(d10s_py32f071_uvk1_v3_t *board,
+                             uint16_t microseconds)
+{
+    uint64_t remaining;
+    if (board == NULL || !board->systick_ready) return false;
+    remaining = ((uint64_t)board->core_clock_hz * microseconds + 999999u) /
+                1000000u;
+    while (remaining != 0u) {
+        const uint16_t chunk = (uint16_t)(
+            remaining > D10S_MAX_DELAY_CHUNK
+                ? D10S_MAX_DELAY_CHUNK : remaining);
+        if (!systick_delay_ticks(chunk, board)) return false;
+        remaining -= chunk;
+    }
+    return true;
+}
+
+bool d10s_py32f071_uvk1_v3_keypad_init(
+    d10s_py32f071_uvk1_v3_t *board)
+{
+    if (board == NULL || !gpio_init(board) || !board->systick_ready)
+        return false;
+    board->keypad_ready = true;
+    return true;
+}
+
+bool d10s_py32f071_uvk1_v3_keypad_poll(
+    d10s_py32f071_uvk1_v3_t *board,
+    d10s_py32f071_uvk1_v3_key_t *key)
+{
+    static const d10s_py32f071_uvk1_v3_key_t keymap[5][4] = {
+        {D10S_KEY_SIDE1, D10S_KEY_SIDE2, D10S_KEY_NONE, D10S_KEY_NONE},
+        {D10S_KEY_MENU, D10S_KEY_1, D10S_KEY_4, D10S_KEY_7},
+        {D10S_KEY_UP, D10S_KEY_2, D10S_KEY_5, D10S_KEY_8},
+        {D10S_KEY_DOWN, D10S_KEY_3, D10S_KEY_6, D10S_KEY_9},
+        {D10S_KEY_EXIT, D10S_KEY_STAR, D10S_KEY_0, D10S_KEY_F}
+    };
+    const uint32_t row_mask = 0xF000u;
+    d10s_py32f071_uvk1_v3_key_t detected = D10S_KEY_NONE;
+    bool multiple = false;
+    uint8_t column;
+
+    if (board == NULL || key == NULL || !board->keypad_ready ||
+        !board->systick_ready) return false;
+
+    for (column = 0u; column < 5u; ++column) {
+        uint32_t stable_rows = 0u;
+        bool stable = true;
+        uint8_t sample;
+        uint8_t pressed_row = 0u;
+        uint8_t pressed_count = 0u;
+
+        D10S_GPIOB->BSRR = (1u << 6) | (1u << 5) | (1u << 4) | (1u << 3);
+        if (column != 0u) {
+            const uint8_t pin = (uint8_t)(7u - column);
+            pin_write(D10S_GPIOB, pin, false);
+        }
+
+        for (sample = 0u; sample < 3u; ++sample) {
+            uint32_t rows;
+            if (!systick_delay_us(board, 10u)) {
+                D10S_GPIOB->BSRR = (1u << 6) | (1u << 5) |
+                                   (1u << 4) | (1u << 3);
+                return false;
+            }
+            rows = D10S_GPIOB->IDR & row_mask;
+            if (sample == 0u) stable_rows = rows;
+            else if (rows != stable_rows) stable = false;
+        }
+
+        if (stable) {
+            const uint32_t pressed = (~stable_rows) & row_mask;
+            uint8_t row;
+            for (row = 0u; row < 4u; ++row) {
+                const uint32_t mask = 1u << (15u - row);
+                if ((pressed & mask) != 0u) {
+                    pressed_row = row;
+                    ++pressed_count;
+                }
+            }
+            if (pressed_count == 1u) {
+                const d10s_py32f071_uvk1_v3_key_t candidate =
+                    keymap[column][pressed_row];
+                if (candidate != D10S_KEY_NONE) {
+                    if (detected != D10S_KEY_NONE) multiple = true;
+                    detected = candidate;
+                }
+            } else if (pressed_count > 1u) {
+                multiple = true;
+            }
+        }
+    }
+
+    D10S_GPIOB->BSRR = (1u << 6) | (1u << 5) | (1u << 4) | (1u << 3);
+    *key = multiple ? D10S_KEY_NONE : detected;
+    return true;
+}
+
 bool d10s_py32f071_uvk1_v3_build_bk4829_timing(
     const d10s_py32f071_uvk1_v3_t *board,
     d10s_bk4829_bus_timing_t *timing)
@@ -266,6 +365,20 @@ static bool gpio_init(d10s_py32f071_uvk1_v3_t *board)
     pin_output_init(D10S_GPIOB, D10S_PIN_PB9, true);  /* BK SDA: idle high */
     pin_output_init(D10S_GPIOF, D10S_PIN_PF8, false); /* Backlight held off */
     pin_output_init(D10S_GPIOF, D10S_PIN_PF9, true);  /* BK CSN: inactive */
+
+    /* Candidate K1 keypad matrix: PB6..PB3 columns, PB15..PB12 rows. */
+    pin_output_init(D10S_GPIOB, 6u, true);
+    pin_output_init(D10S_GPIOB, 5u, true);
+    pin_output_init(D10S_GPIOB, 4u, true);
+    pin_output_init(D10S_GPIOB, 3u, true);
+    pin_pull_up(D10S_GPIOB, 15u);
+    pin_pull_up(D10S_GPIOB, 14u);
+    pin_pull_up(D10S_GPIOB, 13u);
+    pin_pull_up(D10S_GPIOB, 12u);
+    pin_mode(D10S_GPIOB, 15u, 0u);
+    pin_mode(D10S_GPIOB, 14u, 0u);
+    pin_mode(D10S_GPIOB, 13u, 0u);
+    pin_mode(D10S_GPIOB, 12u, 0u);
 
     board->gpio_ready = true;
     return true;
