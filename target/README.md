@@ -15,7 +15,7 @@ This folder contains the first integrated target entry point for the receive-onl
 
 ## Startup and linker
 
-`startup.c` defines the 48-word PY32F071 vector table, relocates VTOR to the application base, initializes .data/.bss and enters `main()`.
+`startup.c` defines the 48-word PY32F071 vector table, leaves the reserved external IRQ30 slot empty, relocates VTOR to the application base, initializes .data/.bss and enters `main()`. The image validator checks both the core reserved vectors and IRQ30.
 
 `py32f071xB.ld` defines the application flash/RAM regions, the vector table, loadable data and a 2 KiB minimum stack reservation. It is an independently authored linker script based on the memory geometry and application offset recorded in the evidence document.
 
