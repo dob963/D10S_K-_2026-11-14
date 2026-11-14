@@ -18,8 +18,8 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 ### Display
 - 128x64 graph renderer: RSSI trace, grid, adaptive threshold, held-peak marker, cursor and frequency label.
 - Monochrome framebuffer with normal or moderately bold text.
-- Callback-based ST7565 transport: panel command initialization, page addressing and eight-page framebuffer flush.
-- ST7565 host tests verify command/data ordering and the configured column offset. Physical PY32F071 SPI/GPIO wiring and panel validation remain outstanding.
+- Callback-based ST7565 controller: panel command initialization, page addressing, and complete eight-page framebuffer flush from the Spectrum view.
+- Host tests verify command/data ordering, page layout, framebuffer-to-controller transfer and configured column offset. The PY32F071 GPIO/SPI callback implementation and physical panel validation remain outstanding.
 
 ### BK4829 primitives
 - Three-wire register read/write transport with bus-idle recovery on communication failures.
@@ -50,9 +50,9 @@ GitHub Actions runs host tests, a Makefile build/test pass, and freestanding ARM
 
 ## Current status — not a flashable firmware
 
-This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI backend, keyboard integration, target startup/linker integration, or a flashable BIN. The scanner uses a simulated radio in its host tests. The BK4829 scanner adapter now connects the portable bus/RSSI primitives to the Spectrum scanner, but it deliberately requires board-supplied initialization, RX-resume and standby callbacks; no complete verified receiver/AGC/LNA profile is present. The ST7565 driver is callback-based and is not yet connected to the physical radio pins. Do not flash test outputs or intermediate objects.
+This repository still does **not** contain a complete radio application, a verified board-specific BK4829 initialization/RX profile, a PY32F071 GPIO/SPI callback backend, keyboard integration, target startup/linker integration, or a flashable BIN. The scanner is tested with a simulated radio. The BK4829 scanner adapter connects the register bus and RSSI primitives to the Spectrum scanner, but deliberately requires board-supplied receiver initialization, RX-resume and standby callbacks; no complete verified receiver/AGC/LNA profile is present. The ST7565 controller can flush the framebuffer through callbacks, but the physical PY32F071 GPIO/SPI implementation and panel orientation/contrast still require validation. Do not flash test outputs or intermediate objects.
 
-The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit ABI, before state and stack). The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
+The scanner currently allocates two 256-point buffers (about 4 KiB on a 32-bit ABI), in addition to the 1 KiB display framebuffer, detector state and stack. The combined application RAM budget remains to be proven from the final ARM link map. The detector's percentile routine has a measured 592-byte single stack frame in the current host compiler report. Final RAM and stack usage must be checked from the linked ARM map before release.
 
 ## Engineering references
 
