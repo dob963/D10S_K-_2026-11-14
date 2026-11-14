@@ -137,6 +137,78 @@ static bool systick_delay_ms(uint16_t milliseconds, void *context)
     return true;
 }
 
+
+bool d10s_py32f071_uvk1_v3_clock_from_registers(
+    uint32_t rcc_cr, uint32_t rcc_icscr, uint32_t rcc_cfgr,
+    uint32_t rcc_pllcfgr, uint32_t hse_clock_hz,
+    uint32_t *core_clock_hz)
+{
+    static const uint32_t hsi_frequency_hz[8] = {
+        4000000u, 8000000u, 16000000u, 22120000u,
+        24000000u, 4000000u, 4000000u, 4000000u
+    };
+    static const uint8_t ahb_prescaler_shift[16] = {
+        0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+        1u, 2u, 3u, 4u, 6u, 7u, 8u, 9u
+    };
+    static const uint8_t pll_multiplier[4] = {2u, 3u, 2u, 2u};
+    const uint8_t hsi_select = (uint8_t)((rcc_icscr >> 13) & 7u);
+    const uint8_t ahb_code = (uint8_t)((rcc_cfgr >> 8) & 15u);
+    const uint32_t system_source = rcc_cfgr & 0x38u;
+    uint64_t system_clock_hz;
+
+    if (core_clock_hz == NULL) return false;
+
+    switch (system_source) {
+    case 0x00u: /* HSI */
+        system_clock_hz = hsi_frequency_hz[hsi_select] /
+            (1u << ((rcc_cr >> 11) & 7u));
+        break;
+    case 0x08u: /* HSE */
+        if (hse_clock_hz == 0u) return false;
+        system_clock_hz = hse_clock_hz;
+        break;
+    case 0x10u: { /* PLL */
+        const uint8_t source = (uint8_t)(rcc_pllcfgr & 3u);
+        const uint8_t multiplier =
+            pll_multiplier[(rcc_pllcfgr >> 2) & 3u];
+        if (source == 2u) {
+            system_clock_hz =
+                (uint64_t)hsi_frequency_hz[hsi_select] * multiplier;
+        } else if (source == 3u && hse_clock_hz != 0u) {
+            system_clock_hz = (uint64_t)hse_clock_hz * multiplier;
+        } else {
+            return false;
+        }
+        break;
+    }
+    case 0x18u: /* LSI */
+    case 0x20u: /* LSE */
+        system_clock_hz = 32768u;
+        break;
+    default:
+        return false;
+    }
+
+    system_clock_hz >>= ahb_prescaler_shift[ahb_code];
+    if (system_clock_hz < 1000000u || system_clock_hz > 72000000u)
+        return false;
+    *core_clock_hz = (uint32_t)system_clock_hz;
+    return true;
+}
+
+bool d10s_py32f071_uvk1_v3_systick_init_from_rcc(
+    d10s_py32f071_uvk1_v3_t *board,
+    uint32_t hse_clock_hz)
+{
+    uint32_t core_clock_hz;
+    if (!d10s_py32f071_uvk1_v3_clock_from_registers(
+            D10S_RCC->CR, D10S_RCC->ICSCR, D10S_RCC->CFGR,
+            D10S_RCC->PLLCFGR, hse_clock_hz, &core_clock_hz))
+        return false;
+    return d10s_py32f071_uvk1_v3_systick_init(board, core_clock_hz);
+}
+
 bool d10s_py32f071_uvk1_v3_systick_init(
     d10s_py32f071_uvk1_v3_t *board,
     uint32_t measured_core_clock_hz)
