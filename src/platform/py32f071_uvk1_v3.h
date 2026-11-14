@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define D10S_PY32F071_UVK1_V3_INITIALIZER {0}
+
 typedef bool (*d10s_py32_delay_ms_fn)(uint16_t milliseconds, void *context);
 typedef bool (*d10s_py32_delay_ticks_fn)(uint16_t ticks, void *context);
 
