@@ -48,6 +48,6 @@ A successful link and vector-table check establish only that the executable is s
 - external RF switch / GPIO0 enable, LNA route, AGC, PLL lock or measured RSSI;
 - LCD behavior and keypad matrix behavior on the radio;
 - actual bootloader acceptance or firmware update path;
-- RAM/stack safety under hardware load.
+- RAM/stack safety under hardware load. The current CI build reports 5,544 bytes of BSS, reserves 2 KiB for stack, and bounds individual function frames to 768 bytes (observed maximum 560 bytes); cumulative nested stack use is not yet measured.
 
-The BK4829 profile intentionally does not assert the unverified GPIO0 external RX-enable output. Therefore the target main is a bring-up build and may not open the physical RF receive path on the user's PCB. The intermediate `.bin` is **not cleared for flashing** and is not published as a test firmware. Do not send it to the radio until the outstanding hardware release gates are closed.
+The BK4829 profile asserts the source-documented GPIO0 RX_ENABLE output and the selected LNA GPIO; GPIO1 PA_ENABLE is never asserted. These settings are source-derived but their physical connectivity on the user's exact PCB is not verified. The target main is therefore a bring-up build and may still fail to open the actual RF receive path if the board differs from the reviewed source lineage. The intermediate `.bin` is **not cleared for flashing** and is not published as a test firmware. Do not send it to the radio until the outstanding hardware release gates are closed.
