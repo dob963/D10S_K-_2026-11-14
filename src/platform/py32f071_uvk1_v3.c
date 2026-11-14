@@ -1,6 +1,5 @@
 #include "py32f071_uvk1_v3.h"
 
-#include <limits.h>
 
 #include <stddef.h>
 
@@ -99,6 +98,7 @@ typedef struct {
 #define D10S_SYSTICK_ENABLE (1u << 0)
 #define D10S_SYSTICK_CORE_CLOCK (1u << 2)
 #define D10S_MAX_DELAY_CHUNK 65535u
+#define D10S_SYSTICK_POLL_BUDGET 1000000u
 
 static bool systick_delay_ticks(uint16_t ticks, void *context)
 {
@@ -106,15 +106,17 @@ static bool systick_delay_ticks(uint16_t ticks, void *context)
         (d10s_py32f071_uvk1_v3_t *)context;
     uint32_t start;
     uint32_t current;
+    uint32_t budget = D10S_SYSTICK_POLL_BUDGET;
     if (board == NULL || !board->systick_ready) return false;
     if (ticks == 0u) return true;
 
     start = D10S_SYSTICK->VAL & D10S_SYSTICK_RELOAD;
-    do {
+    while (budget-- != 0u) {
         current = D10S_SYSTICK->VAL & D10S_SYSTICK_RELOAD;
         if (((start - current) & D10S_SYSTICK_RELOAD) >= ticks)
             return true;
-    } while (true);
+    }
+    return false;
 }
 
 static bool systick_delay_ms(uint16_t milliseconds, void *context)
