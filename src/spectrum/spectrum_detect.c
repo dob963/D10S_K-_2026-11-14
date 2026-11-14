@@ -195,9 +195,13 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
     size_t peak_index = 0u;
     bool candidate_found;
 
+    size_t i;
     if (state == NULL || bins == NULL || result == NULL ||
         count < 3u || count > D10S_SPECTRUM_MAX_BINS ||
         !valid_frequency_grid(bins, count)) return false;
+    for (i = 0u; i < count; ++i) {
+        if (bins[i].rssi > D10S_SPECTRUM_MAX_RSSI) return false;
+    }
 
     clear_bytes(result, sizeof(*result));
     if (!estimate_noise_floor(state, bins, count)) return false;
