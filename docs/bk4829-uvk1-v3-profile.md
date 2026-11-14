@@ -17,12 +17,14 @@ The receive-mode transition preserves the source BK4819_RX_TurnOn writes:
 
 The profile then programs the initial frequency through REG_38/REG_39 and selects the corresponding internal LNA path. On later scanner retunes, the scanner adapter owns REG_38/REG_39; the profile resume callback only updates the LNA path. This avoids duplicate synthesizer writes.
 
-The upstream path selector uses GPIO4 for the VHF LNA below 28 MHz and GPIO3 for the UHF LNA at/above 28 MHz. D10S currently emits the selector writes:
-- VHF path: REG_33 = 0x9004
-- UHF path: REG_33 = 0x9008
+The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its RX_ENABLE output; the TX setup explicitly clears it. D10S therefore enables GPIO0 together with the selected internal LNA, matching this UV-K1 V3 source lineage. The upstream path selector uses GPIO4 for frequencies below 28 MHz and GPIO3 at/above 28 MHz. D10S emits the combined register writes:
+- VHF selector below 28 MHz: REG_33 = 0x9004 (LNA selector alone)
+- UHF selector at/above 28 MHz: REG_33 = 0x9008 (LNA selector alone)
+- RX enabled with VHF selector: REG_33 = 0x9044
+- RX enabled with UHF selector: REG_33 = 0x9048
 - stop/reset path state: REG_33 = 0x9000 and REG_30 = 0x0000
 
-**Important omission by design:** the upstream code also manipulates GPIO0 as an RX-enable output. D10S does not assert that output in this profile because the external RX-enable / RF-switch connection has not been confirmed on the user's PCB. The profile field is named rx_mode_configured, not receiver_on, to avoid implying that an external RF path is active. The RF chip's RX mode and its external antenna/LNA path are separate facts.
+GPIO0 is the source-named RX_ENABLE output and is asserted for receive; GPIO1 PA_ENABLE is not asserted anywhere in D10S. That GPIO1 control belongs to the upstream transmit path, and this project intentionally has no TX code. The pin assignment is source-derived and still requires measurement on the exact PCB revision before hardware release. The profile field is named rx_mode_configured, not receiver_on, to avoid implying that RF reception has been measured.
 
 ## Fail-closed behavior
 
