@@ -199,6 +199,7 @@ void d10s_spectrum_reset_tracking(d10s_spectrum_state_t *state)
     state->pending_valid = false;
     state->pending_bin = 0u;
     state->pending_streak = 0u;
+    clear_bytes(state->tracked_peaks, sizeof(state->tracked_peaks));
     state->peak_hold_valid = false;
     state->peak_hold_frequency_hz = 0u;
     state->peak_hold_level = 0u;
