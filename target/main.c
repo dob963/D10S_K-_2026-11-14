@@ -8,6 +8,8 @@
 
 #define D10S_INITIAL_FREQUENCY_HZ 144000000u
 #define D10S_SCAN_SETTLE_MS 8u
+/* Pinned UV-K1 reference firmware defines HSE_VALUE as 24 MHz. */
+#define D10S_UVK1_HSE_CLOCK_HZ 24000000u
 
 static d10s_py32f071_uvk1_v3_t board =
     D10S_PY32F071_UVK1_V3_INITIALIZER;
@@ -38,10 +40,14 @@ int main(void)
 
     /*
      * Do not force a new clock tree: derive HCLK from the bootloader's current
-     * RCC state. HSE is intentionally unspecified; HSI/PLL-HSI paths work
-     * without assuming a crystal value.
+     * RCC state. The pinned UV-K1 reference platform defines HSE_VALUE as
+     * 24 MHz; pass that source-derived value so an inherited HSE/PLL-HSE
+     * configuration can be decoded instead of failing closed unnecessarily.
+     * This remains a source-derived assumption until the exact board is
+     * measured; unsupported RCC states still fail closed.
      */
-    if (!d10s_py32f071_uvk1_v3_systick_init_from_rcc(&board, 0u))
+    if (!d10s_py32f071_uvk1_v3_systick_init_from_rcc(
+            &board, D10S_UVK1_HSE_CLOCK_HZ))
         fail_closed();
 
     if (!d10s_py32f071_uvk1_v3_display_port_init_systick(&board,
