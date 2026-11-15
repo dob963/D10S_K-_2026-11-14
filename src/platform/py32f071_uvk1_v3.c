@@ -182,10 +182,9 @@ bool d10s_py32f071_uvk1_v3_clock_from_registers(
         } else {
             return false;
         }
-        /* PY32F07X RM 0.2, section 8.1.5: x2 requires 12..24 MHz;
-         * x3 requires 16..24 MHz. */
-        if (pll_input_hz < (pll_multiplier == 3u ? 16000000u : 12000000u) ||
-            pll_input_hz > 24000000u)
+        /* PY32F07X RM 0.2, section 8.1.5: both x2 and x3
+         * require a 16..24 MHz PLL reference input. */
+        if (pll_input_hz < 16000000u || pll_input_hz > 24000000u)
             return false;
         system_clock_hz = (uint64_t)pll_input_hz * pll_multiplier;
         break;
