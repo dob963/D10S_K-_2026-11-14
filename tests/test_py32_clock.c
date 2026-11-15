@@ -43,6 +43,17 @@ static void test_hse_and_pll_clock(void)
     CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, (4u << 13), 0x10u, (2u | (0u << 2)), 24000000u, &hz));
     CHECK(hz == 48000000u);
+
+    /* Clock-tree Figure 8-1 shows PLL sourced from HSI RC before HSIDIV;
+     * changing HSIDIV must affect HSISYS, not the PLL reference input. */
+    CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
+        (7u << 11), (4u << 13), 0x10u, (2u | (0u << 2)),
+        24000000u, &hz));
+    CHECK(hz == 48000000u);
+    CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
+        (7u << 11), (2u << 13), 0x10u, (2u | (1u << 2)),
+        24000000u, &hz));
+    CHECK(hz == 48000000u);
     CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0x10u, (3u | (1u << 2)), 16000000u, &hz));
     CHECK(hz == 48000000u);
