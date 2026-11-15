@@ -80,7 +80,7 @@ int main(void) {
                                              144000000u,&f));
     CHECK(f.init_calls==1u && f.initial_hz==144000000u);
     d10s_bk4829_scanner_adapter_bind(&adapter,&ops);
-    CHECK(ops.tune_hz && ops.read_rssi && ops.set_attenuation==NULL);
+    CHECK(ops.tune_hz && ops.read_rssi && ops.set_attenuation!=NULL);
     CHECK(!ops.tune_hz(ops.context,600000000u,&actual));
     CHECK(ops.tune_hz(ops.context,144025000u,&actual));
     CHECK(actual==144025000u && f.resume_calls==1u &&
