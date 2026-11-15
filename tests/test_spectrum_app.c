@@ -221,6 +221,24 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(!app.scanner.pending_turbo_valid);
     CHECK(app.scanner.settle_ms == 12u);
     CHECK(app.scanner.turbo_enabled);
+
+    /* Delay key cycles 8 -> 12 -> 16 -> 24 -> 8 ms. */
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_4));
+    CHECK(app.scanner.pending_settle_ms == 16u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_4));
+    CHECK(app.scanner.pending_settle_ms == 24u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_4));
+    CHECK(app.scanner.pending_settle_ms == 8u);
+    {
+        unsigned delay_tick;
+        for (delay_tick = 1u; delay_tick <= 200u &&
+             app.scanner.pending_delay_valid; ++delay_tick)
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 300u + delay_tick) !=
+                  D10S_APP_ERROR);
+    }
+    CHECK(!app.scanner.pending_delay_valid);
+    CHECK(app.scanner.settle_ms == 8u);
+
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_3));
     CHECK(app.scanner.pending_turbo_valid);
     CHECK(!app.scanner.pending_turbo_enabled);
