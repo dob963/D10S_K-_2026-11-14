@@ -406,6 +406,8 @@ typedef struct {
     bool fail_att;
     uint8_t attenuation_level;
     uint8_t read_jitter;
+    uint8_t glitch_busy_checks;
+    uint8_t glitch_checks;
 } fake_radio_t;
 
 static bool fake_radio_tune(void *context, uint32_t requested_hz,
@@ -432,6 +434,15 @@ static bool fake_radio_read(void *context, uint16_t *rssi)
     if (radio->read_jitter != 0u && (radio->read_calls & 1u) == 0u)
         *rssi = (uint16_t)(*rssi + radio->read_jitter);
     ++radio->read_calls;
+    return true;
+}
+
+static bool fake_radio_ready(void *context, bool *ready)
+{
+    fake_radio_t *radio = (fake_radio_t *)context;
+    if (radio == NULL || ready == NULL) return false;
+    if (radio->glitch_checks < UINT8_MAX) ++radio->glitch_checks;
+    *ready = radio->glitch_checks > radio->glitch_busy_checks;
     return true;
 }
 
@@ -471,7 +482,7 @@ static void test_scanner_acquires_and_confirms_signal(void)
         .noise_level = 100u, .peak_level = 160u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -530,6 +541,33 @@ static void test_scanner_alternates_direction_and_keeps_bins_ordered(void)
     CHECK(snapshot[2].frequency_hz == 144002000u);
     CHECK(snapshot[3].frequency_hz == 144003000u);
     CHECK(snapshot[4].frequency_hz == 144004000u);
+}
+
+static void test_turbo_waits_for_bk4829_ready_hint(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144002000u, 3u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u,
+        .glitch_busy_checks = 2u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att,
+        fake_radio_ready
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    uint32_t now_ms = 0u;
+    bool changed = false;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 8u));
+    CHECK(d10s_spectrum_scanner_set_turbo(&scanner, true, 2u, 1u, 0u, 2u));
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(fake.glitch_checks > 2u);
+    CHECK(fake.read_calls == 6u);
 }
 
 static void test_scanner_resets_detector_on_band_change(void)
@@ -1165,6 +1203,7 @@ int main(void)
     test_rejects_rssi_above_nine_bit_range();
     test_scanner_acquires_and_confirms_signal();
     test_scanner_alternates_direction_and_keeps_bins_ordered();
+    test_turbo_waits_for_bk4829_ready_hint();
     test_scanner_resets_detector_on_band_change();
     test_scanner_rejects_radio_failures();
     test_scanner_att_compensation_and_boundary_rules();
