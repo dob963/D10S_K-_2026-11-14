@@ -156,6 +156,23 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(fake.writes[1].address == 0x00u);
     CHECK(fake.writes[1].value == 0x0000u);
     CHECK(write_seen(&fake, 0x37u, 0x9D1Fu));
+    /* The pinned upstream #if 1 branch is the active DTMF table. */
+    CHECK(write_seen(&fake, 0x09u, 0x006Fu));
+    CHECK(write_seen(&fake, 0x09u, 0x106Bu));
+    CHECK(write_seen(&fake, 0x09u, 0x2067u));
+    CHECK(write_seen(&fake, 0x09u, 0x3062u));
+    CHECK(write_seen(&fake, 0x09u, 0x4050u));
+    CHECK(write_seen(&fake, 0x09u, 0x5047u));
+    CHECK(write_seen(&fake, 0x09u, 0x603Au));
+    CHECK(write_seen(&fake, 0x09u, 0x702Cu));
+    CHECK(write_seen(&fake, 0x09u, 0x8041u));
+    CHECK(write_seen(&fake, 0x09u, 0x9037u));
+    CHECK(write_seen(&fake, 0x09u, 0xA025u));
+    CHECK(write_seen(&fake, 0x09u, 0xB017u));
+    CHECK(write_seen(&fake, 0x09u, 0xC0E4u));
+    CHECK(write_seen(&fake, 0x09u, 0xD0CBu));
+    CHECK(write_seen(&fake, 0x09u, 0xE0B5u));
+    CHECK(write_seen(&fake, 0x09u, 0xF09Fu));
     CHECK(write_seen(&fake, 0x37u, 0x9F1Fu));
     CHECK(write_seen(&fake, 0x30u, 0x0000u));
     CHECK(write_seen(&fake, 0x30u, 0xBFF1u));
