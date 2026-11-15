@@ -62,6 +62,8 @@ typedef struct {
     uint16_t pending_rssi_compensation;
     bool attenuation_settle_pending;
     uint16_t current_settle_ms;
+    /* Alternate acquisition direction; published bins remain frequency-ascending. */
+    bool sweep_reverse;
 } d10s_spectrum_scanner_t;
 
 /* Bands are caller-owned and must outlive the scanner instance. */
