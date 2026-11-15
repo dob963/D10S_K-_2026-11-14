@@ -7,7 +7,7 @@ This is the remaining physical acceptance checklist for the source-derived PY32F
 ## Software verification already completed
 
 - [x] Host tests cover independent multi-peak confirmation (up to eight candidates), strongest-eight bounding, peak tracking through dominant-peak changes, loss/reacquisition, band-reset clearing and detection at both band edges.
-- [x] CI run [43700867913](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43700867913) passed warning-as-error compilation, CMake tests, Cortex-M0+ cross-compilation, full PY32F071 link/layout checks and Makefile tests.
+- [x] CI run [43704302767](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43704302767) passed warning-as-error compilation, all 10 CMake tests, Cortex-M0+ cross-compilation, full PY32F071 link/layout checks, static cumulative stack analysis and Makefile tests. Stack estimate is 1,392/1,536 bytes including a 40-byte exception reserve and manual conservative ARM EABI helper reserves; it is not a measured hardware high-water mark.
 
 These checks do not substitute for the physical tests below.
 
