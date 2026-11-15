@@ -28,7 +28,7 @@ This is source-level protocol evidence only. The bootloader version, model, appl
 - `3`: toggle adaptive Turbo polling.
 - `4`: cycle Delay through 8 / 12 / 16 / 24 ms.
 - `5`: cycle six BK4829 REG_13 receive-gain presets: ATT 0, ATT -6, ATT -15, ATT -27, BYP and BYP+.
-- `6`–`8`: reserved.
+- `6`: lower the opening threshold margin by 2 raw RSSI units (minimum 2).\n- `7`: raise the opening threshold margin by 2 raw RSSI units (maximum 64).\n- `8`: restore the default opening margin of 12 raw RSSI units. The display shows the active margin as `Nxx`; this is a relative raw-RSSI margin, not dB.
 - `9`: freeze the last complete sweep; next press resumes the current band from bin zero.
 - `MENU/0`: toggle/place cursor; `UP/DOWN`: move one bin; `SIDE1/SIDE2`: move eight bins.
 - `F`: toggle normal/moderately bold labels; `STAR`: toggle peak-marker visibility.
