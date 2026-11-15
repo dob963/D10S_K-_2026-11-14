@@ -263,6 +263,12 @@ bool d10s_spectrum_app_set_noise_margin(d10s_spectrum_app_t *app,
     app->scanner.detector.config.noise_margin = margin;
     app->scanner.detector.pending_valid = false;
     app->scanner.detector.pending_streak = 0u;
+    {
+        const uint32_t threshold =
+            (uint32_t)app->last_result.noise_floor + margin;
+        app->last_result.open_threshold = threshold > D10S_SPECTRUM_MAX_RSSI
+            ? D10S_SPECTRUM_MAX_RSSI : (uint16_t)threshold;
+    }
     if (app->paused) app->pause_frame_pending = true;
     return true;
 }
