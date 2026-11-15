@@ -43,6 +43,21 @@ static bool set_attenuation(void *context, uint8_t level)
     return true;
 }
 
+static bool rssi_ready(void *context, bool *ready)
+{
+    d10s_bk4829_scanner_adapter_t *a =
+        (d10s_bk4829_scanner_adapter_t *)context;
+    uint16_t status;
+    if (a == NULL || !a->ready || ready == NULL) return false;
+    if (!d10s_bk4829_read_register(&a->bus, &a->timing, 0x63u, &status)) {
+        fail_closed(a);
+        return false;
+    }
+    /* Armel Spectrum3D treats low-byte values >= 200 as unsettled. */
+    *ready = (status & 0x00FFu) < 200u;
+    return true;
+}
+
 static bool read_rssi(void *context, uint16_t *rssi)
 {
     d10s_bk4829_scanner_adapter_t *a =
@@ -117,4 +132,5 @@ void d10s_bk4829_scanner_adapter_bind(
     ops->tune_hz = tune_hz;
     ops->read_rssi = read_rssi;
     ops->set_attenuation = set_attenuation;
+    ops->rssi_ready = rssi_ready;
 }
