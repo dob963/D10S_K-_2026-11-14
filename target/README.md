@@ -47,18 +47,17 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-**Latest verified CI:** [run 43699850862](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699850862), commit `9185380051142a69e35a92dbce63a8fece95198c`.
+**Latest verified CI:** [run 43700867913](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43700867913), commit `c491d5fe60097a77783766e11b4501d80efbde26`.
 - Job `host-tests`: success.
 - Warning-as-error compilation: passed.
 - CMake tests: passed.
 - Cortex-M0+ cross-compilation: passed.
 - Full PY32F071 application link and image-layout validation: passed.
 - Makefile build/tests: passed.
-- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14155852797`, 36,448 bytes.
-- Artifact ZIP SHA-256: `25f64131ff7c01fa3b4030118948dcc2d2acdb7041af0d6114f8338a207b7f5e`.
-- Extracted intermediate BIN: 14,692 bytes; SHA-256 `0c4a1837c442b99ca5f5dac330eadd935cc05d87588203ab7f5b58b4e223951a`.
-- ELF: 44,864 bytes; SHA-256 `15b03ad3d5624d12690f16f393c37b87f6165e67078df36916eb59f422a2ddf4`.
-- Vector table begins at `0x08002800`; initial SP `0x20004000`; reset vector `0x08002905` (Thumb); linked `.text` begins at `0x08002900`. The `.bss` reservation ends at `0x200015c0`.
+- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14156835345`, ZIP 37,431 bytes.
+- Artifact ZIP SHA-256: `46a1b2e52bf7f6f57dbe3625dbea803d9a018697ba6f59f215d2b8d2a5e108cb`.
+- Extracted intermediate BIN: 15,268 bytes; SHA-256 `ac7631177f562d18c3db070e169235d71228212107e7d571f996d976db12236d`.
+- ELF: 45,400 bytes; raw BIN vector inspection reports initial SP `0x20004000` and reset vector `0x08002904` (Thumb). The vector table is emitted at the configured application origin; hardware bootloader compatibility remains unverified.
 
 The artifact contains engineering outputs only. The raw BIN was extracted and independently checksummed, and its vector table was inspected; it remains explicitly **NOT FOR FLASHING** and is not a firmware release. Hardware, bootloader-origin and recovery checks remain open.
 
