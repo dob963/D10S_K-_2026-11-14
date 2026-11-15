@@ -1,6 +1,6 @@
 # D10S Spectrum Analyzer — architecture contract
 
-Target: Quansheng UV-K1 / UV-K1(8) V3, subject to exact board-revision confirmation.
+Target: standard Quansheng UV-K1 only (user-reported bootloader 7.03.01). UV-K1(8) V3 Mini Kong and UV-K5 V3 are excluded; exact PCB revision and MCU marking require physical confirmation.
 Expected platform: Puya PY32F071 Cortex-M0+, BK4829 RF front end, ST7565 128x64 LCD.
 Bootloader reported for the target unit: 7.03.01 (must be re-read before any release).
 
@@ -10,7 +10,7 @@ Bootloader reported for the target unit: 7.03.01 (must be re-read before any rel
 - Independent project identity: D10S.
 - Primary visual and behavioral reference: Karina Spectrum. Match its recognizable screen organization, information hierarchy, scan workflow and operator-facing behavior as closely as can be established from lawful public references and user-provided reference images.
 - Karina is a reference, not a source-code dependency. Do not copy unavailable/proprietary application code or reproduce assets without permission. Reimplement behavior independently; retain required notices for any separately licensed code actually reused.
-- Supporting firmware projects (including F4HWN/GOGUFW and other UV-K1/K5 V3 work) are technical references for platform drivers, RF handling, timing, memory and test techniques only; they do not replace Karina as the Spectrum target.
+- Supporting firmware projects, including F4HWN/GOGUFW and UV-K1/K5 V3 work, are technical references only for platform drivers, RF handling, timing, memory and test techniques. D10S uses an independently implemented Spectrum analyzer; no Karina firmware is the target or a code base.
 - Typography: clear, moderately bold frequency and scale labels; avoid excessive weight. Preserve the legibility and information density expected from the Karina reference.
 
 ## Functional design
