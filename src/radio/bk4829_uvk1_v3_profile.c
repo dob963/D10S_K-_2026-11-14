@@ -128,6 +128,21 @@ bool d10s_bk4829_uvk1_v3_initialize_rx(
         }
     }
 
+    /*
+     * Read back the receive gain table before enabling RX. REG_13 is used
+     * read/write by the source driver; a stuck bus or rejected baseline must
+     * fail closed rather than start a meaningless Spectrum scan.
+     */
+    {
+        uint16_t gain_readback = 0u;
+        if (!d10s_bk4829_read_register(&profile->bus, &profile->timing,
+                                      0x13u, &gain_readback) ||
+            (gain_readback & 0x03FFu) != 0x03DFu) {
+            (void)d10s_bk4829_uvk1_v3_stop_rx(profile);
+            return false;
+        }
+    }
+
     /* Source-derived BK4819_RX_TurnOn sequence from the BK4829 driver. */
     if (!write_reg(profile, 0x37u, 0x9F1Fu) ||
         !write_reg(profile, 0x30u, 0x0000u) ||
