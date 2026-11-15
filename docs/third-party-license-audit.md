@@ -21,6 +21,9 @@ Do not copy code from a project whose license is missing, unclear, incompatible 
 
 This table records the state of the review, not a blanket legal opinion about the listed projects. Re-check repository license files, file-level headers, contributor notices, and the exact commit before any future reuse.
 
+
+| `armel/uv-k1-k5v3-firmware-custom` — Fox Hunt gain ladder | BK4829 REG_13 ATT/BYP receive-gain presets | Apache-2.0 verified at pinned revision `3261ca7883d5b0b60c0905d8766612dee7b4191d`; `App/app/foxhunt.c` header and repository LICENSE reviewed | Modified six-step gain preset adaptation in `src/radio/bk4829.c`; copyright retained in file header and `THIRD_PARTY_NOTICES.md` |
+
 ## Current D10S repository licensing
 
 At this audit, the repository has no project-level `LICENSE` file. Therefore no open-source license has yet been granted for original D10S code. The Apache-2.0 file under `LICENSES/` applies to the identified source-derived BK4829 profile only; it does not license the whole D10S repository. Public visibility on GitHub is not a license to reuse it. Do not add a license or advertise D10S as open source until the project owner has selected and approved the license.
