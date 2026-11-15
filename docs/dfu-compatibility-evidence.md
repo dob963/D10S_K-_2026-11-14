@@ -4,11 +4,11 @@ Audit date: 2026-11-15
 
 ## Current D10S release candidate
 
-- Workflow: [run 43749934363](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43749934363).
-- Commit: `31e792e4a2fe5ab201e10bb478872b76b7af9b5f`.
+- Workflow: [run 43750817987](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43750817987), on source commit `9eb0f341d72f890227bd97103878f9396efd38a5`.
+- Firmware source commit: `31e792e4a2fe5ab201e10bb478872b76b7af9b5f`; validator correction included in CI at `9eb0f341d72f890227bd97103878f9396efd38a5`.
 - Conclusion: success; compile, tests, Cortex-M0+ cross-compile, PY32F071 link/image validation, stack diagnostics, Makefile tests and artifact upload all completed.
-- Artifact: `D10S-K1-firmware-release-candidate`, ID `14175781912`.
-- ZIP size: 37,601 bytes; SHA-256: `9d2e408f74f2b1340366e084b5f35b02c09b512b844f254143b76191316a0845`.
+- Latest artifact: `D10S-K1-firmware-release-candidate`, ID `14175588776` (run 43750817987).
+- GitHub artifact ZIP size: 37,600 bytes; GitHub SHA-256: `7cf26e104dac15cab1ce5dd0497ec01460090924af5c5167f02ead43ec49893e`.
 - Extracted raw image: `D10S_K1.bin`, 15,196 bytes; SHA-256: `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`.
 - Vector values: initial SP `0x20004000`; Reset vector `0x08002905` (Thumb).
 - Build metadata: `RELEASE_CANDIDATE_HARDWARE_VALIDATION_REQUIRED`.
