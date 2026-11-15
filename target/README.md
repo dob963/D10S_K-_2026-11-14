@@ -47,17 +47,16 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-**Latest verified CI:** [run 43700867913](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43700867913), commit `c491d5fe60097a77783766e11b4501d80efbde26`.
-- Job `host-tests`: success.
-- Warning-as-error compilation: passed.
-- CMake tests: passed.
-- Cortex-M0+ cross-compilation: passed.
-- Full PY32F071 application link and image-layout validation: passed.
-- Makefile build/tests: passed.
-- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14156835345`, ZIP 37,431 bytes.
-- Artifact ZIP SHA-256: `46a1b2e52bf7f6f57dbe3625dbea803d9a018697ba6f59f215d2b8d2a5e108cb`.
-- Extracted intermediate BIN: 15,268 bytes; SHA-256 `ac7631177f562d18c3db070e169235d71228212107e7d571f996d976db12236d`.
-- ELF: 45,400 bytes; raw BIN vector inspection reports initial SP `0x20004000` and reset vector `0x08002904` (Thumb). The vector table is emitted at the configured application origin; hardware bootloader compatibility remains unverified.
+**Latest verified CI:** [run 43704302767](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43704302767), commit `21a9e636f80b759fc059b051b6e90087ac43c4`.
+- Job `host-tests`: success; all 10 CMake tests passed.
+- Warning-as-error compilation, Cortex-M0+ cross-compilation and Makefile build/tests: passed.
+- Full PY32F071 application link and structural image-layout validation: passed.
+- Per-function stack check: 118 frames, maximum 560 bytes.
+- Static cumulative C call-chain estimate: 1,352 bytes; plus 40-byte exception reserve = 1,392/1,536 bytes, leaving 144 bytes. This uses manually assigned conservative 256-byte reserves for linked ARM EABI helpers; it is not a measured hardware high-water mark.
+- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14157571474`, ZIP 37,535 bytes.
+- Artifact ZIP SHA-256: `d39fad35b13edf07731a3567475d7a3a9ec71b1b0b0ccc24d69cdf8ebaa17d5c`.
+- Extracted intermediate BIN: 15,284 bytes; SHA-256 `e2a4f5c92ef3a0f8530a4d0ed1510b9958a3611b7059ff065e7e5f8a30801caa`.
+- ELF: 45,472 bytes; BSS: 5,824 bytes; raw BIN vector inspection reports initial SP `0x20004000` and reset vector `0x08002904` (Thumb). Hardware bootloader compatibility remains unverified.
 
 The artifact contains engineering outputs only. The raw BIN was extracted and independently checksummed, and its vector table was inspected; it remains explicitly **NOT FOR FLASHING** and is not a firmware release. Hardware, bootloader-origin and recovery checks remain open.
 
