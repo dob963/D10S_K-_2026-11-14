@@ -26,6 +26,10 @@ The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its
 
 GPIO0 is the source-named RX_ENABLE output and is asserted for receive; GPIO1 PA_ENABLE is not asserted anywhere in D10S. That GPIO1 control belongs to the upstream transmit path, and this project intentionally has no TX code. The pin assignment is source-derived and still requires measurement on the exact PCB revision before hardware release. The profile field is named rx_mode_configured, not receiver_on, to avoid implying that RF reception has been measured.
 
+## Gain presets and settling
+
+The six selectable REG_13 values are source-derived receive-gain presets, not calibrated attenuation values. UI levels 0–5 are relative steps only; they must not be described as dB until measured against calibrated RF input levels on the exact radio. The scanner enforces a 40 ms settle interval after each gain change before accepting the next RSSI sample. This is a conservative software delay copied from the upstream Spectrum/foxhunt behavior, not a measured AGC settling specification for every UV-K1 board.
+
 ## Fail-closed behavior
 
 If a baseline write or RX transition fails, the profile attempts to clear the LNA selector and REG_30. A hardware bus failure may also prevent the stop writes; the profile therefore reports initialization failure and clears rx_mode_configured. This is a software fail-closed attempt, not a guarantee of RF hardware shutdown in the presence of a failed bus.
