@@ -186,6 +186,20 @@ static void test_complete_spectrum_application_pipeline(void)
         CHECK(hw.tune_calls == tune_before_pause);
         CHECK(hw.read_calls == read_before_pause);
 
+        {
+            const uint16_t threshold_before = app.last_result.open_threshold;
+            CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_7));
+            CHECK(app.pause_frame_pending);
+            CHECK(app.last_result.open_threshold == threshold_before + 2u);
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 12u) ==
+                  D10S_APP_FRAME_UPDATED);
+            CHECK(!app.pause_frame_pending && app.paused);
+            CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_8));
+            CHECK(app.last_result.open_threshold == threshold_before);
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 13u) ==
+                  D10S_APP_FRAME_UPDATED);
+        }
+
         CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_9));
         CHECK(!app.paused);
         CHECK(app.scanner.bin_index == 0u);
