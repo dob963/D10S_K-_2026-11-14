@@ -183,6 +183,14 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
         return d10s_spectrum_app_set_delay(app, next);
     }
 
+    case D10S_KEY_5: {
+        const uint8_t current = app->scanner.pending_attenuation_valid
+            ? app->scanner.pending_attenuation_level
+            : app->scanner.attenuation_level;
+        return d10s_spectrum_app_set_attenuation(app,
+            (uint8_t)((current + 1u) % 6u), 0u);
+    }
+
     case D10S_KEY_9:
         if (!app->paused) {
             if (!app->scanner.published_valid ||
@@ -198,7 +206,6 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
 
     case D10S_KEY_1:
     case D10S_KEY_2:
-    case D10S_KEY_5:
     case D10S_KEY_6:
     case D10S_KEY_7:
     case D10S_KEY_8:
