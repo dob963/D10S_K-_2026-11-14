@@ -35,7 +35,7 @@ static bool set_attenuation(void *context, uint8_t level)
 {
     d10s_bk4829_scanner_adapter_t *a =
         (d10s_bk4829_scanner_adapter_t *)context;
-    if (a == NULL || !a->ready) return false;
+    if (a == NULL || !a->ready || level > 5u) return false;
     if (!d10s_bk4829_set_rx_gain_level(&a->bus, &a->timing, level)) {
         fail_closed(a);
         return false;
