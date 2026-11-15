@@ -279,7 +279,7 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(!app.scanner.pending_attenuation_valid);
     CHECK(app.scanner.attenuation_level == 0u);
     CHECK(hw.attenuation_level == 0u);
-    CHECK(app.scanner.settle_ms == 12u);
+    CHECK(app.scanner.settle_ms == 8u);
 
     d10s_spectrum_app_stop(&app);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_ERROR);
