@@ -50,6 +50,8 @@ bool d10s_spectrum_app_set_cursor(d10s_spectrum_app_t *app,
                                   uint16_t bin_index);
 bool d10s_spectrum_app_set_bold_labels(d10s_spectrum_app_t *app,
                                        bool enabled);
+bool d10s_spectrum_app_set_noise_margin(d10s_spectrum_app_t *app,
+                                        uint16_t margin);
 bool d10s_spectrum_app_set_delay(d10s_spectrum_app_t *app,
                                  uint16_t settle_ms);
 bool d10s_spectrum_app_set_turbo(d10s_spectrum_app_t *app,
