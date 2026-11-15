@@ -29,6 +29,7 @@ typedef struct {
     bool hold_enabled;
     uint16_t noise_floor;
     uint16_t open_threshold;
+    uint16_t noise_margin;
     bool peak_hold_valid;
     uint32_t peak_hold_frequency_hz;
     bool cursor_valid;
