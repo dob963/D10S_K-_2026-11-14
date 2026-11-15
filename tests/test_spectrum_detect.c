@@ -964,6 +964,32 @@ static void test_peak_confirmation_resets_after_missing_sweep(void)
     CHECK(result.peaks[0].streak == 1u);
     CHECK(!result.peaks[0].confirmed);
 }
+
+static void test_spectrum_view_marks_each_confirmed_peak(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {144000000u, 100u}, {144001000u, 140u}, {144002000u, 100u},
+        {144003000u, 150u}, {144004000u, 100u}
+    };
+    const d10s_spectrum_peak_t peaks[] = {
+        {true, 144001000u, 140u, 1u, 3u, true},
+        {true, 144003000u, 150u, 3u, 3u, true}
+    };
+    const d10s_spectrum_view_model_t model = {
+        .bins = bins, .count = 5u, .band_index = 0u, .band_count = 1u,
+        .noise_floor = 100u, .open_threshold = 120u,
+        .peaks = peaks, .peak_count = 2u
+    };
+    fake_canvas_t fake = {0};
+    const d10s_spectrum_canvas_t canvas = {
+        &fake, fake_canvas_pixel, fake_canvas_text
+    };
+
+    CHECK(d10s_spectrum_view_render(&canvas, &model));
+    CHECK(fake.pixels[12u][31u]);
+    CHECK(fake.pixels[12u][95u]);
+}
+
 int main(void)
 {
     test_configurable_opening_margin();
@@ -993,6 +1019,7 @@ int main(void)
     test_turbo_honors_max_delay_when_rssi_never_stabilizes();
     test_spectrum_view_cursor_uses_published_bin_frequency();
     test_spectrum_view_draws_graph_and_status_labels();
+    test_spectrum_view_marks_each_confirmed_peak();
     test_spectrum_view_rejects_invalid_snapshot();
     test_spectrum_view_rejects_invalid_rssi_and_band_count();
     test_mono128x64_pixel_layout_and_page_bounds();
