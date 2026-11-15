@@ -4,7 +4,9 @@ This folder contains the integrated target entry point for the receive-only Spec
 
 ## Target contract
 
-- Core: ARM Cortex-M0+ / reported PY32F071xB. Exact MCU marking and PCB revision remain unconfirmed.
+- Radio model: **standard Quansheng UV-K1**, as reported by the user; reported bootloader: **7.03.01**. UV-K1(8) V3 Mini Kong and UV-K5 V3 are explicitly outside this target.
+
+- Core: ARM Cortex-M0+ / PY32F071 family expected for standard UV-K1; exact MCU package marking and PCB revision on the user's unit remain to be physically inspected.
 - RF: BK4829, using the source-derived opt-in initialization profile.
 - Display: ST7565, 128x64.
 - Application origin: `0x08002800`.
@@ -15,7 +17,7 @@ This folder contains the integrated target entry point for the receive-only Spec
 
 ## Bootloader / DFU format review
 
-The reported bootloader version 7.03.01 is listed by reviewed public tooling as a standard UV-K1 bootloader. The same reference maps 7.00.07 to UV-K5 V3 / UV-K1(8) v3 Mini Kong; these model variants must not be treated as interchangeable without confirming the physical unit.
+The user reports standard UV-K1 with bootloader 7.03.01. Reviewed public tooling lists this combination for standard UV-K1; 7.00.07 is separately associated with UV-K5 V3 / UV-K1(8) v3 Mini Kong. The D10S target is the standard UV-K1 only.
 
 The D10S target workflow emits a raw Cortex-M image. Reviewed DFU tooling sends raw images unchanged in 256-byte pages; vendor-packed stock update files use a separate XOR/version-block decoding step. D10S must not apply that vendor packing to its raw build output.
 
@@ -62,7 +64,7 @@ The artifact contains engineering outputs only. The raw BIN was extracted and in
 ## Hardware release gates
 
 A successful link and structural image check do not verify:
-- exact MCU marking, PCB revision, model variant or installed bootloader;
+- exact MCU package marking and PCB revision; bootloader readback and recovery path;
 - candidate PF9/PB8/PB9 and PA5/PA7/PB2/PA6 continuity;
 - external RF switch / GPIO0 enable, LNA route, AGC settling, PLL lock or measured RSSI;
 - LCD behavior, keypad matrix and physical key mapping;
