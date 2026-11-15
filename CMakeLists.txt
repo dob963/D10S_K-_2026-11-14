@@ -47,6 +47,11 @@ target_link_libraries(test_bk4829_scanner_adapter PRIVATE d10s_spectrum_core)
 target_compile_options(test_bk4829_scanner_adapter PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
 add_test(NAME bk4829_scanner_adapter COMMAND test_bk4829_scanner_adapter)
 
+add_executable(test_spectrum_view tests/test_spectrum_view.c)
+target_link_libraries(test_spectrum_view PRIVATE d10s_spectrum_core)
+target_compile_options(test_spectrum_view PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
+add_test(NAME spectrum_view COMMAND test_spectrum_view)
+
 add_executable(test_spectrum_app tests/test_spectrum_app.c)
 target_link_libraries(test_spectrum_app PRIVATE d10s_spectrum_core)
 target_compile_options(test_spectrum_app PRIVATE -Wall -Wextra -Werror -pedantic -UNDEBUG)
