@@ -74,3 +74,22 @@ A separate Apache-2.0 reference implementation (pinned above) accepts raw Cortex
 4. Rebuild and require UV Air Tool to identify the image as UV-K1 before any controlled flash test.
 
 **Current status: REJECTED BY UV AIR TOOL 4.7.4 — DO NOT FLASH.**
+
+
+## Offline inspection of the rejected D10S candidate
+
+The retained candidate at commit `31e792e4a2fe5ab201e10bb478872b76b7af9b5f` was inspected locally without modifying it:
+
+- File length: 15,196 bytes.
+- SHA-256: `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`.
+- First vector word (initial MSP): `0x20004000`.
+- Second vector word (Reset_Handler): `0x08002905`.
+- The image is a raw Cortex-M binary; it does not contain a readable model/version string in the initial vector table.
+
+The public Apache-2.0 `armel/uv-k1-k5v3-firmware-custom` serial-tool codec documents the Quansheng packed updater format separately: XOR obfuscation, a 16-byte version field inserted at offset `0x2000`, and a trailing CRC16/XMODEM. Its raw-image detector checks the RAM stack-pointer and flash reset-vector address ranges. The D10S candidate satisfies those two vector-range checks. This is evidence that the image is structurally raw, not proof that it matches every UV Air Tool 4.7.4 target-identification rule or the correct physical UV-K1 application origin.
+
+The upstream F4HWN release notes identify the newer UV-K1/UV-K5 V3 platform as PY32F071, distinct from the older UV-K5 V1 DP32G030 platform. D10S is built for PY32F071. Therefore, the screenshot's UV-K5 V1 classification conflicts with the D10S build target; it must be resolved by inspecting the exact UV Air Tool 4.7.4 parser or comparing against a known-good UV-K1 7.03.01 image. Do not add a guessed version block or alter the raw image merely to change the displayed label.
+
+### Additional gate
+
+Before any flash attempt, compare the candidate against a known-good UV-K1 7.03.01 firmware image and verify the exact application origin, vector table, version/target metadata expected by the specific flasher, and image length limits. A successful raw-vector check alone is insufficient.
