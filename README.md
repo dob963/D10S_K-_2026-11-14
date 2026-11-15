@@ -9,7 +9,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - Adaptive noise floor: per-sweep percentile, rolling five-sweep history and smoothing.
 - Relative peak detection, local prominence, three-sweep confirmation, parabolic frequency refinement and confirmed peak hold.
 - Multi-band plan: up to eight validated bands with uniform grids and per-band dwell. Initial target spans (144–146 MHz and 430–440 MHz) use 129 points each, checked by a dedicated host test for exact grid divisibility.
-- Non-blocking tune/settle/RSSI acquisition; each sample is tagged with the actual frequency returned by the radio adapter.
+- Non-blocking tune/settle/RSSI acquisition; alternate sweeps run in opposite directions to reduce directional bias, while samples are reordered by frequency before detector processing; each sample is tagged with the actual frequency returned by the radio adapter.
 - Only complete sweeps are published; manual band and ATT changes invalidate stale snapshots.
 - Delay control and optional adaptive Turbo polling, bounded by caller-provided timings.
 - Six-step BK4829 receive-gain control is connected through REG_13. The UI identifies the six uncalibrated software stages as `AT0`–`AT5`; the underlying register presets correspond to the source-derived `ATT 0`, `ATT 6`, `ATT 15`, `ATT 27`, `BYP` and `BYP+` settings. The write preserves REG_13 bits 10..15, waits 40 ms before the first post-change sample, and resets detector history. The gain response still requires RF measurement on the actual board; no dBm calibration is claimed.
@@ -50,6 +50,8 @@ The portable Spectrum application and source-derived UV-K1 V3 BK4829 profile are
 Do not flash intermediate objects, host test outputs or any file described as a smoke test. No flashable BIN is published in this repository.
 
 The scanner reserves two 256-point buffers (about 4 KiB on a 32-bit ABI) plus the 1 KiB framebuffer, detector state and stack. CI checks linker bounds and per-function stack-usage limits; these static checks do not measure cumulative nested stack use or stack high-water mark on hardware.
+
+The alternating sweep-direction behavior is independently implemented from the documented Armel/F4HWN Spectrum workflow; no upstream Spectrum application source is copied. The upstream manual's hardware warning is retained: BK4819 and BK4829 front-end, AGC and RSSI characteristics are not interchangeable.
 
 ## Engineering references
 
