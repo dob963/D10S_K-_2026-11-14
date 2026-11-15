@@ -21,6 +21,12 @@ ATTR_RE = re.compile(r'([A-Za-z_]+):\s*"((?:\\.|[^"])*)"')
 STACK_RE = re.compile(r"(\d+) bytes \(([^)]+)\)")
 DYNAMIC_RE = re.compile(r"(\d+) dynamic objects")
 
+# Conservative allowance for the ARM EABI unsigned divide/mod helper.
+# This is a manual reserve, not a measured compiler-generated frame.
+EXTERNAL_STACK_RESERVES = {
+    "__aeabi_uidivmod": 256,
+}
+
 
 @dataclass
 class Node:
