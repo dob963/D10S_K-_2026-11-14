@@ -47,7 +47,7 @@ GitHub Actions executes host tests, Makefile tests and freestanding ARM Cortex-M
 
 The portable Spectrum application and source-derived standard UV-K1 BK4829 profile are included in the build and host test suites. They are **not yet validated on the user's physical radio**. The profile is based on one pinned upstream K1/K5 V3 firmware revision, using its K1 board implementation; it does not prove that the exact PCB has the same RF path, GPIO routing, LNA or switch wiring. The PY32F071 GPIO/SPI backend, keypad controls, Delay/Turbo controls and six REG_13 receive-gain presets are integrated. ATT changes are applied at a safe sweep boundary and followed by a 40 ms software settling interval; gain response and timing still require measurement on the actual board. Raw RSSI is not calibrated in dBm and no cross-stage RSSI compensation is claimed. The target startup, linker, application link and raw-image structural checks run in CI. CI success is not a hardware boot test: the linked image remains diagnostic and is not released for flashing. The confirmed PCB revision, electrical pin map, RX/AGC/LNA behavior, keypad/display operation, actual gain-step response and bootloader hand-off remain physical release gates.
 
-Do not flash intermediate objects, host test outputs or any file described as a smoke test. No flashable BIN is published in this repository.
+Do not flash intermediate objects, host test outputs or any file described as a smoke test. No hardware-approved flashable BIN is published in this repository; CI artifacts remain diagnostic release candidates pending physical validation.
 
 The scanner reserves two 256-point buffers (about 4 KiB on a 32-bit ABI) plus the 1 KiB framebuffer, detector state and stack. CI checks linker bounds and per-function stack-usage limits; these static checks do not measure cumulative nested stack use or stack high-water mark on hardware.
 
@@ -65,7 +65,7 @@ The alternating sweep-direction behavior is independently implemented from the d
 - ST7565 backend and target port: docs/st7565-platform-port.md
 - Integrated application layer: docs/application-layer.md
 - PY32F071 target build, linker, startup and hardware release limits: target/README.md
-- Physical UV-K1 V3 hardware acceptance checklist: docs/hardware-validation-checklist.md
+- Physical standard UV-K1 hardware acceptance checklist: docs/hardware-validation-checklist.md
 - Spectrum behavior requirements and source review: docs/reference-behavior.md
 - Third-party notices: THIRD_PARTY_NOTICES.md
 
