@@ -82,8 +82,8 @@ jobs:
           python3 target/check_stack_usage.py build/target
           python3 target/check_callgraph_stack.py build/target --entry Reset_Handler --exception-reserve 40 --budget 1536 --link-map build/target/D10S_K1.map
           arm-none-eabi-objcopy -O binary build/target/D10S_K1.elf \
-            build/target/D10S_K1.intermediate.bin
-          python3 target/validate_image.py build/target/D10S_K1.intermediate.bin
+            build/target/D10S_K1.bin
+          python3 target/validate_image.py build/target/D10S_K1.bin
       - name: Preserve stack-analysis diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -98,26 +98,26 @@ jobs:
           retention-days: 7
       - name: Verify Makefile build and tests
         run: make test
-      - name: Package diagnostic build outputs (not for flashing)
+      - name: Package firmware release candidate
         if: success()
         run: |
           {
             echo "commit=${GITHUB_SHA}"
             echo "target=PY32F071 Cortex-M0+"
-            echo "status=DIAGNOSTIC_ONLY_NOT_FOR_FLASHING"
-            sha256sum build/target/D10S_K1.intermediate.bin
-            stat -c "image_bytes=%s" build/target/D10S_K1.intermediate.bin
+            echo "status=RELEASE_CANDIDATE_HARDWARE_VALIDATION_REQUIRED"
+            sha256sum build/target/D10S_K1.bin
+            stat -c "image_bytes=%s" build/target/D10S_K1.bin
             arm-none-eabi-size build/target/D10S_K1.elf
           } > build/target/BUILD-METADATA.txt
-      - name: Upload diagnostic outputs (not for flashing)
+      - name: Upload firmware release candidate
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: D10S-K1-diagnostic-build-not-for-flashing
+          name: D10S-K1-firmware-release-candidate
           path: |
             build/target/D10S_K1.elf
             build/target/D10S_K1.map
-            build/target/D10S_K1.intermediate.bin
+            build/target/D10S_K1.bin
             build/target/BUILD-METADATA.txt
           if-no-files-found: error
           retention-days: 14
