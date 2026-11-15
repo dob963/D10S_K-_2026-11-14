@@ -61,3 +61,27 @@ The pinned reference linker script identifies PY32F071xB with 128 KiB flash and 
 - Complete a target link, inspect ELF/map/stack/RAM, then perform hardware tests.
 
 Until those checks pass, these assignments are documented candidates only. No BIN built from this map is approved for flashing.
+
+
+## Official PY32F07X clock-register cross-check (2026-11-15)
+
+Reference: Puya, *PY32F07X Reference Manual*, revision 0.2, sections 8.1 and 8.5.1–8.5.4 (official publisher copy: https://www.puyasemi.com/download_path/%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C/MCU%20%E5%BE%AE%E5%A4%84%E7%90%86%E5%99%A8/PY32F07X_Reference_Manual_V0.2.pdf).
+
+Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
+
+| Field | Reference-manual definition | D10S interpretation | Review |
+|---|---|---|---|
+| RCC_CR.HSIDIV, bits 13:11 | Divide HSI SYS by 1, 2, 4, 8, 16, 32, 64 or 128 | `(rcc_cr >> 11) & 7`, then divide | Match |
+| RCC_ICSCR.HSI_FS, bits 15:13 | 000=4 MHz, 001=8 MHz, 010=16 MHz, 011=22.12 MHz, 100=24 MHz, >=101=4 MHz | Eight-entry table implements those five values and 4 MHz for remaining codes | Match |
+| RCC_CFGR.SWS, bits 5:3 | 000=HSISYS, 001=HSE, 010=PLL, 011=LSI, 100=LSE | Switch cases 0x00, 0x08, 0x10, 0x18, 0x20 | Match |
+| RCC_CFGR.HPRE, bits 11:8 | 0xxx=/1, 1000=/2, 1001=/4, 1010=/8, 1011=/16, 1100=/64, 1101=/128, 1110=/256, 1111=/512 | Shift table {0,0,0,0,0,0,0,0,1,2,3,4,6,7,8,9} | Match |
+| RCC_PLLCFGR.PLLSRC, bits 1:0 | 10=HSI, 11=HSE; 00=no clock, 01=reserved | Accepts 2 for HSI and 3 for HSE; rejects others | Match |
+| RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Multiplier table {2,3,2,2} | Match for legal encodings; reserved encodings currently resolve to x2 and should be rejected in a future hardening change |
+
+### Follow-up hardening item
+
+The only discrepancy found is defensive handling of reserved PLLMUL encodings: the current table maps encodings 2 and 3 to x2 instead of rejecting them. These encodings are reserved by the reference manual. The normal PLL configurations (x2/x3) are decoded correctly, but the decoder should fail closed if a reserved encoding is observed. This is a source-level hardening task, not evidence that the bootloader currently uses an invalid setting.
+
+The reference manual describes LSI as 32 kHz and LSE as 32.768 kHz. D10S currently uses 32.768 kHz for both low-speed switch cases; both are below the function's 1 MHz accepted-HCLK floor and therefore cause initialization to fail rather than being used as a supported operating clock. Keep this limitation explicit if low-speed SYSCLK support is ever added.
+
+This review validates register-field decoding against the official manual. It does not prove the radio's live RCC register values, the MCU marking, or physical oscillator accuracy.
