@@ -94,7 +94,7 @@ static void test_complete_spectrum_application_pipeline(void)
         4u, 31u, 4u, 7u, false, false, false, 1u, 1u
     };
     const d10s_spectrum_radio_ops_t radio = {
-        &hw, radio_tune, radio_read, radio_set_attenuation
+        &hw, radio_tune, radio_read, radio_set_attenuation, NULL
     };
     d10s_st7565_t display;
     d10s_spectrum_app_t app;
@@ -319,7 +319,7 @@ static void test_application_rejects_uninitialized_display(void)
     };
     fake_hardware_t hw = {0};
     const d10s_spectrum_radio_ops_t radio = {
-        &hw, radio_tune, radio_read, NULL
+        &hw, radio_tune, radio_read, NULL, NULL
     };
     d10s_st7565_t display = {0};
     d10s_spectrum_app_t app;
