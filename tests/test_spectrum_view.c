@@ -20,9 +20,8 @@ static void text(void *context, uint8_t x, uint8_t y,
                  const char *value, uint8_t style)
 {
     capture_t *capture = (capture_t *)context;
-    (void)y;
     ++capture->text_calls;
-    if (x == 91u) {
+    if (x == 91u && y == 1u) {
         (void)strncpy(capture->attenuation, value,
                       sizeof(capture->attenuation) - 1u);
         capture->attenuation_style = style;
