@@ -512,7 +512,7 @@ static void test_scanner_alternates_direction_and_keeps_bins_ordered(void)
         .noise_level = 90u, .peak_level = 150u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -581,7 +581,7 @@ static void test_scanner_resets_detector_on_band_change(void)
         .noise_level = 90u, .peak_level = 150u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -607,7 +607,7 @@ static void test_scanner_rejects_radio_failures(void)
         .noise_level = 90u, .peak_level = 150u, .fail_tune = true
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -630,7 +630,7 @@ static void test_scanner_att_compensation_and_boundary_rules(void)
         .noise_level = 100u, .peak_level = 160u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -676,7 +676,7 @@ static void test_scanner_att_failure_does_not_change_state(void)
         .noise_level = 100u, .peak_level = 160u, .fail_att = true
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
 
@@ -697,7 +697,7 @@ static void test_scanner_publishes_only_complete_sweeps(void)
         .noise_level = 90u, .peak_level = 150u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -764,7 +764,7 @@ static void test_scanner_delay_changes_only_between_sweeps(void)
         .noise_level = 90u, .peak_level = 150u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -800,7 +800,7 @@ static void test_turbo_exits_early_when_rssi_stabilizes(void)
         .noise_level = 90u, .peak_level = 150u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
@@ -832,7 +832,7 @@ static void test_turbo_honors_max_delay_when_rssi_never_stabilizes(void)
         .noise_level = 90u, .peak_level = 150u, .read_jitter = 1u
     };
     const d10s_spectrum_radio_ops_t ops = {
-        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att, NULL
     };
     d10s_spectrum_scanner_t scanner;
     d10s_spectrum_result_t result;
