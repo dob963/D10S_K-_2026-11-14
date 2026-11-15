@@ -332,7 +332,13 @@ bool d10s_py32f071_uvk1_v3_keypad_poll(
             else if (rows != stable_rows) stable = false;
         }
 
-        if (stable) {
+        /* An unstable column is not a key release: preserve debounce state. */
+        if (!stable) {
+            multiple = true;
+            continue;
+        }
+
+        {
             const uint32_t pressed = (~stable_rows) & row_mask;
             uint8_t row;
             for (row = 0u; row < 4u; ++row) {
