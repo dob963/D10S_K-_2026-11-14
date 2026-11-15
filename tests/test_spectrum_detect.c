@@ -47,6 +47,28 @@ static void test_configurable_opening_margin(void)
     CHECK(result.open_threshold == 130u);
 }
 
+static void test_percentile_selection_crosses_rssi_buckets(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {144000000u, 0u}, {144001000u, 31u}, {144002000u, 32u},
+        {144003000u, 100u}, {144004000u, 511u}
+    };
+    d10s_spectrum_config_t config;
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+
+    d10s_spectrum_default_config(&config);
+    config.noise_percentile = 50u;
+    d10s_spectrum_init(&state, &config);
+    CHECK(d10s_spectrum_process(&state, bins, 5u, &result));
+    CHECK(result.noise_floor == 32u);
+
+    d10s_spectrum_reset_tracking(&state);
+    state.config.noise_percentile = 75u;
+    CHECK(d10s_spectrum_process(&state, bins, 5u, &result));
+    CHECK(result.noise_floor == 100u);
+}
+
 static void test_confirmation_and_peak_hold(void)
 {
     d10s_spectrum_state_t state;
@@ -1078,6 +1100,7 @@ static void test_two_close_peaks_remain_independent(void)
 int main(void)
 {
     test_configurable_opening_margin();
+    test_percentile_selection_crosses_rssi_buckets();
     test_confirmation_and_peak_hold();
     test_multiple_peaks_confirm_independently();
     test_two_close_peaks_remain_independent();
