@@ -49,18 +49,12 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-**Latest verified CI:** [run 43705683797](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43705683797), commit `c016b4522baafc25987253be66d227d1e4a86b6e`.
-- Job `host-tests`: success; all 10 CMake tests passed, including the RSSI percentile bucket-boundary test and exact sub-bin interpolation result.
-- Warning-as-error compilation, Cortex-M0+ cross-compilation, complete PY32F071 link/layout validation and Makefile build/tests: passed.
-- Noise-floor percentile uses a bounded 16×32 RSSI histogram; parabolic peak refinement uses bounded integer division and exact split 32-bit arithmetic, avoiding 64-bit multiply helpers.
-- Stack checker now filters compiler call-graph helper candidates against the final GNU ld map. Current worst path: Reset_Handler → main → d10s_spectrum_app_tick → d10s_spectrum_scanner_tick → d10s_spectrum_process → `__aeabi_uidiv`.
-- Static C call-chain estimate: 864 bytes; plus 40-byte exception reserve = 904/1,536 bytes, leaving 632 bytes. The 256-byte `__aeabi_uidiv` allowance is a manual conservative reserve, not a measured helper frame; this is not a hardware stack high-water mark.
-- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14158685633`, ZIP 37,229 bytes.
-- Extracted intermediate BIN: 14,948 bytes; SHA-256 `a37b02ad77f94c1ff874284ec4107031fd4707cb01eca33c0151b39955284c97`.
-- ELF: 44,560 bytes; BSS: 5,824 bytes; initial SP `0x20004000`, reset vector `0x08002904` (Thumb). Hardware bootloader compatibility remains unverified.
+**Latest verified CI:** [run 43732846410](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43732846410), commit `30b85de6b3ead17c425250173f68f400a27913e0`.
+- Workflow conclusion: success. The target compile/link, structural image checks, host tests, Cortex-M0+ compile and Makefile tests completed successfully.
+- Latest diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, artifact ID `14168638048`, ZIP size 37,580 bytes; SHA-256 `41e7bb51ffe8aa8b47b9cad18918de6839e89d55034bbd0d666bc66e5f76570d`.
+- The artifact is diagnostic only. It is **not a flashable firmware release** and must not be installed on the radio.
 
-The artifact contains engineering outputs only. The raw BIN was extracted and independently checksummed, and its vector table was inspected; it remains explicitly **NOT FOR FLASHING** and is not a firmware release. Hardware, bootloader-origin and recovery checks remain open.
-
+The CI run proves that the checked source compiles and passes its automated software/image-structure checks. It does not validate the physical UV-K1 PCB, RF path, LCD/keypad behavior, bootloader hand-off or recovery procedure.
 ## Hardware release gates
 
 A successful link and structural image check do not verify:
