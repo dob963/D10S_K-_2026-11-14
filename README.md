@@ -18,7 +18,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - 128x64 Spectrum graph with RSSI trace, threshold line, peak marker, cursor and frequency label.
 - 1-bit framebuffer with normal and moderately bold 5x7 text.
 - ST7565 page-addressing and eight-page flush controller, with UV-K1 V3 power sequencing, page clearing, reverse-SEG orientation, column offset defaults and active-high backlight on/off.
-- PY32F071 GPIO/SPI callbacks and a debounced keypad matrix scanner are implemented against the source-derived UV-K1 V3 pin map. Basic keys control cursor, band selection, font weight, peak-marker visibility and scan freeze/resume (9 freezes the last complete sweep without further RF reads); physical pinout, debounce and display behavior still need radio validation.
+- PY32F071 GPIO/SPI callbacks and a debounced keypad matrix scanner are implemented against the source-derived UV-K1 V3 pin map. Current key map: 1 selects VHF 144–146 MHz; 2 selects UHF 430–440 MHz; 3–8 are reserved because only two target bands are enabled; 9 freezes the last complete sweep without further RF reads and resumes from the first bin; MENU/0 toggles or places the cursor; UP/DOWN move one bin; SIDE1/SIDE2 move eight bins; F toggles normal/moderately bold labels; STAR toggles peak-marker visibility. Delay and Turbo are callable scanner APIs but are not exposed as user controls; ATT is not connected. Physical key mapping, debounce and display behavior still need radio validation.
 
 ### BK4829
 - Three-wire register read/write bus, timing calculation, frequency conversion and raw 9-bit REG_67 RSSI.
