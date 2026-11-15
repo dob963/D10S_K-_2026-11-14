@@ -84,6 +84,18 @@ jobs:
           arm-none-eabi-objcopy -O binary build/target/D10S_K1.elf \
             build/target/D10S_K1.intermediate.bin
           python3 target/validate_image.py build/target/D10S_K1.intermediate.bin
+      - name: Preserve stack-analysis diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D10S-K1-stack-analysis-diagnostics
+          path: |
+            build/target/*.ci
+            build/target/*.su
+            build/target/D10S_K1.map
+            build/target/D10S_K1.elf
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Verify Makefile build and tests
         run: make test
       - name: Package diagnostic build outputs (not for flashing)
