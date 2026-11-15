@@ -36,6 +36,14 @@ static void test_hse_and_pll_clock(void)
     CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0x10u, 3u, 24000000u, &hz));
     CHECK(hz == 48000000u);
+
+    /* HSI x2 and HSE x3 are the other legal PLL source/multiplier paths. */
+    CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, (4u << 13), 0x10u, (2u | (0u << 2)), 24000000u, &hz));
+    CHECK(hz == 48000000u);
+    CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, 0u, 0x10u, (3u | (1u << 2)), 16000000u, &hz));
+    CHECK(hz == 48000000u);
 }
 
 static void test_ahb_prescaler_and_invalid_sources(void)
@@ -49,6 +57,8 @@ static void test_ahb_prescaler_and_invalid_sources(void)
         0u, 0u, 0x08u, 0u, 0u, &hz));
     CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0x10u, 0u, 24000000u, &hz));
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, 0u, 0x10u, (1u | (1u << 2)), 24000000u, &hz));
     CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0x18u, 0u, 24000000u, &hz));
 
