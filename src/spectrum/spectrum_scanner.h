@@ -49,6 +49,14 @@ typedef struct {
     uint8_t turbo_stable_delta;
     uint8_t turbo_stable_samples;
     uint8_t turbo_stable_count;
+    bool pending_delay_valid;
+    uint16_t pending_settle_ms;
+    bool pending_turbo_valid;
+    bool pending_turbo_enabled;
+    uint16_t pending_turbo_min_settle_ms;
+    uint16_t pending_turbo_poll_interval_ms;
+    uint8_t pending_turbo_stable_delta;
+    uint8_t pending_turbo_stable_samples;
 } d10s_spectrum_scanner_t;
 
 /* Bands are caller-owned and must outlive the scanner instance. */
