@@ -215,10 +215,14 @@ static void test_band_reset_clears_old_noise_and_peak(void)
     CHECK(result.peak_hold_valid);
     d10s_spectrum_reset_tracking(&state);
     make_noise_sweep(bins, 21u, 120u);
+    bins[10].rssi = 180u;
     CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
     CHECK(result.noise_floor >= 120u);
     CHECK(!result.peak_hold_valid);
     CHECK(!result.confirmed);
+    CHECK(result.peak_count == 1u);
+    CHECK(result.peaks[0].streak == 1u);
+    CHECK(!result.peaks[0].confirmed);
 }
 
 static void test_rejects_irregular_frequency_grid(void)
