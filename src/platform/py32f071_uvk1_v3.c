@@ -352,8 +352,20 @@ bool d10s_py32f071_uvk1_v3_keypad_poll(
                 const d10s_spectrum_key_t candidate =
                     keymap[column][pressed_row];
                 if (candidate != D10S_KEY_NONE) {
-                    if (detected != D10S_KEY_NONE) multiple = true;
-                    detected = candidate;
+                    /*
+                     * Column zero is the special direct SIDE-key read:
+                     * all matrix columns are high. A detected SIDE key must
+                     * end this scan; otherwise its held row is seen again
+                     * while the numeric matrix columns are strobed and the
+                     * valid SIDE event is incorrectly classified as a
+                     * multi-key/ghost condition.
+                     */
+                    if (column == 0u) {
+                        detected = candidate;
+                        break;
+                    }
+                    if (detected == D10S_KEY_NONE) detected = candidate;
+                    else multiple = true;
                 }
             } else if (pressed_count > 1u) {
                 multiple = true;
