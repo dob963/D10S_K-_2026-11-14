@@ -872,10 +872,84 @@ static void test_mono128x64_framebuffer_with_spectrum_renderer(void)
     CHECK(count_framebuffer_bits(&display) < 8192u);
 }
 
+
+static void test_multiple_peaks_confirm_independently(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    unsigned sweep;
+
+    d10s_spectrum_init(&state, NULL);
+    for (sweep = 0u; sweep < 3u; ++sweep) {
+        make_noise_sweep(bins, 21u, 90u);
+        bins[6].rssi = 170u;
+        bins[14].rssi = 145u;
+        CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+        CHECK(result.peak_count == 2u);
+        CHECK(result.peaks[0].level == 170u);
+        CHECK(result.peaks[1].level == 145u);
+        CHECK(result.peaks[0].streak == (uint8_t)(sweep + 1u));
+        CHECK(result.peaks[1].streak == (uint8_t)(sweep + 1u));
+        CHECK(result.peaks[0].confirmed == (sweep == 2u));
+        CHECK(result.peaks[1].confirmed == (sweep == 2u));
+    }
+    CHECK(result.confirmed);
+    CHECK(result.peak_hold_valid);
+}
+
+static void test_peak_tracks_survive_dominant_peak_changes(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    unsigned sweep;
+
+    d10s_spectrum_init(&state, NULL);
+    for (sweep = 0u; sweep < 2u; ++sweep) {
+        make_noise_sweep(bins, 21u, 90u);
+        bins[6].rssi = 160u;
+        bins[14].rssi = 145u;
+        CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    }
+    make_noise_sweep(bins, 21u, 90u);
+    bins[6].rssi = 140u;
+    bins[14].rssi = 180u;
+    CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    CHECK(result.peak_count == 2u);
+    CHECK(result.peaks[0].bin == 14u);
+    CHECK(result.peaks[0].confirmed);
+    CHECK(result.peaks[1].bin == 6u);
+    CHECK(result.peaks[1].confirmed);
+}
+
+static void test_peak_confirmation_resets_after_missing_sweep(void)
+{
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+
+    d10s_spectrum_init(&state, NULL);
+    make_noise_sweep(bins, 21u, 90u);
+    bins[8].rssi = 160u;
+    CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    CHECK(result.peaks[0].streak == 1u);
+    make_noise_sweep(bins, 21u, 90u);
+    CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    CHECK(result.peak_count == 0u);
+    make_noise_sweep(bins, 21u, 90u);
+    bins[8].rssi = 160u;
+    CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    CHECK(result.peaks[0].streak == 1u);
+    CHECK(!result.peaks[0].confirmed);
+}
 int main(void)
 {
     test_configurable_opening_margin();
     test_confirmation_and_peak_hold();
+    test_multiple_peaks_confirm_independently();
+    test_peak_tracks_survive_dominant_peak_changes();
+    test_peak_confirmation_resets_after_missing_sweep();
     test_single_sweep_spike_is_not_confirmed();
     test_noise_floor_tracks_background();
     test_one_noisy_sweep_does_not_drag_noise_floor();
