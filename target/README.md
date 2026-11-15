@@ -47,16 +47,15 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-**Latest verified CI:** [run 43704790473](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43704790473), commit `08ab113dca6247ba0af1917e4a5715710cde2150`.
-- Job `host-tests`: success; all 10 CMake tests passed, including the new RSSI percentile bucket-boundary test.
-- Warning-as-error compilation, Cortex-M0+ cross-compilation and Makefile build/tests: passed.
-- Full PY32F071 application link and structural image-layout validation: passed.
-- The noise-floor percentile calculation now uses a bounded two-level RSSI histogram (16 coarse × 32 fine buckets), avoiding the 256-element stack sorting array and adding no static/global scratch memory.
-- Per-function stack check: 118 frames; cumulative static C call-chain estimate: 864 bytes; plus 40-byte exception reserve = 904/1,536 bytes, leaving 632 bytes. This includes a manually assigned 256-byte reserve for `__aeabi_idiv`; it is a static estimate, not a measured hardware high-water mark.
-- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14157807805`, ZIP 37,566 bytes.
-- Artifact ZIP SHA-256: `4147416ee90699b86a009a9e081c43e12df3c2cfd0baf44c88f5c7b352056b05`.
-- Extracted intermediate BIN: 15,388 bytes; SHA-256 `ed4f2632612a8df0023a17fea943b00e9d1f9d3d25fde2e8030f197aafeb004d`.
-- ELF: 45,472 bytes; BSS: 5,824 bytes; raw BIN vector inspection reports initial SP `0x20004000` and reset vector `0x08002904` (Thumb). Hardware bootloader compatibility remains unverified.
+**Latest verified CI:** [run 43705683797](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43705683797), commit `c016b4522baafc25987253be66d227d1e4a86b6e`.
+- Job `host-tests`: success; all 10 CMake tests passed, including the RSSI percentile bucket-boundary test and exact sub-bin interpolation result.
+- Warning-as-error compilation, Cortex-M0+ cross-compilation, complete PY32F071 link/layout validation and Makefile build/tests: passed.
+- Noise-floor percentile uses a bounded 16×32 RSSI histogram; parabolic peak refinement uses bounded integer division and exact split 32-bit arithmetic, avoiding 64-bit multiply helpers.
+- Stack checker now filters compiler call-graph helper candidates against the final GNU ld map. Current worst path: Reset_Handler → main → d10s_spectrum_app_tick → d10s_spectrum_scanner_tick → d10s_spectrum_process → `__aeabi_uidiv`.
+- Static C call-chain estimate: 864 bytes; plus 40-byte exception reserve = 904/1,536 bytes, leaving 632 bytes. The 256-byte `__aeabi_uidiv` allowance is a manual conservative reserve, not a measured helper frame; this is not a hardware stack high-water mark.
+- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14158685633`, ZIP 37,229 bytes.
+- Extracted intermediate BIN: 14,948 bytes; SHA-256 `a37b02ad77f94c1ff874284ec4107031fd4707cb01eca33c0151b39955284c97`.
+- ELF: 44,560 bytes; BSS: 5,824 bytes; initial SP `0x20004000`, reset vector `0x08002904` (Thumb). Hardware bootloader compatibility remains unverified.
 
 The artifact contains engineering outputs only. The raw BIN was extracted and independently checksummed, and its vector table was inspected; it remains explicitly **NOT FOR FLASHING** and is not a firmware release. Hardware, bootloader-origin and recovery checks remain open.
 
