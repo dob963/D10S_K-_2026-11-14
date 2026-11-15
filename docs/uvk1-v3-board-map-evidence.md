@@ -78,9 +78,9 @@ Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
 | RCC_PLLCFGR.PLLSRC, bits 1:0 | 10=HSI, 11=HSE; 00=no clock, 01=reserved | Accepts 2 for HSI and 3 for HSE; rejects others | Match |
 | RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Multiplier table {2,3,2,2} | Match for legal encodings; reserved encodings currently resolve to x2 and should be rejected in a future hardening change |
 
-### Follow-up hardening item
+### Follow-up hardening completed
 
-The only discrepancy found is defensive handling of reserved PLLMUL encodings: the current table maps encodings 2 and 3 to x2 instead of rejecting them. These encodings are reserved by the reference manual. The normal PLL configurations (x2/x3) are decoded correctly, but the decoder should fail closed if a reserved encoding is observed. This is a source-level hardening task, not evidence that the bootloader currently uses an invalid setting.
+The source decoder previously mapped reserved PLLMUL encodings 2 and 3 to x2. This has now been corrected: `src/platform/py32f071_uvk1_v3.c` rejects both reserved encodings before calculating the PLL clock. `tests/test_py32_clock.c` now covers both invalid values. The valid x2/x3 configurations remain covered by the existing tests. CI must pass on the resulting commits before this change is considered verified by automation.
 
 The reference manual describes LSI as 32 kHz and LSE as 32.768 kHz. D10S currently uses 32.768 kHz for both low-speed switch cases; both are below the function's 1 MHz accepted-HCLK floor and therefore cause initialization to fail rather than being used as a supported operating clock. Keep this limitation explicit if low-speed SYSCLK support is ever added.
 
