@@ -280,7 +280,7 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
         }
         if ((uint32_t)(now_ms - scanner->settle_started_ms) <
             scanner->turbo_min_settle_ms) return D10S_SCANNER_BUSY;
-        if ((uint32_t)(now_ms - scanner->settle_started_ms) >= scanner->settle_ms ||
+        if ((uint32_t)(now_ms - scanner->settle_started_ms) >= scanner->current_settle_ms ||
             (int32_t)(now_ms - scanner->turbo_next_poll_ms) >= 0) {
             scanner->phase = SCANNER_PHASE_READ;
             return D10S_SCANNER_BUSY;
