@@ -174,14 +174,18 @@ bool d10s_py32f071_uvk1_v3_clock_from_registers(
             (uint8_t)((rcc_pllcfgr >> 2) & 3u);
         if (multiplier_code > 1u) return false;
         pll_multiplier = multiplier_code == 0u ? 2u : 3u;
+        uint32_t pll_input_hz;
         if (source == 2u) {
-            system_clock_hz =
-                (uint64_t)hsi_frequency_hz[hsi_select] * pll_multiplier;
-        } else if (source == 3u && hse_clock_hz != 0u) {
-            system_clock_hz = (uint64_t)hse_clock_hz * pll_multiplier;
+            pll_input_hz = hsi_frequency_hz[hsi_select];
+        } else if (source == 3u) {
+            pll_input_hz = hse_clock_hz;
         } else {
             return false;
         }
+        /* PY32F07X RM 0.2, section 8.1.5: PLL input must be 12..24 MHz. */
+        if (pll_input_hz < 12000000u || pll_input_hz > 24000000u)
+            return false;
+        system_clock_hz = (uint64_t)pll_input_hz * pll_multiplier;
         break;
     }
     case 0x18u: /* LSI */
