@@ -87,6 +87,7 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         .hold_enabled = app->paused,
         .noise_floor = result.noise_floor,
         .open_threshold = result.open_threshold,
+        .noise_margin = app->scanner.detector.config.noise_margin,
         .peak_hold_valid = app->peak_hold_visible && result.peak_hold_valid,
         .peak_hold_frequency_hz = result.peak_hold_frequency_hz,
         .cursor_valid = app->cursor_enabled && app->cursor_bin < count,
@@ -206,15 +207,27 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
 
     case D10S_KEY_1:
     case D10S_KEY_2:
-    case D10S_KEY_6:
-    case D10S_KEY_7:
-    case D10S_KEY_8:
         app->pending_band_index = (uint8_t)(key - D10S_KEY_1);
         if (app->pending_band_index >= app->scanner.plan.band_count)
             return false;
         app->pending_band_valid =
             app->pending_band_index != app->scanner.plan.active_band;
         return true;
+
+    case D10S_KEY_6: {
+        const uint16_t current = app->scanner.detector.config.noise_margin;
+        return d10s_spectrum_app_set_noise_margin(
+            app, current > 2u ? (uint16_t)(current - 2u) : 2u);
+    }
+
+    case D10S_KEY_7: {
+        const uint16_t current = app->scanner.detector.config.noise_margin;
+        return d10s_spectrum_app_set_noise_margin(
+            app, current < 64u ? (uint16_t)(current + 2u) : 64u);
+    }
+
+    case D10S_KEY_8:
+        return d10s_spectrum_app_set_noise_margin(app, 12u);
 
     default:
         return false;
@@ -238,6 +251,18 @@ bool d10s_spectrum_app_set_bold_labels(d10s_spectrum_app_t *app,
 {
     if (app == NULL || !app->initialized) return false;
     app->bold_labels = enabled;
+    if (app->paused) app->pause_frame_pending = true;
+    return true;
+}
+
+bool d10s_spectrum_app_set_noise_margin(d10s_spectrum_app_t *app,
+                                        uint16_t margin)
+{
+    if (app == NULL || !app->initialized || margin < 2u || margin > 64u)
+        return false;
+    app->scanner.detector.config.noise_margin = margin;
+    app->scanner.detector.pending_valid = false;
+    app->scanner.detector.pending_streak = 0u;
     if (app->paused) app->pause_frame_pending = true;
     return true;
 }
