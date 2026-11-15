@@ -73,8 +73,17 @@ void Reset_Handler(void)
     uint32_t *source = &_sidata;
     uint32_t *destination;
 
+    /*
+     * The bootloader hand-off state is not assumed to have interrupts masked.
+     * This application is polling-only, so keep IRQs disabled and prevent a
+     * pending bootloader SysTick/peripheral IRQ from entering an application
+     * default handler during early startup or later operation.
+     */
+    __asm volatile ("cpsid i" ::: "memory");
+
     /* Relocate VTOR to this application image (bootloader offset 0x2800). */
     *(volatile uint32_t *)(uintptr_t)0xE000ED08u = 0x08002800u;
+    __asm volatile ("dsb\n\tisb" ::: "memory");
 
     for (destination = &_sdata; destination < &_edata; ++destination)
         *destination = *source++;
