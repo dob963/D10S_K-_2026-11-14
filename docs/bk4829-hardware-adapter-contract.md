@@ -32,7 +32,7 @@ The portable scanner uses d10s_spectrum_radio_ops_t. The hardware adapter maps t
 - The source-derived UV-K1 V3 profile includes the pinned baseline register sequence and RX-mode setup. BK serial timing uses 35 HCLK cycles for each edge and the SDA turnaround, matching the pinned driver's 35-NOP delay.
 - It asserts the source-named GPIO0 RX_ENABLE output and selects GPIO4 below 28 MHz or GPIO3 at/above 28 MHz, following the pinned UV-K1 V3 driver. GPIO1 PA_ENABLE is never asserted; it is reserved for the separate TX path, which D10S does not implement. The profile flag rx_mode_configured means the radio IC was programmed for RX; it does not prove RF reception or correct physical board routing.
 - The profile is source-traced but **not hardware-validated on the user's exact radio**. The 28 MHz boundary, RF path, external switch, LNA and GPIO wiring must be confirmed for the user's PCB.
-- ATT remains unimplemented as a board-level control. Scanner-side compensation is only a caller-supplied measured raw RSSI offset and is not a physical ATT driver.
+- Six software-selectable REG_13 receive-gain presets (levels 0..5) are wired through the BK4829 scanner adapter and exercised by host register-write tests. They are not yet validated as calibrated attenuation steps on the target PCB; the UI therefore uses neutral `AT0`–`AT5` labels. Scanner-side RSSI compensation remains a caller-supplied measured raw-RSSI offset and must stay zero until measurements establish a valid offset for each gain stage and band.
 
 ## Bring-up gates
 
