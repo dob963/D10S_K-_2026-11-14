@@ -26,11 +26,42 @@ static void sort_u16(uint16_t *values, size_t count)
     }
 }
 
+static uint16_t percentile_rssi(const d10s_spectrum_bin_t *bins,
+                                  size_t count,
+                                  uint8_t percentile)
+{
+    uint16_t coarse[16] = {0u};
+    uint16_t fine[32] = {0u};
+    const size_t target = ((count - 1u) * percentile) / 100u;
+    size_t cumulative = 0u;
+    size_t bucket;
+    size_t i;
+
+    for (i = 0u; i < count; ++i)
+        ++coarse[bins[i].rssi >> 5];
+
+    for (bucket = 0u; bucket < 16u; ++bucket) {
+        if (cumulative + coarse[bucket] > target) break;
+        cumulative += coarse[bucket];
+    }
+
+    for (i = 0u; i < count; ++i) {
+        if ((bins[i].rssi >> 5) == bucket)
+            ++fine[bins[i].rssi & 31u];
+    }
+
+    for (i = 0u; i < 32u; ++i) {
+        if (cumulative + fine[i] > target)
+            return (uint16_t)(bucket * 32u + i);
+        cumulative += fine[i];
+    }
+    return 0u;
+}
+
 static bool estimate_noise_floor(d10s_spectrum_state_t *state,
                                  const d10s_spectrum_bin_t *bins,
                                  size_t count)
 {
-    uint16_t sorted[D10S_SPECTRUM_MAX_BINS];
     uint16_t history[D10S_NOISE_HISTORY_SWEEPS];
     size_t i;
     size_t percentile_index;
@@ -39,10 +70,7 @@ static bool estimate_noise_floor(d10s_spectrum_state_t *state,
 
     if (count == 0u || count > D10S_SPECTRUM_MAX_BINS) return false;
 
-    for (i = 0u; i < count; ++i) sorted[i] = bins[i].rssi;
-    sort_u16(sorted, count);
-    percentile_index = ((count - 1u) * state->config.noise_percentile) / 100u;
-    observation = sorted[percentile_index];
+    observation = percentile_rssi(bins, count, state->config.noise_percentile);
 
     state->noise_history[state->noise_history_next] = observation;
     state->noise_history_next = (uint8_t)((state->noise_history_next + 1u) %
