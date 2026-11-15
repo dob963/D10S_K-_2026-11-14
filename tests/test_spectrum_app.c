@@ -239,6 +239,28 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(!app.scanner.pending_attenuation_valid);
     CHECK(app.scanner.attenuation_level == 1u);
     CHECK(hw.attenuation_level == 1u);
+
+    /* The key cycles all six gain presets and wraps to ATT 0. */
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
+    CHECK(app.scanner.pending_attenuation_level == 2u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
+    CHECK(app.scanner.pending_attenuation_level == 3u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
+    CHECK(app.scanner.pending_attenuation_level == 4u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
+    CHECK(app.scanner.pending_attenuation_level == 5u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
+    CHECK(app.scanner.pending_attenuation_level == 0u);
+    {
+        unsigned att_tick;
+        for (att_tick = 1u; att_tick <= 200u &&
+             app.scanner.pending_attenuation_valid; ++att_tick)
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 700u + att_tick) !=
+                  D10S_APP_ERROR);
+    }
+    CHECK(!app.scanner.pending_attenuation_valid);
+    CHECK(app.scanner.attenuation_level == 0u);
+    CHECK(hw.attenuation_level == 0u);
     CHECK(app.scanner.settle_ms == 12u);
 
     d10s_spectrum_app_stop(&app);
