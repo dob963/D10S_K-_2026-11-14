@@ -33,6 +33,8 @@ static void test_hse_and_pll_clock(void)
         0u, (4u << 13), 0x10u, (2u | (1u << 2)), 24000000u, &hz));
     CHECK(hz == 72000000u);
 
+    /* UV-K1 reference firmware: 24 MHz HSE, bootloader-preconfigured
+     * PLL x2 gives the 48 MHz HCLK used by its application platform. */
     CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0x10u, 3u, 24000000u, &hz));
     CHECK(hz == 48000000u);
