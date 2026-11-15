@@ -133,6 +133,7 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     const uint32_t word = initial_hz / 10u;
     uint32_t before;
 
+    fake.read_value = 0x03DFu;
     CHECK(d10s_bk4829_uvk1_v3_initialize_rx(&port, &timing, initial_hz,
                                             &profile));
     CHECK(profile.bus_valid);
@@ -173,6 +174,7 @@ static void test_uvk1_profile_stops_rx_and_lna(void)
     const d10s_bk4829_bus_port_t port = make_port(&fake);
     const d10s_bk4829_bus_timing_t timing = {2u, 48u};
 
+    fake.read_value = 0x03DFu;
     CHECK(d10s_bk4829_uvk1_v3_initialize_rx(&port, &timing, 433000000u,
                                             &profile));
     CHECK(d10s_bk4829_uvk1_v3_stop_rx(&profile));
@@ -205,6 +207,7 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     const d10s_bk4829_bus_timing_t timing = {2u, 48u};
     uint32_t actual_hz = 0u;
 
+    fake.read_value = 0x03DFu;
     CHECK(d10s_bk4829_uvk1_v3_radio_init(&radio, &port, &timing,
                                           145000000u, &ops));
     CHECK(radio.initialized);
