@@ -138,7 +138,7 @@ def attributes(body: str) -> dict[str, str]:
 
 def parse_linked_helpers(link_map: pathlib.Path) -> set[str]:
     text = link_map.read_text(encoding="utf-8", errors="replace")
-    symbol_re = re.compile(r"^\\s*0x[0-9a-fA-F]+\\s+(__aeabi_[A-Za-z0-9_]+)\\s*$", re.M)
+    symbol_re = re.compile(r"^\s*0x[0-9a-fA-F]+\s+(__aeabi_[A-Za-z0-9_]+)\s*$", re.M)
     return set(symbol_re.findall(text))
 
 
