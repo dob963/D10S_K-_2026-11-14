@@ -12,7 +12,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - Non-blocking tune/settle/RSSI acquisition; each sample is tagged with the actual frequency returned by the radio adapter.
 - Only complete sweeps are published; manual band and ATT changes invalidate stale snapshots.
 - Delay control and optional adaptive Turbo polling, bounded by caller-provided timings.
-- Six-step BK4829 receive-gain control is connected through REG_13 (`ATT 0`, `ATT 6`, `ATT 15`, `ATT 27`, `BYP`, `BYP+`). The write preserves REG_13 bits 10..15, waits 40 ms before the first post-change sample, and resets detector history. The gain response still requires RF measurement on the actual board; no dBm calibration is claimed.
+- Six-step BK4829 receive-gain control is connected through REG_13. The UI identifies the six uncalibrated software stages as `AT0`–`AT5`; the underlying register presets correspond to the source-derived `ATT 0`, `ATT 6`, `ATT 15`, `ATT 27`, `BYP` and `BYP+` settings. The write preserves REG_13 bits 10..15, waits 40 ms before the first post-change sample, and resets detector history. The gain response still requires RF measurement on the actual board; no dBm calibration is claimed.
 
 ### Display
 - 128x64 Spectrum graph with RSSI trace, threshold line, peak marker, cursor and frequency label.
