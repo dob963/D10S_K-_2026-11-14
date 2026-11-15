@@ -87,11 +87,11 @@ Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
 | RCC_CFGR.HPRE, bits 11:8 | 0xxx=/1, 1000=/2, 1001=/4, 1010=/8, 1011=/16, 1100=/64, 1101=/128, 1110=/256, 1111=/512 | Shift table {0,0,0,0,0,0,0,0,1,2,3,4,6,7,8,9} | Match |
 | RCC_PLLCFGR.PLLSRC, bits 1:0 | 10=HSI, 11=HSE; 00=no clock, 01=reserved | Accepts 2 for HSI and 3 for HSE; rejects others | Match |
 | RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Explicit decoder accepts only 00 and 01; returns failure for 10 and 11 | Match; reserved encodings are rejected |
-| PLL input clock | HSI/HSE: x2 requires 12–24 MHz; x3 requires 16–24 MHz | Enforces multiplier-specific minimum and 24 MHz maximum | Match; input range enforced |
+| PLL input clock | HSI/HSE: both x2 and x3 require 16–24 MHz | Enforces 16 MHz minimum and 24 MHz maximum for both multipliers | Match; input range enforced |
 
 ### Follow-up hardening completed
 
-The source decoder rejects reserved PLLMUL encodings 2 and 3 and enforces the multiplier-specific PLL reference-input ranges in section 8.1.5 of the PY32F07X Reference Manual V0.2: 12–24 MHz for x2 and 16–24 MHz for x3. Tests cover valid x2/x3 source combinations, reserved multiplier/source encodings, and the lower and upper boundaries for both multipliers. CI must pass on the resulting commit before this change is considered verified by automation.
+The source decoder rejects reserved PLLMUL encodings 2 and 3 and enforces the PLL reference-input range in section 8.1.5 of the PY32F07X Reference Manual V0.2: 16–24 MHz for both x2 and x3. A review found that the previous x2 lower bound was incorrectly permissive; the implementation and unit test were corrected to reject 12–15.999999 MHz for either multiplier. Tests cover valid x2/x3 source combinations, reserved multiplier/source encodings, and the 16 MHz lower and 24 MHz upper boundaries for both multipliers. The correction is pending CI.
 
 The reference manual describes LSI as 32 kHz and LSE as 32.768 kHz. D10S currently uses 32.768 kHz for both low-speed switch cases; both are below the function's 1 MHz accepted-HCLK floor and therefore cause initialization to fail rather than being used as a supported operating clock. Keep this limitation explicit if low-speed SYSCLK support is ever added.
 
