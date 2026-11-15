@@ -85,3 +85,10 @@ The source decoder previously mapped reserved PLLMUL encodings 2 and 3 to x2. Th
 The reference manual describes LSI as 32 kHz and LSE as 32.768 kHz. D10S currently uses 32.768 kHz for both low-speed switch cases; both are below the function's 1 MHz accepted-HCLK floor and therefore cause initialization to fail rather than being used as a supported operating clock. Keep this limitation explicit if low-speed SYSCLK support is ever added.
 
 This review validates register-field decoding against the official manual. It does not prove the radio's live RCC register values, the MCU marking, or physical oscillator accuracy.
+
+
+## ST7565 resistor-ratio encoding cross-check (2026-11-15)
+
+The D10S default `resistor_ratio = 4` is intentional: the ST7565 command is `0x20 | RR[2:0]`, so code 4 sends `0x24`. The ST7565-0A datasheet Table 11 maps binary `100` to the nominal (1 + Rb/Ra) ratio 5.0. This matches the pinned UV-K1 lineage setting described as 5.0; there is no code correction required. The value is specific to the ST7565-0A table and should not be generalized to the ST7565-0B external-VRS column.
+
+Source: Sitronix ST7565 datasheet, Table 11: https://www.orientdisplay.com/pdf/ST7565.pdf. This is a register-encoding cross-check, not a measurement of the LCD on the physical radio.
