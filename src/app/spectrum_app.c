@@ -90,6 +90,8 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         .noise_margin = app->scanner.detector.config.noise_margin,
         .peak_hold_valid = app->peak_hold_visible && result.peak_hold_valid,
         .peak_hold_frequency_hz = result.peak_hold_frequency_hz,
+        .peaks = result.peaks,
+        .peak_count = result.peak_count,
         .cursor_valid = app->cursor_enabled && app->cursor_bin < count,
         .cursor_bin = app->cursor_bin,
         .band_label = NULL,
