@@ -92,3 +92,38 @@ This review validates register-field decoding against the official manual. It do
 The D10S default `resistor_ratio = 4` is intentional: the ST7565 command is `0x20 | RR[2:0]`, so code 4 sends `0x24`. The ST7565-0A datasheet Table 11 maps binary `100` to the nominal (1 + Rb/Ra) ratio 5.0. This matches the pinned UV-K1 lineage setting described as 5.0; there is no code correction required. The value is specific to the ST7565-0A table and should not be generalized to the ST7565-0B external-VRS column.
 
 Source: Sitronix ST7565 datasheet, Table 11: https://www.orientdisplay.com/pdf/ST7565.pdf. This is a register-encoding cross-check, not a measurement of the LCD on the physical radio.
+
+
+## Independent public hardware corroboration (2026-11-15)
+
+The candidate platform has now been cross-checked against sources independent of the D10S source tree:
+
+1. **F4HWN UV-K1 teardown** — https://www.youtube.com/watch?v=e1Crl61yyE4 (published 2025-10-15). The teardown description identifies PY32F071, PY25Q16HB (2 MiB), BK4829 and BK1080. This corroborates the major component family, but the video description alone does not establish every PCB net or pin.
+2. **UV-K1 teardown/photo thread** — https://www.hellocq.net/forum/read.php?tid=379537. The post includes front/back main-PCB photos and close-ups, and identifies PY32F071C1BT6 in LQFP48, BK4829 in QFN32, BK1080 and PY25Q16HB. It states that UV-K1 and UV-K5 V3 share the MCU family. These are third-party teardown observations, not a manufacturer schematic.
+3. **UV-K1 technical overview** — https://f1lvt.com/files/351f-UV-K5__UV-K1.306.pdf. It describes the PY32F071 and illustrates the opened radio. Useful for model/component corroboration, not a netlist.
+4. **FCC filing** — https://fccid.io/XBPUVK1. The filing page lists internal-photo exhibits for FCC ID XBPUV-K1. The filing is a useful primary regulatory source for the submitted product, but the page summary does not by itself identify the MCU pin routing.
+5. **Independent firmware implementation** — https://github.com/fagci/k1-scaner. Its README identifies PY32F071, BK4829 and ST7565 128x64; its board and driver sources independently publish candidate mappings for BK4829 PF9/PB8/PB9, ST7565 PA5/PA7/PB2/PA6, backlight PF8, and keypad PB12..PB15/PB3..PB6. This corroborates the software lineage mapping, not continuity on every hardware revision.
+
+### Consolidated confidence
+
+| Fact | Current confidence | Limitation |
+|---|---|---|
+| Standard UV-K1 platform uses PY32F071 family | High | Confirm package marking on the exact unit before release |
+| PY32F071C1BT6 LQFP48 is reported on UV-K1 teardown | High, teardown corroborated | Not yet inspected on user's physical unit |
+| BK4829 is the RF transceiver on UV-K1 | High | RF path and external switch/LNA routing remain unverified |
+| BK1080 is the broadcast-FM receiver | High | Not used by the receive-only Spectrum path |
+| PY25Q16HB is 2 MiB external SPI flash | High | D10S does not yet rely on external-flash features |
+| ST7565 128x64 is the panel/controller used by the referenced K1 software lineage | High for software lineage | Actual panel marking/revision should still be checked |
+| PF9/PB8/PB9 and PA5/PA7/PB2/PA6 are candidate signal pins | Medium-high, two independent firmware sources | No public schematic/netlist or continuity measurement yet |
+| Keypad PB12..PB15/PB3..PB6 and backlight PF8 | Medium-high, source corroborated | Front-panel FFC/revision differences remain possible |
+| Exact bootloader and application offset on the target unit | Unverified | Read from the actual unit before any flash |
+
+### Model and bootloader distinction — do not collapse variants
+
+The public 4PDA hardware discussion at https://4pda.to/forum/index.php?showtopic=1071343&st=16320 distinguishes UV-K1 / UV-K5 V3 using PY32F071 and bootloader family 7.xx from older V1/V2 hardware. The Quansheng Toolkit firmware catalogue at https://github.com/knoinok/quansheng_toolkit/blob/main/firmwares/README.md lists stock UV-K1 7.03.01 separately from UV-K5 V3 7.00.11 and explicitly identifies the target MCU/target family. UV Studio's current manual https://armel.github.io/manual/pages/UV-Studio.html also treats UV-K1 and UV-K5 V3 as separate model selections and documents the DFU entry sequence (power off, hold PTT, power on).
+
+The earlier D10S working assumption of bootloader 7.03.01 is consistent with the published standard UV-K1 catalogue entry, but remains a user-reported value until read from the actual radio. Do not infer that UV-K1(8) / Mini Kong, UV-K5 V3 and standard UV-K1 are interchangeable merely because they share PY32F071.
+
+### Legal/provenance boundary for this research
+
+These sources were consulted for factual hardware observations and cross-checking only. No code, images, schematic artwork, or documentation text has been imported from the teardown/forum/Fagci sources into D10S. Fagci's README states Apache 2.0, but the repository's root LICENSE file was not found during this check; therefore its code remains excluded from reuse pending verification of the exact license and notices. Public photos and forum posts are not automatically licensed for republication.
