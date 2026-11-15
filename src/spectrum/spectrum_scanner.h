@@ -13,6 +13,8 @@ typedef struct {
                     uint32_t *actual_hz);
     bool (*read_rssi)(void *context, uint16_t *rssi);
     bool (*set_attenuation)(void *context, uint8_t level);
+    /* Optional BK4829 readiness hint; false means wait and poll again. */
+    bool (*rssi_ready)(void *context, bool *ready);
 } d10s_spectrum_radio_ops_t;
 
 typedef enum {
