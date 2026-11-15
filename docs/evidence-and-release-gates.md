@@ -17,6 +17,12 @@ This document separates known project inputs from assumptions that must not be p
 - Public Karina notes describe Delay/Turbo scan trade-offs and document range/cursor/memory-cell defects. They are behavior notes, not a verified complete source port.
 - DFU research now records raw-image handling, 256-byte page transfer and the 7.03.01 K1 allowlist in `docs/dfu-compatibility-evidence.md`. This is protocol-source review, not a radio flash test.
 
+## Spectrum detector software evidence
+- The detector estimates the noise floor from a configurable sweep percentile and a rolling history, then confirms up to eight local peaks independently over multiple complete sweeps.
+- Peak candidates are bounded to the eight strongest qualifying local maxima; confirmed peaks are tracked independently and exposed to the renderer.
+- Both scan-band endpoints are evaluated as one-sided local maxima. Their reported frequency remains the measured endpoint bin because no outside sample exists for parabolic interpolation.
+- CI run [43700867913](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43700867913) passed after the endpoint correction, including warning-as-error compile, CMake tests, Cortex-M0+ cross-compile, full PY32F071 link/layout validation and Makefile tests. This remains software-only evidence.
+
 ## Hard safety rules
 - Never treat an uncalibrated RSSI value as dBm.
 - Do not transplant a BK4819-labelled register table to BK4829 without target-specific corroboration. The reviewed Armel UV-K1/K5 V3 source explicitly uses its legacy BK4819 API against the BK4829 platform; that is a specific source-proven compatibility path, not a universal guarantee for unrelated boards or chip variants.
