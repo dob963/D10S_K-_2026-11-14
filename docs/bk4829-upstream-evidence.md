@@ -27,7 +27,7 @@ The upstream file named `bk4829.c` uses legacy `BK4819_*` function names. This i
 
 - Keep the portable scanner independent of chip registers.
 - Implement the hardware adapter so a tune operation performs the verified RF/receiver setup, waits the configured settle interval, discards the first RSSI sample where the upstream behavior is applicable, and returns the subsequent raw 9-bit RSSI sample.
-- Treat PF9/PB8/PB9 as a candidate mapping only until the exact UV-K1 V3 PCB and continuity/pin mapping are confirmed.
+- Treat PF9/PB8/PB9 as a candidate mapping only until the exact standard UV-K1 PCB and continuity/pin mapping are confirmed.
 - Do not convert raw RSSI to dBm. Do not claim ATT compensation is calibrated until measurements across attenuation settings and bands exist.
 - Do not claim receiver initialization is complete until startup, RX enable, RF switch, LNA/ATT, frequency tuning and RSSI have been checked on the actual radio.
 
