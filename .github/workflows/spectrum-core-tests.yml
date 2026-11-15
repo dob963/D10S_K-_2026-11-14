@@ -66,7 +66,7 @@ jobs:
             object="build/target/$(echo "$source" | tr '/.' '__').o"
             arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -std=c11 -Os \
               -ffreestanding -fno-builtin -fno-common -ffunction-sections -fdata-sections \
-              -fstack-usage -Wstack-usage=768 \
+              -fstack-usage -fcallgraph-info=su,da -Wstack-usage=768 \
               -fno-unwind-tables -fno-asynchronous-unwind-tables \
               -Wall -Wextra -Werror \
               -Isrc/spectrum -Isrc/ui -Isrc/app -Isrc/platform -Isrc/radio \
@@ -80,6 +80,7 @@ jobs:
             $OBJECTS -lgcc -o build/target/D10S_K1.elf
           arm-none-eabi-size build/target/D10S_K1.elf
           python3 target/check_stack_usage.py build/target
+          python3 target/check_callgraph_stack.py build/target --entry Reset_Handler --exception-reserve 40 --budget 1536
           arm-none-eabi-objcopy -O binary build/target/D10S_K1.elf \
             build/target/D10S_K1.intermediate.bin
           python3 target/validate_image.py build/target/D10S_K1.intermediate.bin
