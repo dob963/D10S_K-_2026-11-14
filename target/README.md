@@ -21,7 +21,7 @@ This folder contains the first integrated target entry point for the receive-onl
 
 ## Build
 
-The GitHub Actions workflow installs `gcc-arm-none-eabi`, compiles all target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table (including reserved IRQ30), stack pointer, reset vector, flash bounds and per-function stack-frame usage.
+The GitHub Actions workflow installs `gcc-arm-none-eabi`, compiles all target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table (including reserved IRQ30), stack pointer, reset vector, flash bounds and per-function stack-frame usage. On successful runs it uploads the ELF, map, intermediate raw image and SHA-256/build metadata as a 14-day diagnostic artifact explicitly marked **NOT FOR FLASHING**; this is for engineering inspection, not a firmware release.
 
 A local equivalent, with the GNU Arm Embedded toolchain installed:
 
