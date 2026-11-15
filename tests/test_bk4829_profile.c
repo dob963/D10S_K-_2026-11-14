@@ -208,7 +208,12 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     CHECK(ops.context == &radio.scanner_adapter);
     CHECK(ops.tune_hz != 0);
     CHECK(ops.read_rssi != 0);
-    CHECK(ops.set_attenuation == 0);
+    CHECK(ops.set_attenuation != 0);
+    CHECK(ops.set_attenuation(ops.context, 3u));
+    CHECK(write_seen(&fake, 0x13u, 0x03D9u));
+    CHECK(ops.set_attenuation(ops.context, 5u));
+    CHECK(write_seen(&fake, 0x13u, 0x0139u));
+    CHECK(!ops.set_attenuation(ops.context, 6u));
 
     CHECK(ops.tune_hz(ops.context, 145125000u, &actual_hz));
     CHECK(actual_hz == 145125000u);
