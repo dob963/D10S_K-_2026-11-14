@@ -54,3 +54,23 @@ The reported bootloader supports the standard UV-K1 target classification. It do
 **HARDWARE VALIDATION REQUIRED — NOT YET APPROVED FOR FLASHING.**
 
 This is a release candidate with a successful software build. It is not yet a hardware-validated firmware release. Confirm the exact radio, preserve its stock firmware and prove a recovery path before any controlled installation test.
+
+
+## UV Air Tool 4.7.4 rejection observed on the user's PC
+
+On 2026-11-15, the user supplied a screenshot of UV Air Tool 4.7.4 in `UV-K1 | FLASH MODE`. With `D10S_K1.bin` selected and the `KA-52M FIRMWARE` profile shown, the application reported: `ERROR, FIRMWARE FOR: UV-K5 V1` and `Selected firmware is for: UV-K5 V1. It is not compatible with UV-K1.`
+
+This is a real tool-compatibility failure. The D10S candidate must not be flashed through this application in its current state. The message does not, by itself, prove that the MCU target is actually DP32G030; it proves only that UV Air Tool classified the selected file as UV-K5 V1.
+
+The OURO product page distinguishes KA-52M (UV-K1 and K5(8)/K6/R5 V3, bootloader 7.x) from SU-75 (UV-K5 V1, bootloader 2/3/4/5). A public OURO flasher repository also contains a Python serial flasher, but that repository has no declared license in the reviewed tree. Its code was inspected only to understand the transport and was not copied or reused. It is not established that this separate script implements the same file-classification logic as UV Air Tool 4.7.4.
+
+A separate Apache-2.0 reference implementation (pinned above) accepts raw Cortex-M binaries unchanged when the first word is a valid RAM stack pointer. This supports raw-image transport as one documented DFU path, but it does not override the observed rejection by UV Air Tool. No alternate flasher is approved for this D10S image until the image layout and the exact radio application origin are independently verified.
+
+### Required correction and release gate
+
+1. Inspect the UV Air Tool 4.7.4 file-classification rules or obtain a known-good UV-K1 raw image and compare the format without modifying or repacking D10S blindly.
+2. Confirm the standard UV-K1 application base address for bootloader 7.03.01 from a known-good UV-K1 image or an authoritative implementation; the current D10S linker origin `0x08002800` remains unproven for this physical unit.
+3. Add an offline validator that checks the D10S image against the verified UV-K1 image structure and target-identification convention.
+4. Rebuild and require UV Air Tool to identify the image as UV-K1 before any controlled flash test.
+
+**Current status: REJECTED BY UV AIR TOOL 4.7.4 — DO NOT FLASH.**
