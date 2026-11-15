@@ -326,6 +326,23 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
         uint16_t rssi = 0u;
         bool changed;
 
+        if (scanner->turbo_enabled && radio->rssi_ready != 0) {
+            bool ready = false;
+            const uint32_t elapsed = (uint32_t)(now_ms - scanner->settle_started_ms);
+            if (!radio->rssi_ready(radio->context, &ready)) {
+                scanner->phase = SCANNER_PHASE_FAILED;
+                return D10S_SCANNER_ERROR;
+            }
+            if (!ready && elapsed < scanner->current_settle_ms) {
+                scanner->turbo_next_poll_ms =
+                    now_ms + scanner->turbo_poll_interval_ms;
+                scanner->phase = SCANNER_PHASE_SETTLE;
+                return D10S_SCANNER_BUSY;
+            }
+            /* Bounded fallback: at max Delay, sample even if readiness
+             * never clears, so a faulty hint cannot stall the scan. */
+        }
+
         if (!radio->read_rssi(radio->context, &rssi) ||
             rssi > D10S_SPECTRUM_MAX_RSSI) {
             scanner->phase = SCANNER_PHASE_FAILED;
