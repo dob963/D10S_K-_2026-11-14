@@ -1,4 +1,4 @@
-# UV-K1 V3 board map and display evidence
+# Standard UV-K1 board map and display evidence
 
 Status: source-derived board map; physical radio verification remains open.
 
@@ -49,11 +49,11 @@ D10S now implements this startup order in its own callback-based ST7565 driver a
 
 ## MCU and memory-layout lead
 
-The pinned reference linker script identifies PY32F071xB with 128 KiB flash and 16 KiB SRAM, application flash origin `0x08002800`, and an application region of 118 KiB. This is a source-derived target contract, not yet accepted as the exact MCU fitted to the user's radio. The exact package/marking and PCB revision must be confirmed before the D10S linker script or pin map is treated as final.
+The pinned reference linker script identifies PY32F071xB with 128 KiB flash and 16 KiB SRAM, application flash origin `0x08002800`, and an application region of 118 KiB. This is a source-derived target contract, not yet accepted as the exact MCU fitted to the user's radio. The user's reported model and bootloader are standard UV-K1 / 7.03.01. The exact MCU package marking and PCB revision still need physical confirmation before the linker script or pin map is treated as final.
 
 ## Release blockers
 
-- Confirm the physical MCU marking and PCB revision on the actual UV-K1 V3.
+- Confirm the physical MCU marking and PCB revision on the actual standard UV-K1.
 - Check continuity of PF9/PB8/PB9 to the BK4829 and PA5/PA7/PB2/PA6 to the ST7565.
 - Verify the actual LCD SPI timing, contrast, orientation and backlight polarity.
 - Verify the RF switch and LNA path on VHF and UHF using known signals.
