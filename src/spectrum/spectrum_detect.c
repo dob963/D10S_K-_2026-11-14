@@ -233,7 +233,6 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
 {
     uint16_t threshold;
     uint16_t peak_indices[D10S_SPECTRUM_MAX_PEAKS];
-    d10s_spectrum_peak_t next_tracks[D10S_SPECTRUM_MAX_PEAKS];
     bool old_track_used[D10S_SPECTRUM_MAX_PEAKS] = {false};
     size_t peak_count;
     size_t i;
@@ -247,7 +246,6 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
     }
 
     clear_bytes(result, sizeof(*result));
-    clear_bytes(next_tracks, sizeof(next_tracks));
     if (!estimate_noise_floor(state, bins, count)) return false;
     threshold = clamp_u16((uint32_t)state->noise_floor + state->config.noise_margin);
     result->noise_floor = state->noise_floor;
@@ -290,7 +288,6 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
             peak->streak = 1u;
         }
         peak->confirmed = peak->streak >= state->config.confirm_sweeps;
-        next_tracks[i] = *peak;
 
         if (i == 0u) {
             result->candidate_valid = true;
@@ -312,8 +309,12 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
         }
     }
 
-    for (i = 0u; i < D10S_SPECTRUM_MAX_PEAKS; ++i)
-        state->tracked_peaks[i] = next_tracks[i];
+    for (i = 0u; i < D10S_SPECTRUM_MAX_PEAKS; ++i) {
+        if (i < peak_count)
+            state->tracked_peaks[i] = result->peaks[i];
+        else
+            clear_bytes(&state->tracked_peaks[i], sizeof(state->tracked_peaks[i]));
+    }
 
     /* Preserve the legacy strongest-candidate tracking fields for callers
        that inspect state directly; confirmation is now per-peak. */
