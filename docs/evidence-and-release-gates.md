@@ -25,7 +25,7 @@ This document separates known project inputs from assumptions that must not be p
 
 ## Hard safety rules
 - Never treat an uncalibrated RSSI value as dBm.
-- Do not transplant a BK4819-labelled register table to BK4829 without target-specific corroboration. The reviewed Armel UV-K1/K5 V3 source explicitly uses its legacy BK4819 API against the BK4829 platform; that is a specific source-proven compatibility path, not a universal guarantee for unrelated boards or chip variants.
+- Do not transplant a BK4819-labelled register table to BK4829 without target-specific corroboration. D10S's profile is a reviewed, pinned-source-derived compatibility path for the standard UV-K1 lineage; it is compiled into the diagnostic image, but its physical RF behavior remains unverified and it is not approved for release. This is not a universal guarantee for unrelated boards or chip variants.
 - Never infer the exact RF-switch/LNA GPIO map from a different PCB revision.
 - Never label a layout-test ELF or partial raw image as flashable firmware.
 - Never flash the previously rejected 22 KB incomplete image.
