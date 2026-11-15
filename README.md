@@ -12,13 +12,13 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - Non-blocking tune/settle/RSSI acquisition; each sample is tagged with the actual frequency returned by the radio adapter.
 - Only complete sweeps are published; manual band and ATT changes invalidate stale snapshots.
 - Delay control and optional adaptive Turbo polling, bounded by caller-provided timings.
-- ATT is not connected on the target: the BK4829 scanner adapter currently binds `set_attenuation = NULL`. No physical attenuation step or RSSI correction is implemented or claimed.
+- Six-step BK4829 receive-gain control is connected through REG_13 (`ATT 0`, `ATT 6`, `ATT 15`, `ATT 27`, `BYP`, `BYP+`). The write preserves REG_13 bits 10..15, waits 40 ms before the first post-change sample, and resets detector history. The gain response still requires RF measurement on the actual board; no dBm calibration is claimed.
 
 ### Display
 - 128x64 Spectrum graph with RSSI trace, threshold line, peak marker, cursor and frequency label.
 - 1-bit framebuffer with normal and moderately bold 5x7 text.
 - ST7565 page-addressing and eight-page flush controller, with UV-K1 V3 power sequencing, page clearing, reverse-SEG orientation, column offset defaults and active-high backlight on/off.
-- PY32F071 GPIO/SPI callbacks and a debounced keypad matrix scanner are implemented against the source-derived UV-K1 V3 pin map. Current key map: 1 selects VHF 144–146 MHz; 2 selects UHF 430–440 MHz; 3–8 are reserved because only two target bands are enabled; 9 freezes the last complete sweep without further RF reads and resumes from the first bin; MENU/0 toggles or places the cursor; UP/DOWN move one bin; SIDE1/SIDE2 move eight bins; F toggles normal/moderately bold labels; STAR toggles peak-marker visibility. Delay and Turbo are callable scanner APIs but are not exposed as user controls; ATT is not connected. Physical key mapping, debounce and display behavior still need radio validation.
+- PY32F071 GPIO/SPI callbacks and a debounced keypad matrix scanner are implemented against the source-derived UV-K1 V3 pin map. Current key map: 1 selects VHF 144–146 MHz; 2 selects UHF 430–440 MHz; 3 toggles adaptive Turbo; 4 cycles Delay through 8/12/16/24 ms; 5 cycles the six BK4829 gain stages; 6–8 are reserved because only two target bands are enabled; 9 freezes the last complete sweep without further RF reads and resumes from the first bin; MENU/0 toggles or places the cursor; UP/DOWN move one bin; SIDE1/SIDE2 move eight bins; F toggles normal/moderately bold labels; STAR toggles peak-marker visibility. Timing and gain changes are deferred to safe sweep boundaries, and the first sample after an ATT change uses a 40 ms settling window. Physical key mapping, debounce, display behavior and RF gain response still need radio validation.
 
 ### BK4829
 - Three-wire register read/write bus, timing calculation, frequency conversion and raw 9-bit REG_67 RSSI.
@@ -26,7 +26,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - `d10s_bk4829_uvk1_v3_radio_init()` binds the source-derived profile and scanner adapter into the exact radio-ops interface consumed by the Spectrum app; it still requires a separately verified board GPIO bus.
 - Opt-in source-derived UV-K1 V3 RX register profile in src/radio/bk4829_uvk1_v3_profile.c. It includes the upstream baseline register sequence, RX-mode setup and VHF/UHF LNA selector, adapted to the D10S bus API. It asserts the source-documented GPIO0 RX_ENABLE output alongside the selected internal LNA path; it never asserts GPIO1 PA_ENABLE and contains no transmit code. Physical RF-path operation remains unverified. Source and license attribution are recorded in THIRD_PARTY_NOTICES.md.
 
-RSSI is raw relative data, **not calibrated dBm**. ATT offsets, Delay and Turbo parameters are not claimed calibrated.
+RSSI is raw relative data, **not calibrated dBm**. ATT stages are gain presets rather than calibrated absolute attenuation measurements; no cross-stage RSSI correction is applied. Delay and Turbo timings are software presets, not measured RF calibration values.
 
 ## Build and test
 
