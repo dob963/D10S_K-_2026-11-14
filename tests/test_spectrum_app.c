@@ -20,6 +20,7 @@ typedef struct {
     uint32_t read_calls;
     uint32_t frequency_hz;
     uint32_t first_hz;
+    uint8_t attenuation_level;
 } fake_hardware_t;
 
 static bool lcd_select(bool asserted, void *context)
@@ -60,6 +61,14 @@ static bool radio_tune(void *context, uint32_t requested_hz,
     return true;
 }
 
+static bool radio_set_attenuation(void *context, uint8_t level)
+{
+    fake_hardware_t *hw = (fake_hardware_t *)context;
+    if (level > 5u) return false;
+    hw->attenuation_level = level;
+    return true;
+}
+
 static bool radio_read(void *context, uint16_t *rssi)
 {
     fake_hardware_t *hw = (fake_hardware_t *)context;
@@ -85,7 +94,7 @@ static void test_complete_spectrum_application_pipeline(void)
         4u, 31u, 4u, 7u, false, false, false, 1u, 1u
     };
     const d10s_spectrum_radio_ops_t radio = {
-        &hw, radio_tune, radio_read, NULL
+        &hw, radio_tune, radio_read, radio_set_attenuation
     };
     d10s_st7565_t display;
     d10s_spectrum_app_t app;
@@ -215,6 +224,20 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_3));
     CHECK(app.scanner.pending_turbo_valid);
     CHECK(!app.scanner.pending_turbo_enabled);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
+    CHECK(app.scanner.pending_attenuation_valid);
+    CHECK(app.scanner.pending_attenuation_level == 1u);
+    {
+        unsigned att_tick;
+        for (att_tick = 1u; att_tick <= 200u &&
+             app.scanner.pending_attenuation_valid; ++att_tick)
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 500u + att_tick) !=
+                  D10S_APP_ERROR);
+    }
+    CHECK(!app.scanner.pending_attenuation_valid);
+    CHECK(app.scanner.attenuation_level == 1u);
+    CHECK(hw.attenuation_level == 1u);
+    CHECK(app.scanner.settle_ms == 12u);
 
     d10s_spectrum_app_stop(&app);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_ERROR);
