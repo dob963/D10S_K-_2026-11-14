@@ -82,6 +82,7 @@ Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
 | Field | Reference-manual definition | D10S interpretation | Review |
 |---|---|---|---|
 | RCC_CR.HSIDIV, bits 13:11 | Divide HSI SYS by 1, 2, 4, 8, 16, 32, 64 or 128 | `(rcc_cr >> 11) & 7`, then divide | Match |
+| HSI-to-PLL clock path | Figure 8-1 shows HSI RC branching separately to PLL and through HSIDIV to HSISYS | PLL input uses selected HSI frequency directly; HSIDIV is applied only on direct HSI/HSISYS path | Match; regression tests cover HSIDIV=128 with HSI→PLL x2/x3 |
 | RCC_ICSCR.HSI_FS, bits 15:13 | 000=4 MHz, 001=8 MHz, 010=16 MHz, 011=22.12 MHz, 100=24 MHz, >=101=4 MHz | Eight-entry table implements those five values and 4 MHz for remaining codes | Match |
 | RCC_CFGR.SWS, bits 5:3 | 000=HSISYS, 001=HSE, 010=PLL, 011=LSI, 100=LSE | Switch cases 0x00, 0x08, 0x10, 0x18, 0x20 | Match |
 | RCC_CFGR.HPRE, bits 11:8 | 0xxx=/1, 1000=/2, 1001=/4, 1010=/8, 1011=/16, 1100=/64, 1101=/128, 1110=/256, 1111=/512 | Shift table {0,0,0,0,0,0,0,0,1,2,3,4,6,7,8,9} | Match |
@@ -145,3 +146,12 @@ These sources were consulted for factual hardware observations and cross-checkin
 The FCC ID XBPUV-K1 filing's internal-photo exhibit is indexed as document ID `8384105` (description `Iiternal photos`), application `M0Um3S1ptYL6g71b5OoUEg==`, submitted and made available 2025-06-13. The indexed exhibit metadata reports a 10-page PDF, 3,287,221 bytes, SHA-256 `9bba2e94514b232fb3f2d39c6d4dbb6ceb3e2b393898d3ad234fb592b411a587`, and no short- or long-term confidentiality. Source landing page: https://fccid.io/XBPUV-K1/Internal-Photos/Iiternal-photos-8384105 ; FCC filing index: https://fccid.io/XBPUVK1.
 
 **Evidence limit:** the exhibit's existence and metadata are confirmed, but the PDF image pages have not yet been visually inspected in this review. Therefore this filing currently adds provenance for official internal photographs only; it does not upgrade any MCU marking, PCB revision, pin assignment, RF route, or connector claim. The 2025 FCC submission is for model UV-K1, but must not automatically be treated as a photograph of every later V3 / UV-K1(8) production revision. No exhibit image is copied into D10S.
+
+
+### HSI divider versus PLL source — clock-tree clarification (2026-11-15)
+
+The official PY32F07X Reference Manual V0.2, Figure 8-1 (section 8.2), draws the HSI RC output as a branch to the PLL and a separate branch through HSIDIV to HSISYS. Therefore RCC_CR.HSIDIV must be applied when HSI is the direct system-clock source, but must **not** be applied to the HSI reference frequency when PLLSRC selects HSI. The decoder's existing PLL path is correct to use the selected HSI frequency without dividing it. Regression tests now set HSIDIV to its maximum divide-by-128 value and confirm that HSI→PLL x2 and x3 still calculate from the undivided 24 MHz and 16 MHz HSI selections, respectively.
+
+Reference: Puya, *PY32F07X Reference Manual*, V0.2, Figure 8-1 and sections 8.1.5, 8.2, 8.5.1–8.5.4: https://www.puyasemi.com/download_path/%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C/MCU%20%E5%BE%AE%E5%A4%84%E7%90%86%E5%99%A8/PY32F07X-E_Reference_Manual_V0.2.pdf
+
+This confirms the register-decoding model only; it does not prove the live clock configuration on a particular radio.
