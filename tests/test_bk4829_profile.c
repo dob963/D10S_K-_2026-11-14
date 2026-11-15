@@ -113,6 +113,17 @@ static bool write_seen(const fake_bus_t *bus, uint8_t address, uint16_t value)
     return false;
 }
 
+static uint8_t write_index(const fake_bus_t *bus,
+                            uint8_t address, uint16_t value)
+{
+    uint8_t i;
+    for (i = 0u; i < bus->register_count; ++i) {
+        if (bus->writes[i].address == address &&
+            bus->writes[i].value == value) return i;
+    }
+    return 0xFFu;
+}
+
 static bool gpio1_pa_enable_seen(const fake_bus_t *bus)
 {
     uint8_t i;
@@ -178,6 +189,15 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(write_seen(&fake, 0x30u, 0xBFF1u));
     CHECK(write_seen(&fake, 0x38u, (uint16_t)word));
     CHECK(write_seen(&fake, 0x39u, (uint16_t)(word >> 16)));
+    /* Cold-start tuning must precede the RX power-up sequence. */
+    CHECK(write_index(&fake, 0x38u, (uint16_t)word) <
+          write_index(&fake, 0x37u, 0x9F1Fu));
+    CHECK(write_index(&fake, 0x39u, (uint16_t)(word >> 16)) <
+          write_index(&fake, 0x30u, 0x0000u));
+    CHECK(write_index(&fake, 0x30u, 0x0000u) <
+          write_index(&fake, 0x30u, 0xBFF1u));
+    CHECK(write_index(&fake, 0x30u, 0xBFF1u) <
+          write_index(&fake, 0x33u, 0x9048u));
     CHECK(!write_seen(&fake, 0x33u, 0x9008u));
     CHECK(write_seen(&fake, 0x33u, 0x9048u));
     CHECK(last_gpio_state(&fake) == 0x9048u);
