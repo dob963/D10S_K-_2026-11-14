@@ -47,10 +47,10 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow compiles target sources with warnings as errors, links `D10S_K1.elf`, emits `D10S_K1.bin`, validates the image structure, performs stack diagnostics and runs host, Cortex-M0+ and Makefile tests.
 
-**Latest release-candidate build:** [run 43749934363](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43749934363), commit `31e792e4a2fe5ab201e10bb478872b76b7af9b5f`.
+**Latest release-candidate build:** [run 43750817987](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43750817987), validator source commit `9eb0f341d72f890227bd97103878f9396efd38a5` (firmware source unchanged from `31e792e4a2fe5ab201e10bb478872b76b7af9b5f`).
 - Workflow conclusion: success; every job step completed.
-- Artifact: `D10S-K1-firmware-release-candidate`, ID `14175781912`.
-- ZIP size: 37,601 bytes; SHA-256: `9d2e408f74f2b1340366e084b5f35b02c09b512b844f254143b76191316a0845`.
+- Latest artifact: `D10S-K1-firmware-release-candidate`, ID `14175588776`.
+- GitHub artifact ZIP size: 37,600 bytes; SHA-256: `7cf26e104dac15cab1ce5dd0497ec01460090924af5c5167f02ead43ec49893e`.
 - Extracted `D10S_K1.bin`: 15,196 bytes; SHA-256: `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`.
 - Vector values: initial SP `0x20004000`; Reset vector `0x08002905` (Thumb).
 - Metadata status: `RELEASE_CANDIDATE_HARDWARE_VALIDATION_REQUIRED`.
