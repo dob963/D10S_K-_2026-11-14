@@ -198,6 +198,21 @@ static void test_uvk1_profile_fails_closed_on_bus_error(void)
     CHECK(profile.bus_valid);
 }
 
+static void test_uvk1_profile_rejects_bad_gain_readback(void)
+{
+    fake_bus_t fake = {0};
+    d10s_bk4829_uvk1_v3_profile_t profile = {0};
+    const d10s_bk4829_bus_port_t port = make_port(&fake);
+    const d10s_bk4829_bus_timing_t timing = {2u, 48u};
+
+    fake.read_value = 0u; /* Simulate a nonresponsive or incorrect REG_13. */
+    CHECK(!d10s_bk4829_uvk1_v3_initialize_rx(&port, &timing, 145000000u,
+                                             &profile));
+    CHECK(!profile.rx_mode_configured);
+    CHECK(write_seen(&fake, 0x33u, 0x9000u));
+    CHECK(!write_seen(&fake, 0x33u, 0x9048u));
+}
+
 static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
 {
     fake_bus_t fake = {0};
@@ -242,6 +257,7 @@ int main(void)
     test_uvk1_profile_initializes_and_selects_lna_path();
     test_uvk1_profile_stops_rx_and_lna();
     test_uvk1_profile_fails_closed_on_bus_error();
+    test_uvk1_profile_rejects_bad_gain_readback();
     test_radio_wrapper_binds_profile_to_scanner_ops();
     puts("BK4829 UV-K1 V3 profile tests: PASS");
     return 0;
