@@ -10,12 +10,12 @@ The adapter isolates the baseline register writes and RX-mode sequence in a sepa
 
 The baseline array preserves the register/value write sequence from the pinned upstream BK4819_Init implementation in the BK4829 driver, including repeated writes to register 0x09.
 
-The receive-mode transition preserves the source BK4819_RX_TurnOn writes:
+The cold-start order follows the upstream radio setup: it programs the initial frequency through REG_38/REG_39 first, then performs the BK4819_RX_TurnOn transition:
 - REG_37 = 0x9F1F
 - REG_30 = 0x0000
 - REG_30 = 0xBFF1
 
-The profile then programs the initial frequency through REG_38/REG_39 and selects the corresponding internal LNA path. On later scanner retunes, the scanner adapter owns REG_38/REG_39; the profile resume callback only updates the LNA path. This avoids duplicate synthesizer writes.
+After RX power-up, the profile selects the corresponding internal LNA path and asserts RX_ENABLE. On later scanner retunes, the scanner adapter owns REG_38/REG_39 while RX is already active; the profile resume callback only updates the LNA path and RX_ENABLE. This avoids duplicate synthesizer writes. A host test now asserts the cold-start write ordering.
 
 The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its RX_ENABLE output; the TX setup explicitly clears it. D10S therefore enables GPIO0 together with the selected internal LNA, matching this UV-K1 V3 source lineage. The upstream path selector uses GPIO4 for frequencies below 28 MHz and GPIO3 at/above 28 MHz. D10S emits the combined register writes:
 - VHF selector below 28 MHz: REG_33 = 0x9004 (LNA selector alone)
