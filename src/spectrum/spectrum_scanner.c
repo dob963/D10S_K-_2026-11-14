@@ -76,6 +76,17 @@ bool d10s_spectrum_scanner_set_attenuation(
         scanner->attenuation_level == level &&
         scanner->rssi_compensation == measured_raw_rssi_offset)
         return true;
+    if (scanner->phase == SCANNER_PHASE_TUNE && scanner->bin_index == 0u &&
+        !scanner->pending_delay_valid && !scanner->pending_turbo_valid) {
+        if (!radio->set_attenuation(radio->context, level)) return false;
+        scanner->attenuation_level = level;
+        scanner->rssi_compensation = measured_raw_rssi_offset;
+        scanner->attenuation_configured = true;
+        scanner->attenuation_settle_pending = true;
+        scanner->published_valid = false;
+        d10s_spectrum_reset_tracking(&scanner->detector);
+        return true;
+    }
     scanner->pending_attenuation_level = level;
     scanner->pending_rssi_compensation = measured_raw_rssi_offset;
     scanner->pending_attenuation_valid = true;
