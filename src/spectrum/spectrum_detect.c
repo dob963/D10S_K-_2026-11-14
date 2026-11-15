@@ -113,31 +113,44 @@ static size_t find_peaks(const d10s_spectrum_state_t *state,
                          uint16_t *peak_indices)
 {
     size_t found = 0u;
-    size_t i;
+    size_t i = 0u;
 
-    /* Band-edge maxima are valid signals, although they cannot be
-       interpolated without samples outside the configured scan band. */
-    for (i = 0u; i < count; ++i) {
+    /* Treat a contiguous flat top as one peak and select its centre bin.
+       At a band edge only the in-band neighbour is available. */
+    while (i < count) {
+        const size_t first = i;
+        size_t last = i;
         const uint16_t level = bins[i].rssi;
-        const uint16_t left = i > 0u ? bins[i - 1u].rssi : 0u;
-        const uint16_t right = i + 1u < count ? bins[i + 1u].rssi : 0u;
-        const uint16_t neighbor = i == 0u ? right
-            : (i + 1u == count ? left : (left > right ? left : right));
-        const uint16_t prominence =
-            level > neighbor ? (uint16_t)(level - neighbor) : 0u;
+        uint16_t left = 0u;
+        uint16_t right = 0u;
+        uint16_t neighbor;
+        uint16_t prominence;
+        size_t peak_bin;
         size_t position;
 
-        if (level < threshold) continue;
-        if (i == 0u) {
-            if (level <= right) continue;
-        } else if (i + 1u == count) {
-            if (level <= left) continue;
-        } else if (level < left || level < right ||
-                   (level == left && level == right)) {
+        while (last + 1u < count && bins[last + 1u].rssi == level)
+            ++last;
+        i = last + 1u;
+
+        if (level < threshold || (first == 0u && last + 1u == count))
             continue;
+        if (first > 0u) left = bins[first - 1u].rssi;
+        if (last + 1u < count) right = bins[last + 1u].rssi;
+
+        if (first == 0u) {
+            if (level <= right) continue;
+            neighbor = right;
+        } else if (last + 1u == count) {
+            if (level <= left) continue;
+            neighbor = left;
+        } else {
+            if (level <= left || level <= right) continue;
+            neighbor = left > right ? left : right;
         }
+        prominence = (uint16_t)(level - neighbor);
         if (prominence < state->config.min_peak_prominence) continue;
 
+        peak_bin = first + (last - first) / 2u;
         if (found == D10S_SPECTRUM_MAX_PEAKS &&
             level <= bins[peak_indices[D10S_SPECTRUM_MAX_PEAKS - 1u]].rssi)
             continue;
@@ -151,7 +164,7 @@ static size_t find_peaks(const d10s_spectrum_state_t *state,
             --position;
         }
         if (position < D10S_SPECTRUM_MAX_PEAKS)
-            peak_indices[position] = (uint16_t)i;
+            peak_indices[position] = (uint16_t)peak_bin;
         if (found < D10S_SPECTRUM_MAX_PEAKS) ++found;
     }
     return found;
