@@ -231,9 +231,17 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     CHECK(ops.tune_hz != 0);
     CHECK(ops.read_rssi != 0);
     CHECK(ops.set_attenuation != 0);
-    fake.read_value = 0xFC00u | 0x03DFu;
+    fake.read_value = (uint16_t)(0xFC00u | 0x03DFu);
+    CHECK(ops.set_attenuation(ops.context, 0u));
+    CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x03DFu)));
+    CHECK(ops.set_attenuation(ops.context, 1u));
+    CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x03DDu)));
+    CHECK(ops.set_attenuation(ops.context, 2u));
+    CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x03DBu)));
     CHECK(ops.set_attenuation(ops.context, 3u));
     CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x03D9u)));
+    CHECK(ops.set_attenuation(ops.context, 4u));
+    CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x0379u)));
     CHECK(ops.set_attenuation(ops.context, 5u));
     CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x0139u)));
     CHECK(!ops.set_attenuation(ops.context, 6u));
