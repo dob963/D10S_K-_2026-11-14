@@ -167,6 +167,22 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
         if (app->paused) app->pause_frame_pending = true;
         return true;
 
+    case D10S_KEY_3: {
+        const bool current = app->scanner.pending_turbo_valid
+            ? app->scanner.pending_turbo_enabled
+            : app->scanner.turbo_enabled;
+        return d10s_spectrum_app_set_turbo(app, !current, 3u, 1u, 2u, 3u);
+    }
+
+    case D10S_KEY_4: {
+        const uint16_t current = app->scanner.pending_delay_valid
+            ? app->scanner.pending_settle_ms
+            : app->scanner.settle_ms;
+        const uint16_t next = current < 12u ? 12u
+            : (current < 16u ? 16u : (current < 24u ? 24u : 8u));
+        return d10s_spectrum_app_set_delay(app, next);
+    }
+
     case D10S_KEY_9:
         if (!app->paused) {
             if (!app->scanner.published_valid ||
@@ -182,8 +198,6 @@ bool d10s_spectrum_app_handle_key(d10s_spectrum_app_t *app,
 
     case D10S_KEY_1:
     case D10S_KEY_2:
-    case D10S_KEY_3:
-    case D10S_KEY_4:
     case D10S_KEY_5:
     case D10S_KEY_6:
     case D10S_KEY_7:
