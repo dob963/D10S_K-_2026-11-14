@@ -8,6 +8,7 @@
 #define D10S_SPECTRUM_MAX_BINS 256u
 #define D10S_SPECTRUM_MAX_RSSI 511u
 #define D10S_NOISE_HISTORY_SWEEPS 5u
+#define D10S_SPECTRUM_MAX_PEAKS 8u
 
 typedef struct {
     uint32_t frequency_hz;
@@ -24,6 +25,15 @@ typedef struct {
 } d10s_spectrum_config_t;
 
 typedef struct {
+    bool valid;
+    uint32_t frequency_hz;
+    uint16_t level;
+    uint16_t bin;
+    uint8_t streak;
+    bool confirmed;
+} d10s_spectrum_peak_t;
+
+typedef struct {
     uint16_t noise_floor;
     uint16_t open_threshold;
     bool candidate_valid;
@@ -36,6 +46,8 @@ typedef struct {
     bool peak_hold_valid;
     uint32_t peak_hold_frequency_hz;
     uint16_t peak_hold_level;
+    uint8_t peak_count;
+    d10s_spectrum_peak_t peaks[D10S_SPECTRUM_MAX_PEAKS];
 } d10s_spectrum_result_t;
 
 typedef struct {
@@ -51,6 +63,7 @@ typedef struct {
     bool peak_hold_valid;
     uint32_t peak_hold_frequency_hz;
     uint16_t peak_hold_level;
+    d10s_spectrum_peak_t tracked_peaks[D10S_SPECTRUM_MAX_PEAKS];
 } d10s_spectrum_state_t;
 
 void d10s_spectrum_default_config(d10s_spectrum_config_t *config);
