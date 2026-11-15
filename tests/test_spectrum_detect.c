@@ -187,6 +187,7 @@ static void test_sub_bin_frequency_refinement(void)
     CHECK(result.confirmed);
     CHECK(result.confirmed_frequency_hz > bins[4].frequency_hz);
     CHECK(result.confirmed_frequency_hz < bins[5].frequency_hz);
+    CHECK(result.confirmed_frequency_hz == 145053125u);
 }
 
 static void test_rejects_invalid_frequency_grid(void)
