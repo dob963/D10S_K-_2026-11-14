@@ -1046,11 +1046,41 @@ static void test_spectrum_view_marks_each_confirmed_peak(void)
     CHECK(fake.pixels[12u][95u]);
 }
 
+
+static void test_two_close_peaks_remain_independent(void)
+{
+    d10s_spectrum_config_t config;
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    unsigned sweep;
+
+    d10s_spectrum_default_config(&config);
+    config.confirm_sweeps = 3u;
+    config.confirm_tolerance_bins = 1u;
+    d10s_spectrum_init(&state, &config);
+
+    for (sweep = 0u; sweep < 3u; ++sweep) {
+        make_noise_sweep(bins, 21u, 90u);
+        bins[9].rssi = 160u;
+        bins[11].rssi = 150u;
+        CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+        CHECK(result.peak_count == 2u);
+        CHECK(result.peaks[0].bin == 9u);
+        CHECK(result.peaks[1].bin == 11u);
+        CHECK(result.peaks[0].streak == (uint8_t)(sweep + 1u));
+        CHECK(result.peaks[1].streak == (uint8_t)(sweep + 1u));
+    }
+    CHECK(result.peaks[0].confirmed);
+    CHECK(result.peaks[1].confirmed);
+}
+
 int main(void)
 {
     test_configurable_opening_margin();
     test_confirmation_and_peak_hold();
     test_multiple_peaks_confirm_independently();
+    test_two_close_peaks_remain_independent();
     test_peak_tracks_survive_dominant_peak_changes();
     test_peak_confirmation_resets_after_missing_sweep();
     test_multi_peak_output_is_bounded_to_eight_strongest();
