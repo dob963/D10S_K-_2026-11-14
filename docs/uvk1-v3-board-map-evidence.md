@@ -80,7 +80,7 @@ Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
 
 ### Follow-up hardening completed
 
-The source decoder rejects reserved PLLMUL encodings 2 and 3 and now also enforces the 12–24 MHz PLL reference-input range stated in section 8.1.5 of the PY32F07X Reference Manual V0.2. Tests cover valid x2/x3 source combinations, reserved multiplier/source encodings, and PLL inputs below, at, and above the permitted range. CI must pass on the resulting commit before this change is considered verified by automation.
+The source decoder rejects reserved PLLMUL encodings 2 and 3 and enforces the multiplier-specific PLL reference-input ranges in section 8.1.5 of the PY32F07X Reference Manual V0.2: 12–24 MHz for x2 and 16–24 MHz for x3. Tests cover valid x2/x3 source combinations, reserved multiplier/source encodings, and the lower and upper boundaries for both multipliers. CI must pass on the resulting commit before this change is considered verified by automation.
 
 The reference manual describes LSI as 32 kHz and LSE as 32.768 kHz. D10S currently uses 32.768 kHz for both low-speed switch cases; both are below the function's 1 MHz accepted-HCLK floor and therefore cause initialization to fail rather than being used as a supported operating clock. Keep this limitation explicit if low-speed SYSCLK support is ever added.
 
