@@ -76,11 +76,11 @@ Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
 | RCC_CFGR.SWS, bits 5:3 | 000=HSISYS, 001=HSE, 010=PLL, 011=LSI, 100=LSE | Switch cases 0x00, 0x08, 0x10, 0x18, 0x20 | Match |
 | RCC_CFGR.HPRE, bits 11:8 | 0xxx=/1, 1000=/2, 1001=/4, 1010=/8, 1011=/16, 1100=/64, 1101=/128, 1110=/256, 1111=/512 | Shift table {0,0,0,0,0,0,0,0,1,2,3,4,6,7,8,9} | Match |
 | RCC_PLLCFGR.PLLSRC, bits 1:0 | 10=HSI, 11=HSE; 00=no clock, 01=reserved | Accepts 2 for HSI and 3 for HSE; rejects others | Match |
-| RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Multiplier table {2,3,2,2} | Match for legal encodings; reserved encodings currently resolve to x2 and should be rejected in a future hardening change |
+| RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Explicit decoder accepts only 00 and 01; returns failure for 10 and 11 | Match; reserved encodings are rejected |
 
 ### Follow-up hardening completed
 
-The source decoder previously mapped reserved PLLMUL encodings 2 and 3 to x2. This has now been corrected: `src/platform/py32f071_uvk1_v3.c` rejects both reserved encodings before calculating the PLL clock. `tests/test_py32_clock.c` now covers both invalid values. The valid x2/x3 configurations remain covered by the existing tests. CI must pass on the resulting commits before this change is considered verified by automation.
+The source decoder previously mapped reserved PLLMUL encodings 2 and 3 to x2. The current default-branch implementation rejects both values before calculating the PLL clock. `tests/test_py32_clock.c` covers both reserved values and valid x2/x3 configurations. The tests and CI status must be checked against the current commit before this change is considered verified by automation.
 
 The reference manual describes LSI as 32 kHz and LSE as 32.768 kHz. D10S currently uses 32.768 kHz for both low-speed switch cases; both are below the function's 1 MHz accepted-HCLK floor and therefore cause initialization to fail rather than being used as a supported operating clock. Keep this limitation explicit if low-speed SYSCLK support is ever added.
 
