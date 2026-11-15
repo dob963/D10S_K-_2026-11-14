@@ -67,6 +67,19 @@ static void test_ahb_prescaler_and_invalid_sources(void)
         0u, (4u << 13), 0x10u, (2u | (2u << 2)), 24000000u, &hz));
     CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, (4u << 13), 0x10u, (2u | (3u << 2)), 24000000u, &hz));
+
+    /* PY32F07X RM 0.2: PLL reference input must be 12..24 MHz. */
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, 0u, 0x10u, 2u, 24000000u, &hz)); /* HSI 4 MHz */
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, (1u << 13), 0x10u, 2u, 24000000u, &hz)); /* HSI 8 MHz */
+    CHECK(d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, 0u, 0x10u, 3u, 12000000u, &hz));
+    CHECK(hz == 24000000u);
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, 0u, 0x10u, 3u, 11999999u, &hz));
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, 0u, 0x10u, 7u, 24000001u, &hz));
 }
 
 int main(void)
