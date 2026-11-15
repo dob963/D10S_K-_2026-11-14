@@ -4,6 +4,13 @@ This is the remaining physical acceptance checklist for the source-derived PY32F
 
 **Safety gate:** do not flash the intermediate image. Preserve a verified stock firmware backup and a tested bootloader recovery method before any future target-radio test. The D10S application is receive-only and contains no TX code.
 
+## Software verification already completed
+
+- [x] Host tests cover independent multi-peak confirmation (up to eight candidates), strongest-eight bounding, peak tracking through dominant-peak changes, loss/reacquisition, band-reset clearing and detection at both band edges.
+- [x] CI run [43700867913](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43700867913) passed warning-as-error compilation, CMake tests, Cortex-M0+ cross-compilation, full PY32F071 link/layout checks and Makefile tests.
+
+These checks do not substitute for the physical tests below.
+
 ## 1. Identify the exact target
 
 - [ ] Photograph/read the MCU top marking and package.
