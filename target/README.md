@@ -49,11 +49,13 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-**Latest verified CI:** [run 43741700290](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43741700290), commit `6f1ae5901591fb8859b94c63485378083874df11`.
-- Workflow conclusion: success. Warning-as-error compile, all 10 host tests, Cortex-M0+ cross-compile, PY32F071 link/layout validation, stack diagnostics and Makefile tests completed successfully.
-- Latest diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, artifact ID `14172985722`, ZIP size 37,580 bytes; ZIP SHA-256 `f657a53263bac080e14b19d1fd537a138e0d07c5baaaaf38850c34402892f859`.
-- The archive contains a 15,188-byte intermediate image; its SHA-256 is `de14676a64d1bc7a910eb9dcf05efbb2c6e07dc797481f66f23fabe713df8f6a`.
-- The artifact is diagnostic only. It is **not a flashable firmware release** and must not be installed on the radio.
+**Latest verified CI:** [run 43749519453](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43749519453), commit `43410fe457e58ae4711395af644baa1e26cb56fe`.
+- Workflow conclusion: success. Warning-as-error compile, all 10 host tests, Cortex-M0+ cross-compile, complete PY32F071 link/layout validation, stack diagnostics and Makefile tests completed successfully.
+- Startup hardening: inherited interrupts are masked before VTOR relocation and before .data/.bss initialization.
+- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, artifact ID `14175911459`, ZIP size 37,624 bytes; ZIP SHA-256 `1148754291cfae283b02f6df54d51b972da8588caf7312fb91d801d678121eea`.
+- Extracted intermediate image: 15,196 bytes; SHA-256 `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`. Initial SP `0x20004000`; Reset vector `0x08002905`; linked .bss ends at the project RAM bound reported by the map.
+- Stack diagnostics artifact: `D10S-K1-stack-analysis-diagnostics`, artifact ID `14175398805`.
+- Both artifacts are diagnostic only. The intermediate image is **not a flashable firmware release** and must not be installed on the radio.
 
 The CI run proves that the checked source compiles and passes its automated software/image-structure checks. It does not validate the physical UV-K1 PCB, RF path, LCD/keypad behavior, bootloader hand-off or recovery procedure.
 ## Hardware release gates
