@@ -188,7 +188,9 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         model->band_index >= model->band_count ||
         model->noise_floor > D10S_SPECTRUM_MAX_RSSI ||
         model->open_threshold > D10S_SPECTRUM_MAX_RSSI ||
-        model->noise_margin > 99u) return false;
+        model->noise_margin > 99u ||
+        model->peak_count > D10S_SPECTRUM_MAX_PEAKS ||
+        (model->peak_count > 0u && model->peaks == 0)) return false;
     if (model->cursor_valid && model->cursor_bin >= model->count) return false;
 
     for (i = 0u; i < model->count; ++i) {
@@ -250,6 +252,17 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         const uint8_t threshold_y =
             map_level_to_y(model->open_threshold, min_level, max_level);
         draw_dashed_horizontal(canvas, threshold_y, GRAPH_LEFT, GRAPH_RIGHT);
+    }
+
+    /* Confirmed peaks are marked independently; unconfirmed candidates
+       remain available to diagnostics but are not drawn as real signals. */
+    for (i = 0u; i < model->peak_count; ++i) {
+        if (model->peaks[i].valid && model->peaks[i].confirmed &&
+            model->peaks[i].bin < model->count) {
+            draw_dashed_vertical(canvas,
+                map_index_to_x(model->peaks[i].bin, model->count),
+                GRAPH_TOP, GRAPH_BOTTOM);
+        }
     }
 
     if (model->peak_hold_valid) {
