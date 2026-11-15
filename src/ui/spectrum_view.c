@@ -179,6 +179,7 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
     uint8_t style;
     uint32_t cursor_frequency_hz = 0u;
     char frequency_text[16];
+    char margin_text[5] = {'N', '0', '0', '\0', '\0'};
 
     if (canvas == 0 || canvas->pixel == 0 || model == 0 ||
         model->bins == 0 || model->count < 3u ||
@@ -186,7 +187,8 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         model->band_count == 0u || model->band_count > D10S_VIEW_MAX_BANDS ||
         model->band_index >= model->band_count ||
         model->noise_floor > D10S_SPECTRUM_MAX_RSSI ||
-        model->open_threshold > D10S_SPECTRUM_MAX_RSSI) return false;
+        model->open_threshold > D10S_SPECTRUM_MAX_RSSI ||
+        model->noise_margin > 99u) return false;
     if (model->cursor_valid && model->cursor_bin >= model->count) return false;
 
     for (i = 0u; i < model->count; ++i) {
@@ -209,6 +211,8 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         max_level = (uint16_t)(min_level + 1u);
 
     draw_header(canvas, model);
+    margin_text[1] = (char)('0' + (model->noise_margin / 10u));
+    margin_text[2] = (char)('0' + (model->noise_margin % 10u));
 
     /* Horizontal reference grid and a light baseline. */
     draw_dashed_horizontal(canvas, 22u, GRAPH_LEFT, GRAPH_RIGHT);
@@ -274,7 +278,9 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
     }
 
     style = model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u;
-    if (canvas->text != 0)
+    if (canvas->text != 0) {
+        canvas->text(canvas->context, 50u, 56u, margin_text, style);
         canvas->text(canvas->context, 91u, 56u, "RSSI", style);
+    }
     return true;
 }
