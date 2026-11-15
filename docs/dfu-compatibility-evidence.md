@@ -4,14 +4,18 @@ Audit date: 2026-11-15
 
 ## Findings
 
-The diagnostic target image is a **raw Cortex-M firmware image**, not a Quansheng vendor-packed update file. The pinned D10S Run 438 artifact has:
+The D10S target workflow produces a raw Cortex-M firmware image, not a Quansheng vendor-packed update file. The latest verified CI artifact is:
 
-- Length: 14,456 bytes.
-- Initial stack pointer: `0x20004000`.
-- Reset vector: `0x08002905` (Thumb bit set).
-- Linker application origin: `0x08002800`.
-- SHA-256: `4fdf289d7eed0b84ec028e62ca3d0627ece83a3f0c2ba42ba9786c6c22cf0a35`.
-- DFU transport page count at 256 bytes/page: 57 (last page contains 120 image bytes before transport padding).
+- Workflow run: [43699594411](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699594411).
+- Commit: `c8be5455f01111d104a9082c55ffcbb02a358184`.
+- Artifact: `D10S-K1-diagnostic-build-not-for-flashing`.
+- Artifact ID: `14156051824`.
+- ZIP size: 36,449 bytes.
+- ZIP SHA-256: `1327032170f56525e8fd348a68ef0736b2bbb56f8073ae2d65b5dddef2e7c27b`.
+
+The workflow confirms successful warning-as-error compilation, CMake tests, Cortex-M0+ cross-compilation, full PY32F071 application link, image-layout validation, Makefile build/tests, and diagnostic artifact upload.
+
+**Important evidence correction:** earlier revisions of this file recorded image length, vector values and image SHA-256 from a different diagnostic build. Those measurements are not carried forward as measurements of run 43699594411. The latest artifact ZIP has been identified and checksummed, but its contained BIN has not been separately extracted and re-hashed in this audit. Therefore no raw-image length, vector values, or raw-image digest are asserted for the latest run here.
 
 The public `knoinok/quansheng_toolkit` project, revision `ea13a5850d8f22372c7ad205db13610c083c4ee8`, is Apache-2.0 licensed. Its DFU reference implementation documents:
 - UV-K1 bootloader `7.03.01` as a known UV-K1 bootloader and includes it in the K1 flash allowlist.
@@ -31,11 +35,11 @@ Therefore, the reported bootloader `7.03.01` supports the standard UV-K1 target 
 
 ## D10S implications
 
-1. The D10S output should remain a raw binary beginning with its vector table; it must not be XOR-packed or have a version block inserted for this DFU transport.
-2. The current 14,456-byte diagnostic image is structurally raw and page-aligned by the transport's 256-byte chunking (the final transport page is padded by the host).
-3. The 256-byte page transport and 7.03.01 allowlist are now supported by source review, **not by a D10S hardware flash test**.
-4. The D10S linker origin `0x08002800` is a current project configuration. The reviewed DFU sources do not independently prove this origin for every PCB/bootloader revision.
-5. The exact board, MCU marking, bootloader readback, application address, and recovery route still require confirmation on the physical radio before a flashable release.
+1. The D10S output should remain a raw Cortex-M image beginning with its vector table; it must not be XOR-packed or have a vendor version block inserted for this DFU transport.
+2. The 256-byte page transport and 7.03.01 allowlist are supported by source review, **not by a D10S hardware flash test**.
+3. The D10S linker origin `0x08002800` is a current project configuration. The reviewed DFU sources do not independently prove this origin for every PCB/bootloader revision.
+4. The exact board, MCU marking, bootloader readback, application address, and recovery route still require confirmation on the physical radio before a flashable release.
+5. The latest CI artifact is diagnostic-only. A successful build and image-layout check do not authorize flashing.
 
 ## Source and license record
 
@@ -43,7 +47,7 @@ Therefore, the reported bootloader `7.03.01` supports the standard UV-K1 target 
 |---|---|---|---|
 | [knoinok/quansheng_toolkit](https://github.com/knoinok/quansheng_toolkit) | `ea13a5850d8f22372c7ad205db13610c083c4ee8` | Apache-2.0; LICENSE and NOTICE reviewed | Protocol facts only; no code imported |
 | [spm81/Multi-UVTools](https://github.com/spm81/Multi-UVTools) | `3979b8097af1703762e472f574219cbc2d35c172` | Not verified | Corroborating behavior notes only; no code imported |
-| D10S diagnostic build | `0e68b1ba630a0df03f17b58e397defb23a998d65` | D10S project license not yet selected | Structural image measurements only |
+| D10S diagnostic build | `c8be5455f01111d104a9082c55ffcbb02a358184` | D10S project license not yet selected | CI build and artifact metadata only; latest raw BIN not independently hashed |
 
 ## Release status
 
