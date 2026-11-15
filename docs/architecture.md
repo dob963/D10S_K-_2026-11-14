@@ -21,13 +21,14 @@ Bootloader reported for the target unit: 7.03.01 (must be re-read before any rel
 7. ATT state tracked explicitly; attenuation changes must not silently shift the reported level. Any compensation is measured in raw RSSI units.
 8. Completed sweeps are published as stable, band-tagged snapshots; no partial buffer is exposed to the display.
 9. Delay can be changed only at a sweep boundary. Turbo uses optional RSSI-stability polling bounded by a caller-configured maximum delay; it stays disabled until hardware timings are measured.
-10. Optional blacklist and signal-memory handling, kept separate from the acquisition loop.
+10. The current release is Spectrum-only: channel memories, memory-slot metadata, blacklist management and general transceiver functions are explicitly out of scope.
 11. EXP/cursor frequency derived from the displayed snapshot's stored frequency data and band tag.
 
-## Required bug protections
-- First memory slot must preserve its channel/name metadata.
-- Changing a band range while a peak is held must not corrupt the active frequency or range.
-- EXP cursor must report the correct frequency during multi-band scanning.
+## Required Spectrum bug protections
+- Changing the active band while a peak is held must reset detector tracking without corrupting the next band's frequency grid.
+- EXP/cursor frequency must come from the displayed snapshot's stored frequency values, including during automatic multi-band rotation.
+
+Memory-slot metadata is not a release requirement for this Spectrum-only firmware because no channel-memory subsystem is included.
 
 ## Layer boundaries
 - platform/: clock, GPIO, SPI, timing and display bus.
