@@ -14,7 +14,7 @@ This document separates known project inputs from assumptions that must not be p
 - Armel's UV-K1/K5 V3 project is a useful source for PY32F071 platform/build conventions, but its Spectrum UI is not the design target.
 - KA52M K1/V3 contains a substantial spectrum implementation and BK4829-named driver; its ancestry and individual register assumptions require review before reuse.
 - Fagci's K1 scanner is a useful reference for measurement and scanning structure, but its fixed threshold/single-sample behavior is not sufficient for the D10S detector.
-- Public Karina notes describe Delay/Turbo scan trade-offs and document range/cursor/memory-cell defects. They are behavior notes, not a verified complete source port.
+- D10S requirements define adjustable Delay/Turbo scan trade-offs, range handling, cursor behavior and signal capture. Timing and thresholds remain provisional until measured on the target radio.
 - DFU research now records raw-image handling, 256-byte page transfer and the 7.03.01 K1 allowlist in `docs/dfu-compatibility-evidence.md`. This is protocol-source review, not a radio flash test.
 
 ## Spectrum detector software evidence
