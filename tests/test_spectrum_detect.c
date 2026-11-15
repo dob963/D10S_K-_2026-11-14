@@ -672,8 +672,8 @@ static void fake_canvas_text(void *context, uint8_t x, uint8_t y,
     if (value != 0 && value[0] == 'B' && value[1] == '1' && value[2] == '/')
         canvas->saw_band = true;
     if (value != 0 && value[0] == 'A' &&
-        ((value[1] == '1' && value[2] == '5' && value[3] == '\\0') ||
-         (value[1] == '2' && value[2] == '7' && value[3] == '\\0')))
+        ((value[1] == '1' && value[2] == '5' && value[3] == '\0') ||
+         (value[1] == '2' && value[2] == '7' && value[3] == '\0')))
         canvas->saw_att = true;
     if (value != 0 && value[0] == 'T' && value[1] == '\0')
         canvas->saw_turbo = true;
