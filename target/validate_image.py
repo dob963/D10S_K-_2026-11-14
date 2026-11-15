@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural validator for the D10S PY32F071 intermediate application image."""
+"""Structural validator for the D10S PY32F071 release-candidate image."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import sys
 
 FLASH_BASE = 0x08002800
 FLASH_LIMIT = 0x08020000
-RAM_BASE = 0x20000000
 RAM_LIMIT = 0x20004000
 VECTOR_BYTES = 48 * 4
 MAX_IMAGE_BYTES = FLASH_LIMIT - FLASH_BASE
@@ -62,7 +61,7 @@ def main() -> int:
         f"{len(data)} bytes, SP=0x{initial_sp:08X}, "
         f"Reset=0x{reset_vector:08X}, flash base=0x{FLASH_BASE:08X}"
     )
-    print("This is an intermediate build image, not cleared for radio flashing.")
+    print("Release-candidate structure validated; physical radio/DFU compatibility is a separate release gate.")
     return 0
 
 
