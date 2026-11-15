@@ -12,7 +12,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the Quansheng U
 - Non-blocking tune/settle/RSSI acquisition; each sample is tagged with the actual frequency returned by the radio adapter.
 - Only complete sweeps are published; manual band and ATT changes invalidate stale snapshots.
 - Delay control and optional adaptive Turbo polling, bounded by caller-provided timings.
-- ATT callback with measured correction in raw RSSI units only.
+- ATT is not connected on the target: the BK4829 scanner adapter currently binds `set_attenuation = NULL`. No physical attenuation step or RSSI correction is implemented or claimed.
 
 ### Display
 - 128x64 Spectrum graph with RSSI trace, threshold line, peak marker, cursor and frequency label.
