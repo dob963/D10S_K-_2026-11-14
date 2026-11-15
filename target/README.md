@@ -1,6 +1,6 @@
 # D10S PY32F071 target image
 
-This folder contains the first integrated target entry point for the receive-only Spectrum application.
+This folder contains the integrated target entry point for the receive-only Spectrum application.
 
 ## Target contract
 
@@ -17,18 +17,20 @@ This folder contains the first integrated target entry point for the receive-onl
 
 The reported bootloader version 7.03.01 is listed by reviewed public tooling as a standard UV-K1 bootloader. The same reference maps 7.00.07 to UV-K5 V3 / UV-K1(8) v3 Mini Kong; these model variants must not be treated as interchangeable without confirming the physical unit.
 
-The D10S artifact is emitted as a raw Cortex-M image. Reviewed DFU tooling sends raw images unchanged in 256-byte pages; vendor-packed stock update files use a separate XOR/version-block decoding step. D10S must not apply that vendor packing to its raw build output. The Run 441 image begins with a valid vector table (SP `0x20004000`, reset vector `0x08002905`) and occupies 57 DFU pages after transport padding.
+The D10S target workflow emits a raw Cortex-M image. Reviewed DFU tooling sends raw images unchanged in 256-byte pages; vendor-packed stock update files use a separate XOR/version-block decoding step. D10S must not apply that vendor packing to its raw build output.
 
 This is source-level protocol evidence only. The bootloader version, model, application origin and recovery path have not been read/tested on the actual radio. **The intermediate BIN remains NOT FOR FLASHING.** See `docs/dfu-compatibility-evidence.md`.
 
-### Key map
+## Key map
 
 - `1`: select VHF 144–146 MHz.
 - `2`: select UHF 430–440 MHz.
 - `3`: toggle adaptive Turbo polling.
 - `4`: cycle Delay through 8 / 12 / 16 / 24 ms.
-- `5`: cycle six BK4829 REG_13 receive-gain presets: ATT 0, ATT -6, ATT -15, ATT -27, BYP and BYP+.
-- `6`: lower the opening threshold margin by 2 raw RSSI units (minimum 2).\n- `7`: raise the opening threshold margin by 2 raw RSSI units (maximum 64).\n- `8`: restore the default opening margin of 12 raw RSSI units. The display shows the active margin as `Nxx`; this is a relative raw-RSSI margin, not dB.
+- `5`: cycle six BK4829 REG_13 receive-gain presets. Labels are neutral stages `AT0`–`AT5`; attenuation in dB has not been calibrated.
+- `6`: lower the opening threshold margin by 2 raw RSSI units (minimum 2).
+- `7`: raise the opening threshold margin by 2 raw RSSI units (maximum 64).
+- `8`: restore the default opening margin of 12 raw RSSI units. The display shows the active margin as `Nxx`; this is a relative raw-RSSI margin, not dB.
 - `9`: freeze the last complete sweep; next press resumes the current band from bin zero.
 - `MENU/0`: toggle/place cursor; `UP/DOWN`: move one bin; `SIDE1/SIDE2`: move eight bins.
 - `F`: toggle normal/moderately bold labels; `STAR`: toggle peak-marker visibility.
@@ -45,16 +47,17 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-A successful CI run uploads the ELF, map, intermediate raw image and build metadata as a 14-day diagnostic artifact explicitly marked **NOT FOR FLASHING**. This artifact is for engineering inspection, not a firmware release.
+**Latest verified CI:** [run 43699594411](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699594411), commit `c8be5455f01111d104a9082c55ffcbb02a358184`.
+- Job `host-tests`: success.
+- Warning-as-error compilation: passed.
+- CMake tests: passed.
+- Cortex-M0+ cross-compilation: passed.
+- Full PY32F071 application link and image-layout validation: passed.
+- Makefile build/tests: passed.
+- Diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14156051824`, 36,449 bytes.
+- Artifact ZIP SHA-256: `1327032170f56525e8fd348a68ef0736b2bbb56f8073ae2d65b5dddef2e7c27b`.
 
-The latest verified run is [GitHub Actions run 43699393073](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699393073), commit `29cf09715768bd3357f81e9aefbe11d8d5342ec8`. It produced:
-- `D10S_K1.intermediate.bin`: 14,692 bytes; SHA-256 `0c4a1837c442b99ca5f5dac330eadd935cc05d87588203ab7f5b58b4e223951a`.
-- ELF size report: 14,692 bytes text, 0 bytes data, 5,568 bytes BSS.
-- Stack analysis: 118 function frames; largest individual frame 560 bytes in `estimate_noise_floor`; per-function threshold 768 bytes. This is not a cumulative call-chain or runtime high-water measurement.
-- Tests: 10/10 CTest cases passed; all 9 Makefile test executables passed; Cortex-M0+ cross-compilation and full target link passed.
-- Artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14155523561`, ZIP SHA-256 `4944352fc98bb869a6de5b3690e5f607243ecc77ce57d7f997de7ac8db662f51`.
-
-The intermediate BIN is not a released or approved flash image.
+The artifact contains engineering outputs only. The raw BIN inside it has not been separately extracted and re-hashed in this documentation update; no BIN length or image SHA-256 is asserted here. The artifact is explicitly **NOT FOR FLASHING** and is not a firmware release.
 
 ## Hardware release gates
 
