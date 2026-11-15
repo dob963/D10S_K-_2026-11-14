@@ -13,6 +13,14 @@ This folder contains the first integrated target entry point for the receive-onl
 - Initial dwell: 8 ms per bin. This is a provisional software setting, not a hardware-measured optimum.
 - Initial mode: receive-only. No PTT, transmit, beacon or messenger path is implemented.
 
+## Bootloader / DFU format review
+
+The reported bootloader version 7.03.01 is listed by reviewed public tooling as a standard UV-K1 bootloader. The same reference maps 7.00.07 to UV-K5 V3 / UV-K1(8) v3 Mini Kong; these model variants must not be treated as interchangeable without confirming the physical unit.
+
+The D10S artifact is emitted as a raw Cortex-M image. Reviewed DFU tooling sends raw images unchanged in 256-byte pages; vendor-packed stock update files use a separate XOR/version-block decoding step. D10S must not apply that vendor packing to its raw build output. The Run 438 image begins with a valid vector table (SP `0x20004000`, reset vector `0x08002905`) and occupies 57 DFU pages after transport padding.
+
+This is source-level protocol evidence only. The bootloader version, model, application origin and recovery path have not been read/tested on the actual radio. **The intermediate BIN remains NOT FOR FLASHING.** See `docs/dfu-compatibility-evidence.md`.
+
 ### Key map
 
 - `1`: select VHF 144–146 MHz.
@@ -39,9 +47,9 @@ The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles ta
 
 A successful CI run uploads the ELF, map, intermediate raw image and build metadata as a 14-day diagnostic artifact explicitly marked **NOT FOR FLASHING**. This artifact is for engineering inspection, not a firmware release.
 
-The successful run for commit `b49e1b11b9bb2411212952c0a6347106f1410aaa` produced:
-- `D10S_K1.intermediate.bin`: 14,452 bytes; SHA-256 `09eca9f08b85dbda140f13ee7141fef84ed0e6469fc9b8354c59f32f846d99ba`.
-- ELF size report: 14,452 bytes text, 0 bytes data, 5,568 bytes BSS.
+The latest inspected Run 438 (commit `0e68b1ba630a0df03f17b58e397defb23a998d65`) produced:
+- `D10S_K1.intermediate.bin`: 14,456 bytes; SHA-256 `4fdf289d7eed0b84ec028e62ca3d0627ece83a3f0c2ba42ba9786c6c22cf0a35`.
+- ELF size report: 14,456 bytes text, 0 bytes data, 5,568 bytes BSS.
 - Artifact name: `D10S-K1-diagnostic-build-not-for-flashing`.
 
 The intermediate BIN is not a released or approved flash image.
@@ -49,12 +57,12 @@ The intermediate BIN is not a released or approved flash image.
 ## Hardware release gates
 
 A successful link and structural image check do not verify:
-- exact MCU marking, PCB revision or installed bootloader;
+- exact MCU marking, PCB revision, model variant or installed bootloader;
 - candidate PF9/PB8/PB9 and PA5/PA7/PB2/PA6 continuity;
 - external RF switch / GPIO0 enable, LNA route, AGC settling, PLL lock or measured RSSI;
 - LCD behavior, keypad matrix and physical key mapping;
 - REG_13 gain response and sufficiency of the 40 ms settling interval;
-- actual bootloader acceptance, update format or recovery procedure;
+- actual bootloader acceptance, application address on the exact unit, or recovery procedure;
 - cumulative nested stack use and RAM high-water mark under hardware load.
 
 The BK4829 profile asserts the source-documented GPIO0 RX_ENABLE output and the selected LNA GPIO; GPIO1 PA_ENABLE is never asserted. These settings are source-derived, but their physical connectivity on the exact board is not verified. The scanner adapter returns the programmed frequency and does not independently measure PLL lock.
