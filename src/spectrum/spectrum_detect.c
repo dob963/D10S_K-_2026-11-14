@@ -130,6 +130,9 @@ static size_t find_peaks(const d10s_spectrum_state_t *state,
         if (prominence < state->config.min_peak_prominence) continue;
 
         /* Keep the strongest bounded set, in descending RSSI order. */
+        if (found == D10S_SPECTRUM_MAX_PEAKS &&
+            level <= bins[peak_indices[D10S_SPECTRUM_MAX_PEAKS - 1u]].rssi)
+            continue;
         position = found;
         if (position > D10S_SPECTRUM_MAX_PEAKS - 1u)
             position = D10S_SPECTRUM_MAX_PEAKS - 1u;
