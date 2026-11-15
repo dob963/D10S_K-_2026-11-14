@@ -1,12 +1,16 @@
 # Spectrum behavior reference and D10S requirements
 
-## Reviewed reference
+## Primary reference: Karina Spectrum
 
-Primary behavioral source reviewed: [public UV-K1 V3 firmware reference](https://github.com/autumn1rain/karina-v3-k1), covering UV-K5 V3, UV-K1 and UV-K1(8). Its repository declares Apache-2.0. The public tree reviewed on 2026-11-14 contains documentation and release material, but not the application source files for its Spectrum implementation; D10S uses the published behavior notes as requirements only and does not copy or vendor application source.
+Primary behavioral and visual reference: [Karina V3/K1 public project](https://github.com/autumn1rain/karina-v3-k1), covering UV-K5 V3, UV-K1 and UV-K1(8). The repository declares Apache-2.0. The public tree reviewed on 2026-11-14 contains documentation and release material, but not the application source files for its Spectrum implementation. D10S therefore uses publicly documented behavior and lawful visual references as requirements only; it does not copy or vendor unavailable application source.
 
-Supplementary maintainer notes: [Dim0s firmware pack — Karina information](https://github.com/Dim0s/quansheng-UV-K5v3-K1-firmware-pack). These notes describe the Spectrum behavior and known limitations. They are treated as implementation requirements to verify, not proof that the same timing values are optimal on the target radio.
+Supplementary maintainer notes: [Dim0s firmware pack — Karina information](https://github.com/Dim0s/quansheng-UV-K5v3-K1-firmware-pack). These notes describe Spectrum behavior and known limitations. They are treated as requirements to verify, not proof that the same timing values are optimal on the target radio.
 
-## Observed Spectrum behavior to preserve
+## Supporting technical references
+
+Other UV-K1/K5 V3 firmware projects may be consulted for platform drivers, RF register handling, timing, memory use, build systems and test methods. They are not the primary Spectrum UI or behavior target. Every code reuse requires file-level license and copyright review; where provenance or compatibility is unclear, implement the behavior independently.
+
+## Observed Karina Spectrum behavior to preserve
 
 - Scan several user-selected bands in one run, rather than only one continuous VFO range.
 - Provide a Delay control: reducing the delay increases speed but can reduce sensitivity.
@@ -15,6 +19,7 @@ Supplementary maintainer notes: [Dim0s firmware pack — Karina information](htt
 - Support band-specific scan ranges and preserve correct frequency labels while bands rotate.
 - Filter transient spikes, including VHF-related display/RF artifacts.
 - Provide signal capture/hold and a way to stop and inspect a captured signal.
+- Preserve the recognizable Karina screen organization and information hierarchy, using a clear graph and legible frequency/readout labels. Exact pixel-level layout must be checked against a lawful reference screenshot at the same 128x64 resolution; it must not be guessed from textual notes.
 
 Maintainer notes report a change from static waits toward adaptive delays in the July 2026 development line, later applied permanently in September 2026. The notes also mention a VHF spike filter in August 2026. D10S will validate these behaviors independently; it will not copy old menu values or assume their timings are suitable for every board.
 
@@ -38,10 +43,10 @@ Maintainer notes report a change from static waits toward adaptive delays in the
 2. Changing a band's limits while a peak is held must not leave a shifted frequency range or stale captured frequency.
 3. EXP cursor frequency during multi-band scanning must use the frequency grid belonging to the displayed snapshot, never the currently active band's range by assumption.
 
-These three UI/memory cases are not yet implemented in the portable scanner module. They are explicit requirements for the later display and memory integration stage.
+These memory-slot cases are historical notes and are not part of the current Spectrum-only release unless a future UI integration explicitly adds a memory browser.
 
-## Visual direction
+## Visual acceptance
 
-D10S is an independent project. Its Spectrum screen uses a high-contrast graph, legible frequency and RSSI labels, moderately bold typography, a clear noise threshold line, a visible peak/cursor, and a simple multi-band status. The layout and implementation are original.
+Karina is the primary visual reference. The D10S renderer is an independent implementation and must be adjusted by side-by-side review of an actual Karina Spectrum screenshot and the D10S 128x64 output. Required characteristics include matching the overall information hierarchy and scan presentation, with frequency and scale numbers easy to read and moderately bold. The current renderer provides a high-contrast graph, threshold line, peak marker, cursor and frequency label, but no claim of pixel-level Karina equivalence is made until that comparison is performed.
 
-No application source from the reviewed firmware projects has been copied into the D10S portable detector, scan planner, or scanner state machine.
+No Karina application source has been copied into the D10S detector, planner, scanner, view renderer or framebuffer.
