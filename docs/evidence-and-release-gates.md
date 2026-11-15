@@ -22,6 +22,7 @@ This document separates known project inputs from assumptions that must not be p
 - Peak candidates are bounded to the eight strongest qualifying local maxima; confirmed peaks are tracked independently and exposed to the renderer.
 - Both scan-band endpoints are evaluated as one-sided local maxima. Their reported frequency remains the measured endpoint bin because no outside sample exists for parabolic interpolation.
 - CI run [43713996548](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43713996548) passed: warning-as-error compile, all 10 CMake tests, Cortex-M0+ cross-compile, complete PY32F071 link/layout validation, stack analysis and Makefile tests. The final stack checker filters helper candidates using the actual linker map; the worst path includes the linked `__aeabi_uidiv` helper. Static estimate: 864-byte C call chain + 40-byte exception reserve = 904/1,536 bytes. The 256-byte helper reserve is a manual conservative assumption, not a measured frame or hardware high-water mark.
+- Startup hardening commit `43410fe` masks inherited interrupts at the first instruction of `Reset_Handler`, before relocating VTOR. This prevents a pending bootloader SysTick/peripheral interrupt from entering the application's default handler; the application uses polling and does not enable IRQs.
 
 ## Hard safety rules
 - Never treat an uncalibrated RSSI value as dBm.
@@ -35,7 +36,7 @@ This document separates known project inputs from assumptions that must not be p
 2. Confirm the exact UV-K1 model, PCB revision and MCU marking; distinguish standard UV-K1 from UV-K1(8) V3 Mini Kong.
 3. Verify the BK4829 register profile and RF path selection for that board.
 4. Verify LCD wiring, SPI mode, orientation and backlight.
-5. Complete target build, startup and linker integration. **Implemented in CI:** Cortex-M0+ objects, full PY32F071 ELF link, vector-table validation (including reserved IRQ30), application memory bounds, raw image size/origin and stack-frame report.
+5. Complete target build, startup and linker integration. **Implemented in CI:** Cortex-M0+ objects, full PY32F071 ELF link, vector-table validation (including reserved IRQ30), application memory bounds, raw image size/origin and stack-frame report. The latest startup hardening must also pass the target build.
 6. **Partially completed by source review:** raw BIN handling, 256-byte DFU pages and the 7.03.01 standard-UV-K1 allowlist are documented. Still required: read the bootloader version from the actual radio, verify exact model and application address, and test the flash/recovery route on that unit.
 7. Run hardware tests with known VHF/UHF signals and document RF-path, PLL/AGC, RSSI/noise/peak behavior, LCD and keypad behavior.
 8. Measure the cumulative stack high-water mark and verify reset/recovery under power interruption.
