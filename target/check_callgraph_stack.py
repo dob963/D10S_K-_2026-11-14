@@ -24,7 +24,17 @@ DYNAMIC_RE = re.compile(r"(\d+) dynamic objects")
 # Conservative allowance for the ARM EABI unsigned divide/mod helper.
 # This is a manual reserve, not a measured compiler-generated frame.
 EXTERNAL_STACK_RESERVES = {
+    # Conservative whole-helper-chain reserves for linked ARM EABI/libgcc
+    # routines. These are not compiler .su measurements; 256 bytes is a
+    # deliberately generous bound for each helper and any internal subcalls.
+    "__aeabi_uidiv": 256,
     "__aeabi_uidivmod": 256,
+    "__aeabi_idiv": 256,
+    "__aeabi_idivmod": 256,
+    "__aeabi_lmul": 256,
+    "__aeabi_uldivmod": 256,
+    "__aeabi_ldivmod": 256,
+    "__aeabi_llsr": 256,
 }
 
 # GCC VCG emits one generic __indirect_call node per translation unit.
