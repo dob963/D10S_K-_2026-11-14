@@ -110,6 +110,25 @@ static bool valid_frequency_grid(const d10s_spectrum_bin_t *bins, size_t count)
     return true;
 }
 
+static uint16_t divide_u32_u16_bounded(uint32_t numerator, uint16_t denominator)
+{
+    uint32_t remainder = 0u;
+    uint32_t quotient = 0u;
+    unsigned bit;
+
+    /* numerator is at most 65408 (511 * 128); fixed 16-step division
+       avoids pulling a compiler EABI division helper into the hot path. */
+    for (bit = 16u; bit > 0u; --bit) {
+        remainder = (remainder << 1) |
+                    ((numerator >> (bit - 1u)) & 1u);
+        if (remainder >= denominator) {
+            remainder -= denominator;
+            quotient |= 1u << (bit - 1u);
+        }
+    }
+    return quotient > 128u ? 128u : (uint16_t)quotient;
+}
+
 static uint32_t refined_frequency(const d10s_spectrum_bin_t *bins, size_t index)
 {
     const int32_t left = (int32_t)bins[index - 1u].rssi;
@@ -122,10 +141,12 @@ static uint32_t refined_frequency(const d10s_spectrum_bin_t *bins, size_t index)
         bins[index + 1u].frequency_hz - bins[index - 1u].frequency_hz;
     int64_t frequency;
 
-    if (denominator < 0) {
-        offset_q8 = (128 * numerator) / denominator;
-        if (offset_q8 > 128) offset_q8 = 128;
-        if (offset_q8 < -128) offset_q8 = -128;
+    if (denominator < 0 && numerator != 0) {
+        const uint16_t divisor = (uint16_t)(-denominator);
+        const uint32_t magnitude = (uint32_t)(numerator < 0
+            ? -numerator : numerator) * 128u;
+        const uint16_t quotient = divide_u32_u16_bounded(magnitude, divisor);
+        offset_q8 = numerator < 0 ? (int32_t)quotient : -(int32_t)quotient;
     }
     frequency = (int64_t)bins[index].frequency_hz +
                 ((int64_t)span * offset_q8) / 512;
