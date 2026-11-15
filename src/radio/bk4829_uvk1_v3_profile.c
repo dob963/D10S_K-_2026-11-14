@@ -144,12 +144,18 @@ bool d10s_bk4829_uvk1_v3_initialize_rx(
         }
     }
 
-    /* Source-derived BK4819_RX_TurnOn sequence from the BK4829 driver. */
-    if (!write_reg(profile, 0x37u, 0x9F1Fu) ||
+    /*
+     * Match the upstream radio startup order: program the receive frequency
+     * before powering up the BK4829 RX/DSP path. The upstream RADIO setup
+     * writes REG_38/39 before BK4819_RX_TurnOn() performs the REG_37/REG_30
+     * transition. Keep this ordering on cold initialization; later scanner
+     * retunes write REG_38/39 while RX is already active.
+     */
+    if (!d10s_bk4829_write_frequency(&profile->bus, &profile->timing,
+                                     initial_frequency_hz) ||
+        !write_reg(profile, 0x37u, 0x9F1Fu) ||
         !write_reg(profile, 0x30u, 0x0000u) ||
         !write_reg(profile, 0x30u, 0xBFF1u) ||
-        !d10s_bk4829_write_frequency(&profile->bus, &profile->timing,
-                                     initial_frequency_hz) ||
         !d10s_bk4829_uvk1_v3_resume_rx(initial_frequency_hz, profile)) {
         (void)d10s_bk4829_uvk1_v3_stop_rx(profile);
         return false;
