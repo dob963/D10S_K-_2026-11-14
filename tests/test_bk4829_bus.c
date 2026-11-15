@@ -12,34 +12,94 @@
     } \
 } while (0)
 
+typedef enum {
+    FAIL_NONE = 0, FAIL_CSN, FAIL_CLOCK, FAIL_DIRECTION,
+    FAIL_WRITE, FAIL_READ, FAIL_DELAY
+} fail_kind_t;
+
 typedef struct {
     bool csn, clock, output;
     bool input[16]; unsigned input_count, input_index;
     bool written[64]; unsigned written_count;
     uint16_t delays[256]; unsigned delay_count;
-    bool fail_delay;
+    fail_kind_t fail_kind;
 } fake_bus_t;
-static bool csn(bool v, void *c) { ((fake_bus_t *)c)->csn=v; return true; }
-static bool clk(bool v, void *c) { ((fake_bus_t *)c)->clock=v; return true; }
-static bool dir(bool v, void *c) { ((fake_bus_t *)c)->output=v; return true; }
+
+static bool fail_once(fake_bus_t *b, fail_kind_t kind) {
+    if (b->fail_kind != kind) return false;
+    b->fail_kind = FAIL_NONE;
+    return true;
+}
+static bool csn(bool v, void *c) {
+    fake_bus_t *b=c; if (fail_once(b, FAIL_CSN)) return false;
+    b->csn=v; return true;
+}
+static bool clk(bool v, void *c) {
+    fake_bus_t *b=c; if (fail_once(b, FAIL_CLOCK)) return false;
+    b->clock=v; return true;
+}
+static bool dir(bool v, void *c) {
+    fake_bus_t *b=c; if (fail_once(b, FAIL_DIRECTION)) return false;
+    b->output=v; return true;
+}
 static bool wr(bool v, void *c) {
-    fake_bus_t *b=c; if (!b->csn && b->output) b->written[b->written_count++]=v;
+    fake_bus_t *b=c; if (fail_once(b, FAIL_WRITE)) return false;
+    if (!b->csn && b->output) b->written[b->written_count++]=v;
     return true;
 }
 static bool rd(bool *v, void *c) {
-    fake_bus_t *b=c; if (b->input_index>=b->input_count) return false;
+    fake_bus_t *b=c;
+    if (fail_once(b, FAIL_READ) || b->input_index>=b->input_count)
+        return false;
     *v=b->input[b->input_index++]; return true;
 }
 static bool delay(uint16_t n, void *c) {
     fake_bus_t *b=c; CHECK(n);
     CHECK(b->delay_count < sizeof(b->delays) / sizeof(b->delays[0]));
     b->delays[b->delay_count++] = n;
-    if (b->fail_delay) { b->fail_delay=false; return false; }
+    if (fail_once(b, FAIL_DELAY)) return false;
     return true;
 }
 static void append(bool *o,unsigned *n,uint16_t v,uint8_t width) {
     for(uint8_t i=0;i<width;i++) o[(*n)++]=((v>>(width-1u-i))&1u)!=0u;
 }
+
+static void test_each_bus_callback_fails_closed(void)
+{
+    const d10s_bk4829_bus_timing_t timing = {2u, 3u};
+    const fail_kind_t write_failures[] = {
+        FAIL_CSN, FAIL_CLOCK, FAIL_DIRECTION, FAIL_WRITE, FAIL_DELAY
+    };
+    unsigned i;
+
+    for (i = 0u; i < sizeof(write_failures) / sizeof(write_failures[0]); ++i) {
+        fake_bus_t b;
+        d10s_bk4829_bus_port_t p;
+        memset(&b, 0, sizeof(b));
+        b.csn = true;
+        b.output = true;
+        b.fail_kind = write_failures[i];
+        p = (d10s_bk4829_bus_port_t){csn, clk, dir, wr, rd, delay, &b};
+        CHECK(!d10s_bk4829_write_register(&p, &timing, 0x25u, 0xA55Au));
+        CHECK(b.csn && b.clock && b.output);
+    }
+
+    {
+        fake_bus_t b;
+        d10s_bk4829_bus_port_t p;
+        uint16_t value = 0xFFFFu;
+        memset(&b, 0, sizeof(b));
+        b.csn = true;
+        b.output = true;
+        b.input_count = 16u;
+        b.fail_kind = FAIL_READ;
+        p = (d10s_bk4829_bus_port_t){csn, clk, dir, wr, rd, delay, &b};
+        CHECK(!d10s_bk4829_read_register(&p, &timing, 0x26u, &value));
+        CHECK(b.csn && b.clock && b.output);
+        CHECK(value == 0xFFFFu);
+    }
+}
+
 int main(void) {
     const d10s_bk4829_bus_timing_t t={2u,3u};
     fake_bus_t b; d10s_bk4829_bus_port_t p;
@@ -74,7 +134,7 @@ int main(void) {
     CHECK(!d10s_bk4829_frequency_to_word(144000001u,&word));
     CHECK(!d10s_bk4829_frequency_to_word(144000000u,0));
 
-    memset(&b,0,sizeof(b)); b.csn=true; b.output=true; b.fail_delay=true;
+    memset(&b,0,sizeof(b)); b.csn=true; b.output=true; b.fail_kind=FAIL_DELAY;
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
     CHECK(!d10s_bk4829_write_register(&p,&t,0x20u,0u));
     CHECK(b.csn && b.clock && b.output);
@@ -99,5 +159,6 @@ int main(void) {
         for (unsigned i=0u; i<b.delay_count; ++i)
             CHECK(b.delays[i] == 35u);
     }
+    test_each_bus_callback_fails_closed();
     puts("BK4829 bus tests: PASS"); return 0;
 }
