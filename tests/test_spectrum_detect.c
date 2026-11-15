@@ -513,13 +513,13 @@ static void test_scanner_alternates_direction_and_keeps_bins_ordered(void)
     CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 1u));
     CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
                                &result, &changed) == D10S_SCANNER_SWEEP_READY);
-    CHECK(!scanner.sweep_reverse);
+    CHECK(scanner.sweep_reverse);
     CHECK(fake.tuned_frequencies[0] == 144000000u);
     CHECK(fake.tuned_frequencies[4] == 144004000u);
 
     CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
                                &result, &changed) == D10S_SCANNER_SWEEP_READY);
-    CHECK(scanner.sweep_reverse);
+    CHECK(!scanner.sweep_reverse);
     CHECK(fake.tuned_frequencies[5] == 144004000u);
     CHECK(fake.tuned_frequencies[9] == 144000000u);
     CHECK(d10s_spectrum_scanner_snapshot(&scanner, &snapshot, &count,
