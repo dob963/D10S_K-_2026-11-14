@@ -192,6 +192,30 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(!app.cursor_enabled);
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_0));
     CHECK(app.cursor_enabled && app.cursor_bin == 2u);
+
+    /* Turbo and Delay are user-commandable and commit only at sweep boundaries. */
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_4));
+    CHECK(app.scanner.pending_delay_valid);
+    CHECK(app.scanner.pending_settle_ms == 12u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_3));
+    CHECK(app.scanner.pending_turbo_valid);
+    CHECK(app.scanner.pending_turbo_enabled);
+    {
+        unsigned config_tick;
+        for (config_tick = 1u; config_tick <= 200u &&
+             (app.scanner.pending_delay_valid ||
+              app.scanner.pending_turbo_valid); ++config_tick)
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 200u + config_tick) !=
+                  D10S_APP_ERROR);
+    }
+    CHECK(!app.scanner.pending_delay_valid);
+    CHECK(!app.scanner.pending_turbo_valid);
+    CHECK(app.scanner.settle_ms == 12u);
+    CHECK(app.scanner.turbo_enabled);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_3));
+    CHECK(app.scanner.pending_turbo_valid);
+    CHECK(!app.scanner.pending_turbo_enabled);
+
     d10s_spectrum_app_stop(&app);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_ERROR);
 }
