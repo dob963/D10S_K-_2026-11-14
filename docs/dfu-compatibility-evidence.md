@@ -6,16 +6,16 @@ Audit date: 2026-11-15
 
 The D10S target workflow produces a raw Cortex-M firmware image, not a Quansheng vendor-packed update file. The latest verified CI artifact is:
 
-- Workflow run: [43699594411](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699594411).
-- Commit: `c8be5455f01111d104a9082c55ffcbb02a358184`.
+- Workflow run: [43699850862](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699850862).
+- Commit: `9185380051142a69e35a92dbce63a8fece95198c`.
 - Artifact: `D10S-K1-diagnostic-build-not-for-flashing`.
-- Artifact ID: `14156051824`.
-- ZIP size: 36,449 bytes.
-- ZIP SHA-256: `1327032170f56525e8fd348a68ef0736b2bbb56f8073ae2d65b5dddef2e7c27b`.
+- Artifact ID: `14155852797`.
+- ZIP size: 36,448 bytes.
+- ZIP SHA-256: `25f64131ff7c01fa3b4030118948dcc2d2acdb7041af0d6114f8338a207b7f5e`.
 
 The workflow confirms successful warning-as-error compilation, CMake tests, Cortex-M0+ cross-compilation, full PY32F071 application link, image-layout validation, Makefile build/tests, and diagnostic artifact upload.
 
-**Important evidence correction:** earlier revisions of this file recorded image length, vector values and image SHA-256 from a different diagnostic build. Those measurements are not carried forward as measurements of run 43699594411. The latest artifact ZIP has been identified and checksummed, but its contained BIN has not been separately extracted and re-hashed in this audit. Therefore no raw-image length, vector values, or raw-image digest are asserted for the latest run here.
+**Extracted-image inspection for run 43699850862:** the artifact ZIP was downloaded and independently verified. It contains `D10S_K1.intermediate.bin` (14,692 bytes; SHA-256 `0c4a1837c442b99ca5f5dac330eadd935cc05d87588203ab7f5b58b4e223951a`), `D10S_K1.elf` (44,864 bytes; SHA-256 `15b03ad3d5624d12690f16f393c37b87f6165e67078df36916eb59f422a2ddf4`), a 51,493-byte map and build metadata. The ELF identifies ARM EABI5 output. The extracted raw image has initial SP `0x20004000`, reset vector `0x08002905` (Thumb), vector table at `0x08002800`; linked `.text` starts at `0x08002900`, and `.bss` ends at `0x200015c0`. The ZIP digest was independently recomputed and matches the GitHub Actions artifact digest. These are structural build observations only; they do not prove the application origin or bootloader compatibility on the physical radio.
 
 The public `knoinok/quansheng_toolkit` project, revision `ea13a5850d8f22372c7ad205db13610c083c4ee8`, is Apache-2.0 licensed. Its DFU reference implementation documents:
 - UV-K1 bootloader `7.03.01` as a known UV-K1 bootloader and includes it in the K1 flash allowlist.
@@ -47,7 +47,7 @@ Therefore, the reported bootloader `7.03.01` supports the standard UV-K1 target 
 |---|---|---|---|
 | [knoinok/quansheng_toolkit](https://github.com/knoinok/quansheng_toolkit) | `ea13a5850d8f22372c7ad205db13610c083c4ee8` | Apache-2.0; LICENSE and NOTICE reviewed | Protocol facts only; no code imported |
 | [spm81/Multi-UVTools](https://github.com/spm81/Multi-UVTools) | `3979b8097af1703762e472f574219cbc2d35c172` | Not verified | Corroborating behavior notes only; no code imported |
-| D10S diagnostic build | `c8be5455f01111d104a9082c55ffcbb02a358184` | D10S project license not yet selected | CI build and artifact metadata only; latest raw BIN not independently hashed |
+| D10S diagnostic build | `9185380051142a69e35a92dbce63a8fece95198c` | D10S project license not yet selected | CI build; raw BIN extracted and hashed; diagnostic only, not for flashing |
 
 ## Release status
 
