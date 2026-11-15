@@ -39,12 +39,12 @@ bool d10s_bk4829_set_rx_gain_level(
     uint8_t level)
 {
     static const uint16_t gain_presets[6] = {
-        0x03DFu, /* ATT 0 */
-        0x03DDu, /* ATT -6 */
-        0x03DBu, /* ATT -15 */
-        0x03D9u, /* ATT -27 */
-        0x0379u, /* BYP: reduced LNA */
-        0x0139u  /* BYP+: reduced LNA and LNA-short */
+        0x03DFu, /* Level 0: reference receive gain preset */
+        0x03DDu, /* Level 1: relative gain preset; not dB-calibrated */
+        0x03DBu, /* Level 2: relative gain preset; not dB-calibrated */
+        0x03D9u, /* Level 3: relative gain preset; not dB-calibrated */
+        0x0379u, /* Level 4: BYP-style reduced-LNA preset */
+        0x0139u  /* Level 5: BYP+-style reduced-LNA preset */
     };
     uint16_t current;
     uint16_t updated;
