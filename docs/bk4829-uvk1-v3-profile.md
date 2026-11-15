@@ -1,4 +1,4 @@
-# UV-K1 V3 BK4829 receive profile
+# Standard UV-K1 BK4829 receive profile
 
 ## Source and license
 
@@ -17,7 +17,7 @@ The cold-start order follows the upstream radio setup: it programs the initial f
 
 After RX power-up, the profile selects the corresponding internal LNA path and asserts RX_ENABLE. On later scanner retunes, the scanner adapter owns REG_38/REG_39 while RX is already active; the profile resume callback only updates the LNA path and RX_ENABLE. This avoids duplicate synthesizer writes. A host test now asserts the cold-start write ordering.
 
-The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its RX_ENABLE output; the TX setup explicitly clears it. D10S therefore enables GPIO0 together with the selected internal LNA, matching this UV-K1 V3 source lineage. The upstream path selector uses GPIO4 for frequencies below 28 MHz and GPIO3 at/above 28 MHz. D10S emits the combined register writes:
+The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its RX_ENABLE output; the TX setup explicitly clears it. D10S therefore enables GPIO0 together with the selected internal LNA, matching the pinned upstream UV-K1/K5 V3 source lineage. The upstream path selector uses GPIO4 for frequencies below 28 MHz and GPIO3 at/above 28 MHz. D10S emits the combined register writes:
 - VHF selector below 28 MHz: REG_33 = 0x9004 (LNA selector alone)
 - UHF selector at/above 28 MHz: REG_33 = 0x9008 (LNA selector alone)
 - RX enabled with VHF selector: REG_33 = 0x9044
