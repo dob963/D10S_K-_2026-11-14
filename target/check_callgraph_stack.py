@@ -136,7 +136,16 @@ def attributes(body: str) -> dict[str, str]:
     return {key: value for key, value in ATTR_RE.findall(body)}
 
 
-def parse_reports(root: pathlib.Path) -> dict[str, Node]:
+def parse_linked_helpers(link_map: pathlib.Path) -> set[str]:
+    text = link_map.read_text(encoding="utf-8", errors="replace")
+    symbol_re = re.compile(r"^\\s*0x[0-9a-fA-F]+\\s+(__aeabi_[A-Za-z0-9_]+)\\s*$", re.M)
+    return set(symbol_re.findall(text))
+
+
+def parse_reports(
+    root: pathlib.Path,
+    linked_helpers: set[str] | None = None,
+) -> dict[str, Node]:
     reports = sorted(root.rglob("*.ci"))
     if not reports:
         raise ValueError("no GCC .ci call-graph reports found")
@@ -180,6 +189,8 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
                 pending_edges.append((source, target, attrs.get("label", "")))
 
     for name, frame in EXTERNAL_STACK_RESERVES.items():
+        if linked_helpers is not None and name not in linked_helpers:
+            continue
         node = graph.get(name)
         if node is None:
             graph[name] = Node(
@@ -198,6 +209,15 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
             node.source = "manual conservative libgcc reserve"
 
     for source, target, label in pending_edges:
+        # GCC's VCG report can list helper variants that are not selected by
+        # the final link. Only retain EABI helper edges present in the linker
+        # map, otherwise the static stack path overcounts unlinked routines.
+        if (
+            linked_helpers is not None
+            and target in EXTERNAL_STACK_RESERVES
+            and target not in linked_helpers
+        ):
+            continue
         if source not in graph:
             raise ValueError(f"call-graph edge has unknown caller node: {source}")
         if target == "__indirect_call":
@@ -278,10 +298,18 @@ def main() -> int:
     parser.add_argument("--entry", default="Reset_Handler")
     parser.add_argument("--exception-reserve", type=int, default=40)
     parser.add_argument("--budget", type=int, default=1536)
+    parser.add_argument(
+        "--link-map",
+        type=pathlib.Path,
+        help="GNU ld map file; filters out EABI helpers not present in the final image",
+    )
     args = parser.parse_args()
 
     try:
-        graph = parse_reports(args.build_dir)
+        linked_helpers = (
+            parse_linked_helpers(args.link_map) if args.link_map is not None else None
+        )
+        graph = parse_reports(args.build_dir, linked_helpers)
         c_bytes, chain = worst_path(graph, args.entry)
         total = c_bytes + args.exception_reserve
         print("CUMULATIVE STACK PATH (worst direct-call chain):")
