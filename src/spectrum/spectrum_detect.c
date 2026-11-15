@@ -106,15 +106,14 @@ static uint32_t refined_frequency(const d10s_spectrum_bin_t *bins, size_t index)
     return (uint32_t)frequency;
 }
 
-static bool find_peak(const d10s_spectrum_state_t *state,
-                      const d10s_spectrum_bin_t *bins,
-                      size_t count,
-                      uint16_t threshold,
-                      size_t *peak_index)
+static size_t find_peaks(const d10s_spectrum_state_t *state,
+                         const d10s_spectrum_bin_t *bins,
+                         size_t count,
+                         uint16_t threshold,
+                         uint16_t *peak_indices)
 {
+    size_t found = 0u;
     size_t i;
-    bool found = false;
-    uint16_t best_level = 0u;
 
     for (i = 1u; i + 1u < count; ++i) {
         const uint16_t level = bins[i].rssi;
@@ -123,18 +122,34 @@ static bool find_peak(const d10s_spectrum_state_t *state,
                 ? bins[i - 1u].rssi : bins[i + 1u].rssi;
         const uint16_t prominence =
             level > neighbor ? (uint16_t)(level - neighbor) : 0u;
+        size_t position;
 
         if (level < threshold || level < bins[i - 1u].rssi ||
             level < bins[i + 1u].rssi) continue;
         if (level == bins[i - 1u].rssi && level == bins[i + 1u].rssi) continue;
         if (prominence < state->config.min_peak_prominence) continue;
-        if (!found || level > best_level) {
-            found = true;
-            best_level = level;
-            *peak_index = i;
+
+        /* Keep the strongest bounded set, in descending RSSI order. */
+        position = found;
+        if (position > D10S_SPECTRUM_MAX_PEAKS - 1u)
+            position = D10S_SPECTRUM_MAX_PEAKS - 1u;
+        while (position > 0u &&
+               bins[peak_indices[position - 1u]].rssi < level) {
+            if (position < D10S_SPECTRUM_MAX_PEAKS)
+                peak_indices[position] = peak_indices[position - 1u];
+            --position;
         }
+        if (position < D10S_SPECTRUM_MAX_PEAKS)
+            peak_indices[position] = (uint16_t)i;
+        if (found < D10S_SPECTRUM_MAX_PEAKS) ++found;
     }
     return found;
+}
+
+static bool bins_within_tolerance(uint16_t a, uint16_t b, uint8_t tolerance)
+{
+    return a > b ? (uint16_t)(a - b) <= tolerance
+                 : (uint16_t)(b - a) <= tolerance;
 }
 
 void d10s_spectrum_default_config(d10s_spectrum_config_t *config)
@@ -192,10 +207,13 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
                            d10s_spectrum_result_t *result)
 {
     uint16_t threshold;
-    size_t peak_index = 0u;
-    bool candidate_found;
-
+    uint16_t peak_indices[D10S_SPECTRUM_MAX_PEAKS];
+    d10s_spectrum_peak_t next_tracks[D10S_SPECTRUM_MAX_PEAKS];
+    bool old_track_used[D10S_SPECTRUM_MAX_PEAKS] = {false};
+    size_t peak_count;
     size_t i;
+    size_t j;
+
     if (state == NULL || bins == NULL || result == NULL ||
         count < 3u || count > D10S_SPECTRUM_MAX_BINS ||
         !valid_frequency_grid(bins, count)) return false;
@@ -204,44 +222,78 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
     }
 
     clear_bytes(result, sizeof(*result));
+    clear_bytes(next_tracks, sizeof(next_tracks));
     if (!estimate_noise_floor(state, bins, count)) return false;
     threshold = clamp_u16((uint32_t)state->noise_floor + state->config.noise_margin);
     result->noise_floor = state->noise_floor;
     result->open_threshold = threshold;
 
-    candidate_found = find_peak(state, bins, count, threshold, &peak_index);
-    if (!candidate_found) {
-        state->pending_valid = false;
-        state->pending_streak = 0u;
-    } else {
-        const uint32_t frequency = refined_frequency(bins, peak_index);
-        result->candidate_valid = true;
-        result->candidate_frequency_hz = frequency;
-        result->candidate_level = bins[peak_index].rssi;
+    peak_count = find_peaks(state, bins, count, threshold, peak_indices);
+    result->peak_count = (uint8_t)peak_count;
 
-        if (state->pending_valid &&
-            (peak_index + state->config.confirm_tolerance_bins >= state->pending_bin) &&
-            (state->pending_bin + state->config.confirm_tolerance_bins >= peak_index)) {
-            if (state->pending_streak < UINT8_MAX) ++state->pending_streak;
-        } else {
-            state->pending_valid = true;
-            state->pending_streak = 1u;
-        }
-        state->pending_bin = (uint16_t)peak_index;
-        result->candidate_streak = state->pending_streak;
+    for (i = 0u; i < peak_count; ++i) {
+        const uint16_t bin = peak_indices[i];
+        size_t matched_track = D10S_SPECTRUM_MAX_PEAKS;
+        uint16_t best_distance = UINT16_MAX;
+        d10s_spectrum_peak_t *peak = &result->peaks[i];
 
-        if (state->pending_streak >= state->config.confirm_sweeps) {
-            result->confirmed = true;
-            result->confirmed_frequency_hz = frequency;
-            result->confirmed_level = bins[peak_index].rssi;
-            if (!state->peak_hold_valid ||
-                bins[peak_index].rssi >= state->peak_hold_level) {
-                state->peak_hold_valid = true;
-                state->peak_hold_frequency_hz = frequency;
-                state->peak_hold_level = bins[peak_index].rssi;
+        for (j = 0u; j < D10S_SPECTRUM_MAX_PEAKS; ++j) {
+            uint16_t distance;
+            if (!state->tracked_peaks[j].valid || old_track_used[j] ||
+                !bins_within_tolerance(bin, state->tracked_peaks[j].bin,
+                                       state->config.confirm_tolerance_bins))
+                continue;
+            distance = bin > state->tracked_peaks[j].bin
+                ? (uint16_t)(bin - state->tracked_peaks[j].bin)
+                : (uint16_t)(state->tracked_peaks[j].bin - bin);
+            if (distance < best_distance) {
+                best_distance = distance;
+                matched_track = j;
             }
         }
+
+        peak->valid = true;
+        peak->bin = bin;
+        peak->frequency_hz = refined_frequency(bins, bin);
+        peak->level = bins[bin].rssi;
+        if (matched_track < D10S_SPECTRUM_MAX_PEAKS) {
+            old_track_used[matched_track] = true;
+            peak->streak = state->tracked_peaks[matched_track].streak;
+            if (peak->streak < UINT8_MAX) ++peak->streak;
+        } else {
+            peak->streak = 1u;
+        }
+        peak->confirmed = peak->streak >= state->config.confirm_sweeps;
+        next_tracks[i] = *peak;
+
+        if (i == 0u) {
+            result->candidate_valid = true;
+            result->candidate_frequency_hz = peak->frequency_hz;
+            result->candidate_level = peak->level;
+            result->candidate_streak = peak->streak;
+            result->confirmed = peak->confirmed;
+            if (peak->confirmed) {
+                result->confirmed_frequency_hz = peak->frequency_hz;
+                result->confirmed_level = peak->level;
+            }
+        }
+
+        if (peak->confirmed &&
+            (!state->peak_hold_valid || peak->level >= state->peak_hold_level)) {
+            state->peak_hold_valid = true;
+            state->peak_hold_frequency_hz = peak->frequency_hz;
+            state->peak_hold_level = peak->level;
+        }
     }
+
+    for (i = 0u; i < D10S_SPECTRUM_MAX_PEAKS; ++i)
+        state->tracked_peaks[i] = next_tracks[i];
+
+    /* Preserve the legacy strongest-candidate tracking fields for callers
+       that inspect state directly; confirmation is now per-peak. */
+    state->pending_valid = peak_count > 0u;
+    state->pending_bin = peak_count > 0u ? peak_indices[0] : 0u;
+    state->pending_streak = peak_count > 0u ? result->peaks[0].streak : 0u;
 
     result->peak_hold_valid = state->peak_hold_valid;
     result->peak_hold_frequency_hz = state->peak_hold_frequency_hz;
