@@ -21,7 +21,7 @@ This document separates known project inputs from assumptions that must not be p
 - The detector estimates the noise floor from a configurable sweep percentile and a rolling history, then confirms up to eight local peaks independently over multiple complete sweeps.
 - Peak candidates are bounded to the eight strongest qualifying local maxima; confirmed peaks are tracked independently and exposed to the renderer.
 - Both scan-band endpoints are evaluated as one-sided local maxima. Their reported frequency remains the measured endpoint bin because no outside sample exists for parabolic interpolation.
-- CI run [43700867913](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43700867913) passed after the endpoint correction, including warning-as-error compile, CMake tests, Cortex-M0+ cross-compile, full PY32F071 link/layout validation and Makefile tests. This remains software-only evidence.
+- CI run [43704302767](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43704302767) passed: warning-as-error compile, all 10 CMake tests, Cortex-M0+ cross-compile, full PY32F071 link/layout validation, static cumulative stack analysis and Makefile tests. Stack estimate: 1,352-byte static C call chain plus 40-byte exception reserve = 1,392/1,536 bytes; 256-byte ARM EABI helper reserves are manual conservative bounds, not measured frames. This remains software-only evidence.
 
 ## Hard safety rules
 - Never treat an uncalibrated RSSI value as dBm.
