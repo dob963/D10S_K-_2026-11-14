@@ -6,16 +6,16 @@ Audit date: 2026-11-15
 
 The D10S target workflow produces a raw Cortex-M firmware image, not a Quansheng vendor-packed update file. The latest verified CI artifact is:
 
-- Workflow run: [43699850862](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43699850862).
-- Commit: `9185380051142a69e35a92dbce63a8fece95198c`.
+- Workflow run: [43723962063](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43723962063).
+- Commit: `4cf33e2188a2d2227fad78e1ab9ebb43a44ce0ef`.
 - Artifact: `D10S-K1-diagnostic-build-not-for-flashing`.
-- Artifact ID: `14155852797`.
-- ZIP size: 36,448 bytes.
-- ZIP SHA-256: `25f64131ff7c01fa3b4030118948dcc2d2acdb7041af0d6114f8338a207b7f5e`.
+- Artifact ID: `14165787309`.
+- ZIP size: 37,644 bytes.
+- ZIP SHA-256: `d07677c014b448c2ab098b11b55b67eed9fd2269430c5ed3eabcd5c50d696bf5`.
 
-The workflow confirms successful warning-as-error compilation, CMake tests, Cortex-M0+ cross-compilation, full PY32F071 application link, image-layout validation, Makefile build/tests, and diagnostic artifact upload.
+The latest run's `host-tests` job completed successfully: warning-as-error compilation, all CMake tests, Cortex-M0+ cross-compilation, complete PY32F071 application link and image-layout validation, stack-analysis diagnostics, Makefile build/tests, and diagnostic artifact upload all passed.
 
-**Extracted-image inspection for run 43699850862:** the artifact ZIP was downloaded and independently verified. It contains `D10S_K1.intermediate.bin` (14,692 bytes; SHA-256 `0c4a1837c442b99ca5f5dac330eadd935cc05d87588203ab7f5b58b4e223951a`), `D10S_K1.elf` (44,864 bytes; SHA-256 `15b03ad3d5624d12690f16f393c37b87f6165e67078df36916eb59f422a2ddf4`), a 51,493-byte map and build metadata. The ELF identifies ARM EABI5 output. The extracted raw image has initial SP `0x20004000`, reset vector `0x08002905` (Thumb), vector table at `0x08002800`; linked `.text` starts at `0x08002900`, and `.bss` ends at `0x200015c0`. The ZIP digest was independently recomputed and matches the GitHub Actions artifact digest. These are structural build observations only; they do not prove the application origin or bootloader compatibility on the physical radio.
+**Extracted-image inspection for run 43723962063:** the artifact ZIP was downloaded and independently verified. It contains `D10S_K1.intermediate.bin` (15,208 bytes; SHA-256 `71d8a646bd1f4a20a0269cec5e331f7bef563d0582f5941af63b29c53a5b2dc2`), `D10S_K1.elf` (44,892 bytes; SHA-256 `bb76b2afe85ece5008e05816d19aa932763ccbbde0e8520387cfa049edd47fdc`), a 49,622-byte map and build metadata. The ELF identifies ARM EABI5 output. The extracted raw image has initial SP `0x20004000`, reset vector `0x08002905` (Thumb), vector table at `0x08002800`; linked `.text` starts at `0x08002900`, and `.bss` ends at `0x200016c8`. The ZIP digest was independently recomputed and matches the GitHub Actions artifact digest. These are structural build observations only; they do not prove the application origin or bootloader compatibility on the physical radio.
 
 The public `knoinok/quansheng_toolkit` project, revision `ea13a5850d8f22372c7ad205db13610c083c4ee8`, is Apache-2.0 licensed. Its DFU reference implementation documents:
 - UV-K1 bootloader `7.03.01` as a known UV-K1 bootloader and includes it in the K1 flash allowlist.
@@ -47,7 +47,7 @@ Therefore, the reported bootloader `7.03.01` supports the standard UV-K1 target 
 |---|---|---|---|
 | [knoinok/quansheng_toolkit](https://github.com/knoinok/quansheng_toolkit) | `ea13a5850d8f22372c7ad205db13610c083c4ee8` | Apache-2.0; LICENSE and NOTICE reviewed | Protocol facts only; no code imported |
 | [spm81/Multi-UVTools](https://github.com/spm81/Multi-UVTools) | `3979b8097af1703762e472f574219cbc2d35c172` | Not verified | Corroborating behavior notes only; no code imported |
-| D10S diagnostic build | `9185380051142a69e35a92dbce63a8fece95198c` | D10S project license not yet selected | CI build; raw BIN extracted and hashed; diagnostic only, not for flashing |
+| D10S diagnostic build | `4cf33e2188a2d2227fad78e1ab9ebb43a44ce0ef` | D10S project license not yet selected | Latest CI build; raw BIN extracted and hashed; diagnostic only, not for flashing |
 
 ## Release status
 
