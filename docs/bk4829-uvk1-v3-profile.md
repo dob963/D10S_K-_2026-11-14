@@ -2,7 +2,7 @@
 
 ## Source and license
 
-This opt-in register profile is derived from armel/uv-k1-k5v3-firmware-custom, file App/driver/bk4829.c, pinned commit 3261ca7883d5b0b60c0905d8766612dee7b4191d. The upstream repository declares Apache-2.0. Copyright and license attribution are retained in the source headers and THIRD_PARTY_NOTICES.md; LICENSES/Apache-2.0.txt contains the license text.
+The target diagnostic image currently compiles and invokes this source-derived register profile. It is not hardware-validated or approved for a radio release. The profile is derived from armel/uv-k1-k5v3-firmware-custom, file App/driver/bk4829.c, pinned commit 3261ca7883d5b0b60c0905d8766612dee7b4191d. The upstream repository declares Apache-2.0. Copyright and license attribution are retained in the source headers and THIRD_PARTY_NOTICES.md; LICENSES/Apache-2.0.txt contains the license text.
 
 The adapter isolates the baseline register writes and RX-mode sequence in a separate profile and uses the D10S bus API. Spectrum scanning, detection and view code remain independent.
 
