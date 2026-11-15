@@ -7,7 +7,7 @@ This is the remaining physical acceptance checklist for the source-derived PY32F
 ## Software verification already completed
 
 - [x] Host tests cover independent multi-peak confirmation (up to eight candidates), strongest-eight bounding, peak tracking through dominant-peak changes, loss/reacquisition, band-reset clearing and detection at both band edges.
-- [x] CI run [43704790473](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43704790473) passed warning-as-error compilation, all 10 CMake tests (including RSSI percentile bucket boundaries), Cortex-M0+ cross-compilation, full PY32F071 link/layout checks, static cumulative stack analysis and Makefile tests. Current static estimate is 904/1,536 bytes including a 40-byte exception reserve; the 256-byte `__aeabi_idiv` allowance is manually assigned, not measured, and the estimate is not a hardware high-water mark.
+- [x] CI run [43705683797](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43705683797) passed warning-as-error compilation, all 10 CMake tests, Cortex-M0+ cross-compilation, complete PY32F071 link/layout checks, map-filtered static stack analysis and Makefile tests. Current estimate is 904/1,536 bytes including 40-byte exception reserve and a manually assigned 256-byte `__aeabi_uidiv` allowance; it is not a measured hardware high-water mark.
 
 These checks do not substitute for the physical tests below.
 
