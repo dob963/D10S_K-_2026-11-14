@@ -133,7 +133,7 @@ static void draw_header(const d10s_spectrum_canvas_t *canvas,
 {
     char label[8] = "B0/0";
     static const char *const attenuation_labels[6] = {
-        "A0", "A6", "A15", "A27", "BYP", "BYP+"
+        "AT0", "AT1", "AT2", "AT3", "AT4", "AT5"
     };
     const char *att_label;
     const uint8_t style = model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u;
@@ -141,7 +141,7 @@ static void draw_header(const d10s_spectrum_canvas_t *canvas,
     label[1] = (char)('1' + model->band_index);
     label[3] = (char)('0' + (model->band_count % 10u));
     att_label = model->attenuation_level < 6u
-        ? attenuation_labels[model->attenuation_level] : "A?";
+        ? attenuation_labels[model->attenuation_level] : "AT?";
 
 
     if (canvas->text == 0) return;
