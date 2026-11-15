@@ -1,6 +1,6 @@
 # Third-party source and license audit
 
-Audit date: 2026-11-14
+Audit date: 2026-11-15
 
 ## Policy
 
@@ -19,6 +19,8 @@ Do not copy code from a project whose license is missing, unclear, incompatible 
 | [Dim0s/quansheng-UV-K5v3-K1-firmware-pack](https://github.com/Dim0s/quansheng-UV-K5v3-K1-firmware-pack) | Maintainer notes about Spectrum behavior and known defects | License not verified in this audit | Notes only; no code imported |
 | KA52M K1/V3 firmware | BK4829 driver and Spectrum implementation research lead | Exact repository/revision and license not yet verified in this audit | No code imported |
 | Fagci K1 scanner | Scan/acquisition architecture research lead | Exact repository/revision and license not yet verified in this audit | No code imported |
+| [knoinok/quansheng_toolkit](https://github.com/knoinok/quansheng_toolkit) | DFU transport, raw-image handling and bootloader allowlist evidence | Apache-2.0 verified at revision `ea13a5850d8f22372c7ad205db13610c083c4ee8`; LICENSE and NOTICE reviewed | Protocol facts only; no code imported |
+| [spm81/Multi-UVTools](https://github.com/spm81/Multi-UVTools) | Corroborating 256-byte UV-K1 DFU page-transfer behavior | License not verified at revision `3979b8097af1703762e472f574219cbc2d35c172` | Behavior notes only; no code imported; do not reuse source until license is verified |
 
 This table records the state of the review, not a blanket legal opinion about the listed projects. Re-check repository license files, file-level headers, contributor notices, and the exact commit before any future reuse.
 
