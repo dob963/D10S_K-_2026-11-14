@@ -47,6 +47,28 @@ static void test_release_then_new_key(void)
     CHECK(event == D10S_KEY_F);
 }
 
+static void test_ambiguous_scan_does_not_release_held_key(void)
+{
+    d10s_spectrum_key_state_t state = {0};
+    d10s_spectrum_key_t event = D10S_KEY_NONE;
+    unsigned i;
+
+    for (i = 0u; i < 3u; ++i)
+        CHECK(d10s_spectrum_key_debounce(&state, D10S_KEY_SIDE1, false, &event));
+    CHECK(event == D10S_KEY_SIDE1);
+    CHECK(state.pressed == D10S_KEY_SIDE1);
+
+    CHECK(d10s_spectrum_key_debounce(&state, D10S_KEY_NONE, true, &event));
+    CHECK(event == D10S_KEY_NONE);
+    CHECK(state.pressed == D10S_KEY_SIDE1);
+    CHECK(state.candidate == D10S_KEY_SIDE1);
+    CHECK(state.stable_count == 3u);
+
+    for (i = 0u; i < 3u; ++i)
+        CHECK(d10s_spectrum_key_debounce(&state, D10S_KEY_SIDE1, false, &event));
+    CHECK(event == D10S_KEY_NONE);
+}
+
 static void test_ambiguous_samples_do_not_change_state(void)
 {
     d10s_spectrum_key_state_t state = {0};
@@ -66,6 +88,7 @@ int main(void)
     test_single_event_after_three_stable_samples();
     test_release_then_new_key();
     test_ambiguous_samples_do_not_change_state();
+    test_ambiguous_scan_does_not_release_held_key();
     puts("Spectrum key debounce tests: PASS");
     return 0;
 }
