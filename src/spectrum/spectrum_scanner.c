@@ -53,6 +53,7 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
     scanner->pending_rssi_compensation = 0u;
     scanner->attenuation_settle_pending = false;
     scanner->current_settle_ms = settle_ms;
+    scanner->sweep_reverse = false;
     scanner->phase = SCANNER_PHASE_TUNE;
     return true;
 }
@@ -165,6 +166,7 @@ bool d10s_spectrum_scanner_select_band(d10s_spectrum_scanner_t *scanner,
 
     scanner->published_valid = false;
     scanner->current_frequency_hz = 0u;
+    scanner->sweep_reverse = false;
     d10s_spectrum_reset_tracking(&scanner->detector);
     return true;
 }
@@ -278,8 +280,11 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
     case SCANNER_PHASE_TUNE: {
         uint32_t requested_frequency_hz = 0u;
         uint32_t actual_frequency_hz = 0u;
+        const uint16_t sample_index = scanner->sweep_reverse
+            ? (uint16_t)(band->bin_count - 1u - scanner->bin_index)
+            : scanner->bin_index;
         if (!d10s_spectrum_plan_frequency(&scanner->plan,
-                                          scanner->bin_index,
+                                          sample_index,
                                           &requested_frequency_hz) ||
             !radio->tune_hz(radio->context, requested_frequency_hz,
                             &actual_frequency_hz) ||
@@ -289,7 +294,7 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
             return D10S_SCANNER_ERROR;
         }
         scanner->current_frequency_hz = actual_frequency_hz;
-        scanner->bins[scanner->bin_index].frequency_hz = actual_frequency_hz;
+        scanner->bins[sample_index].frequency_hz = actual_frequency_hz;
         scanner->current_settle_ms = scanner->attenuation_settle_pending
             ? 40u : scanner->settle_ms;
         scanner->attenuation_settle_pending = false;
@@ -355,10 +360,13 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
             }
         }
         {
+            const uint16_t sample_index = scanner->sweep_reverse
+                ? (uint16_t)(band->bin_count - 1u - scanner->bin_index)
+                : scanner->bin_index;
             uint32_t compensated = (uint32_t)rssi + scanner->rssi_compensation;
             if (compensated > D10S_SPECTRUM_MAX_RSSI)
                 compensated = D10S_SPECTRUM_MAX_RSSI;
-            scanner->bins[scanner->bin_index].rssi = (uint16_t)compensated;
+            scanner->bins[sample_index].rssi = (uint16_t)compensated;
         }
 
         if ((uint16_t)(scanner->bin_index + 1u) < band->bin_count) {
@@ -387,7 +395,12 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
         }
 
         changed = d10s_spectrum_plan_complete_sweep(&scanner->plan);
-        if (changed) d10s_spectrum_reset_tracking(&scanner->detector);
+        if (changed) {
+            d10s_spectrum_reset_tracking(&scanner->detector);
+            scanner->sweep_reverse = false;
+        } else {
+            scanner->sweep_reverse = !scanner->sweep_reverse;
+        }
 
         scanner->bin_index = 0u;
         scanner->phase = SCANNER_PHASE_TUNE;
