@@ -281,6 +281,19 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(hw.attenuation_level == 0u);
     CHECK(app.scanner.settle_ms == 8u);
 
+    /* Keys 6/7 adjust the adaptive opening margin; 8 restores default. */
+    CHECK(app.scanner.detector.config.noise_margin == 12u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_6));
+    CHECK(app.scanner.detector.config.noise_margin == 10u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_7));
+    CHECK(app.scanner.detector.config.noise_margin == 12u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_7));
+    CHECK(app.scanner.detector.config.noise_margin == 14u);
+    CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_8));
+    CHECK(app.scanner.detector.config.noise_margin == 12u);
+    CHECK(!d10s_spectrum_app_set_noise_margin(&app, 1u));
+    CHECK(!d10s_spectrum_app_set_noise_margin(&app, 65u));
+
     d10s_spectrum_app_stop(&app);
     CHECK(d10s_spectrum_app_tick(&app, now_ms) == D10S_APP_ERROR);
 }
