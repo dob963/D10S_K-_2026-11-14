@@ -85,3 +85,26 @@ jobs:
           python3 target/validate_image.py build/target/D10S_K1.intermediate.bin
       - name: Verify Makefile build and tests
         run: make clean && make test
+      - name: Package diagnostic build outputs (not for flashing)
+        if: success()
+        run: |
+          {
+            echo "commit=${GITHUB_SHA}"
+            echo "target=PY32F071 Cortex-M0+"
+            echo "status=DIAGNOSTIC_ONLY_NOT_FOR_FLASHING"
+            sha256sum build/target/D10S_K1.intermediate.bin
+            stat -c "image_bytes=%s" build/target/D10S_K1.intermediate.bin
+            arm-none-eabi-size build/target/D10S_K1.elf
+          } > build/target/BUILD-METADATA.txt
+      - name: Upload diagnostic outputs (not for flashing)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: D10S-K1-diagnostic-build-not-for-flashing
+          path: |
+            build/target/D10S_K1.elf
+            build/target/D10S_K1.map
+            build/target/D10S_K1.intermediate.bin
+            build/target/BUILD-METADATA.txt
+          if-no-files-found: error
+          retention-days: 14
