@@ -397,6 +397,7 @@ typedef struct {
     uint32_t first_hz;
     uint32_t step_hz;
     uint32_t tune_calls;
+    uint32_t tuned_frequencies[16];
     uint32_t read_calls;
     uint16_t noise_level;
     uint16_t peak_level;
@@ -414,6 +415,8 @@ static bool fake_radio_tune(void *context, uint32_t requested_hz,
     if (radio->fail_tune || actual_hz == 0) return false;
     radio->frequency_hz = requested_hz;
     *actual_hz = requested_hz;
+    if (radio->tune_calls < 16u)
+        radio->tuned_frequencies[radio->tune_calls] = requested_hz;
     ++radio->tune_calls;
     return true;
 }
@@ -486,6 +489,47 @@ static void test_scanner_acquires_and_confirms_signal(void)
     CHECK(result.confirmed_level == 160u);
     CHECK(fake.tune_calls == 15u);
     CHECK(fake.read_calls == 15u);
+}
+
+static void test_scanner_alternates_direction_and_keeps_bins_ordered(void)
+{
+    const d10s_spectrum_band_t bands[] = {
+        {144000000u, 144004000u, 5u, 1u}
+    };
+    fake_radio_t fake = {
+        .first_hz = 144000000u, .step_hz = 1000u,
+        .noise_level = 90u, .peak_level = 150u
+    };
+    const d10s_spectrum_radio_ops_t ops = {
+        &fake, fake_radio_tune, fake_radio_read, fake_radio_set_att
+    };
+    d10s_spectrum_scanner_t scanner;
+    d10s_spectrum_result_t result;
+    const d10s_spectrum_bin_t *snapshot = NULL;
+    uint16_t count = 0u;
+    uint32_t now_ms = 0u;
+    bool changed = false;
+
+    CHECK(d10s_spectrum_scanner_init(&scanner, bands, 1u, NULL, 1u));
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(!scanner.sweep_reverse);
+    CHECK(fake.tuned_frequencies[0] == 144000000u);
+    CHECK(fake.tuned_frequencies[4] == 144004000u);
+
+    CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
+                               &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(scanner.sweep_reverse);
+    CHECK(fake.tuned_frequencies[5] == 144004000u);
+    CHECK(fake.tuned_frequencies[9] == 144000000u);
+    CHECK(d10s_spectrum_scanner_snapshot(&scanner, &snapshot, &count,
+                                         NULL, NULL, NULL));
+    CHECK(count == 5u);
+    CHECK(snapshot[0].frequency_hz == 144000000u);
+    CHECK(snapshot[1].frequency_hz == 144001000u);
+    CHECK(snapshot[2].frequency_hz == 144002000u);
+    CHECK(snapshot[3].frequency_hz == 144003000u);
+    CHECK(snapshot[4].frequency_hz == 144004000u);
 }
 
 static void test_scanner_resets_detector_on_band_change(void)
@@ -1120,6 +1164,7 @@ int main(void)
     test_band_reset_clears_old_noise_and_peak();
     test_rejects_rssi_above_nine_bit_range();
     test_scanner_acquires_and_confirms_signal();
+    test_scanner_alternates_direction_and_keeps_bins_ordered();
     test_scanner_resets_detector_on_band_change();
     test_scanner_rejects_radio_failures();
     test_scanner_att_compensation_and_boundary_rules();
