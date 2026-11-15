@@ -49,9 +49,10 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles target sources with warnings as errors, links `D10S_K1.elf`, emits an intermediate raw image and checks the vector table, stack pointer, reset vector, flash bounds and per-function stack-frame usage. It also runs host tests, portable Cortex-M0+ compilation and Makefile tests.
 
-**Latest verified CI:** [run 43732846410](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43732846410), commit `30b85de6b3ead17c425250173f68f400a27913e0`.
-- Workflow conclusion: success. The target compile/link, structural image checks, host tests, Cortex-M0+ compile and Makefile tests completed successfully.
-- Latest diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, artifact ID `14168638048`, ZIP size 37,580 bytes; SHA-256 `41e7bb51ffe8aa8b47b9cad18918de6839e89d55034bbd0d666bc66e5f76570d`.
+**Latest verified CI:** [run 43741700290](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43741700290), commit `6f1ae5901591fb8859b94c63485378083874df11`.
+- Workflow conclusion: success. Warning-as-error compile, all 10 host tests, Cortex-M0+ cross-compile, PY32F071 link/layout validation, stack diagnostics and Makefile tests completed successfully.
+- Latest diagnostic artifact: `D10S-K1-diagnostic-build-not-for-flashing`, artifact ID `14172985722`, ZIP size 37,580 bytes; ZIP SHA-256 `f657a53263bac080e14b19d1fd537a138e0d07c5baaaaf38850c34402892f859`.
+- The archive contains a 15,188-byte intermediate image; its SHA-256 is `de14676a64d1bc7a910eb9dcf05efbb2c6e07dc797481f66f23fabe713df8f6a`.
 - The artifact is diagnostic only. It is **not a flashable firmware release** and must not be installed on the radio.
 
 The CI run proves that the checked source compiles and passes its automated software/image-structure checks. It does not validate the physical UV-K1 PCB, RF path, LCD/keypad behavior, bootloader hand-off or recovery procedure.
