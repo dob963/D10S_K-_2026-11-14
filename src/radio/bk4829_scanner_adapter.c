@@ -31,6 +31,18 @@ static bool tune_hz(void *context, uint32_t requested_hz,
     return true;
 }
 
+static bool set_attenuation(void *context, uint8_t level)
+{
+    d10s_bk4829_scanner_adapter_t *a =
+        (d10s_bk4829_scanner_adapter_t *)context;
+    if (a == NULL || !a->ready) return false;
+    if (!d10s_bk4829_set_rx_gain_level(&a->bus, &a->timing, level)) {
+        fail_closed(a);
+        return false;
+    }
+    return true;
+}
+
 static bool read_rssi(void *context, uint16_t *rssi)
 {
     d10s_bk4829_scanner_adapter_t *a =
@@ -104,5 +116,5 @@ void d10s_bk4829_scanner_adapter_bind(
     ops->context = a;
     ops->tune_hz = tune_hz;
     ops->read_rssi = read_rssi;
-    ops->set_attenuation = NULL;
+    ops->set_attenuation = set_attenuation;
 }
