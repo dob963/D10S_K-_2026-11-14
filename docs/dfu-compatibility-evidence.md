@@ -1,4 +1,4 @@
-# DFU compatibility evidence — UV-K1 bootloader 7.03.01
+| D10S diagnostic build | `43410fe457e58ae4711395af644baa1e26cb56fe` | D10S project license not yet selected | Latest CI run `43749519453` succeeded; raw intermediate BIN extracted and hashed; diagnostic only, not for flashing |nce — UV-K1 bootloader 7.03.01
 
 Audit date: 2026-11-15
 
@@ -39,7 +39,7 @@ Therefore, the reported bootloader `7.03.01` supports the standard UV-K1 target 
 2. The 256-byte page transport and 7.03.01 allowlist are supported by source review, **not by a D10S hardware flash test**.
 3. The D10S linker origin `0x08002800` is a current project configuration. The reviewed DFU sources do not independently prove this origin for every PCB/bootloader revision.
 4. The exact board, MCU marking, bootloader readback, application address, and recovery route still require confirmation on the physical radio before a flashable release.
-5. The latest CI artifact is diagnostic-only. A successful build and image-layout check do not authorize flashing.
+5. The latest CI run [43749519453](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43749519453) completed successfully at commit `43410fe457e58ae4711395af644baa1e26cb56fe`. Its diagnostic artifact (ID `14175911459`) contains a 15,196-byte raw intermediate image with SHA-256 `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`; ZIP SHA-256 `1148754291cfae283b02f6df54d51b972da8588caf7312fb91d801d678121eea`. The image vector check observed SP `0x20004000` and Reset `0x08002905`. Startup now masks inherited interrupts before relocating VTOR. These are build and structural observations only; the artifact remains diagnostic-only and a successful build does not authorize flashing.
 
 ## Source and license record
 
