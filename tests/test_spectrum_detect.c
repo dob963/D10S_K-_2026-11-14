@@ -562,10 +562,13 @@ static void test_scanner_delay_changes_only_between_sweeps(void)
     CHECK(scanner.settle_ms == 2u);
     CHECK(d10s_spectrum_scanner_tick(&scanner, &ops, now_ms,
                                      &result, &changed) == D10S_SCANNER_BUSY);
-    CHECK(!d10s_spectrum_scanner_set_delay(&scanner, 8u));
+    CHECK(d10s_spectrum_scanner_set_delay(&scanner, 8u));
+    CHECK(scanner.settle_ms == 2u);
+    CHECK(scanner.pending_delay_valid);
     now_ms += 2u;
     CHECK(fake_run_until_sweep(&scanner, &ops, &now_ms,
                                &result, &changed) == D10S_SCANNER_SWEEP_READY);
+    CHECK(!scanner.pending_delay_valid);
     CHECK(d10s_spectrum_scanner_set_delay(&scanner, 8u));
     CHECK(scanner.settle_ms == 8u);
     CHECK(!d10s_spectrum_scanner_set_delay(&scanner, 0u));
