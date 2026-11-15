@@ -21,6 +21,8 @@ typedef struct {
     uint32_t shift;
     uint32_t delay_calls;
     uint32_t fail_delay_at;
+    uint16_t read_value;
+    uint8_t read_bit_count;
     uint8_t register_count;
     struct {
         uint8_t address;
@@ -35,6 +37,7 @@ static bool fake_csn(bool high, void *context)
         bus->active = true;
         bus->bit_count = 0u;
         bus->shift = 0u;
+        bus->read_bit_count = 0u;
     } else if (bus->active) {
         if (bus->bit_count == 24u &&
             bus->register_count < (uint8_t)(sizeof(bus->writes) / sizeof(bus->writes[0]))) {
@@ -75,9 +78,10 @@ static bool fake_write_data(bool high, void *context)
 
 static bool fake_read_data(bool *high, void *context)
 {
-    (void)context;
-    if (high == NULL) return false;
-    *high = false;
+    fake_bus_t *bus = (fake_bus_t *)context;
+    if (high == NULL || bus->read_bit_count >= 16u) return false;
+    *high = ((bus->read_value >> (15u - bus->read_bit_count)) & 1u) != 0u;
+    ++bus->read_bit_count;
     return true;
 }
 
@@ -209,10 +213,11 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     CHECK(ops.tune_hz != 0);
     CHECK(ops.read_rssi != 0);
     CHECK(ops.set_attenuation != 0);
+    fake.read_value = 0xFC00u | 0x03DFu;
     CHECK(ops.set_attenuation(ops.context, 3u));
-    CHECK(write_seen(&fake, 0x13u, 0x03D9u));
+    CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x03D9u)));
     CHECK(ops.set_attenuation(ops.context, 5u));
-    CHECK(write_seen(&fake, 0x13u, 0x0139u));
+    CHECK(write_seen(&fake, 0x13u, (uint16_t)(0xFC00u | 0x0139u)));
     CHECK(!ops.set_attenuation(ops.context, 6u));
 
     CHECK(ops.tune_hz(ops.context, 145125000u, &actual_hz));
