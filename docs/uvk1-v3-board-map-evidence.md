@@ -76,7 +76,8 @@ Register-field comparison against `src/platform/py32f071_uvk1_v3.c`:
 | RCC_CFGR.SWS, bits 5:3 | 000=HSISYS, 001=HSE, 010=PLL, 011=LSI, 100=LSE | Switch cases 0x00, 0x08, 0x10, 0x18, 0x20 | Match |
 | RCC_CFGR.HPRE, bits 11:8 | 0xxx=/1, 1000=/2, 1001=/4, 1010=/8, 1011=/16, 1100=/64, 1101=/128, 1110=/256, 1111=/512 | Shift table {0,0,0,0,0,0,0,0,1,2,3,4,6,7,8,9} | Match |
 | RCC_PLLCFGR.PLLSRC, bits 1:0 | 10=HSI, 11=HSE; 00=no clock, 01=reserved | Accepts 2 for HSI and 3 for HSE; rejects others | Match |
-| RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Explicit decoder accepts only 00 and 01; returns failure for 10 and 11 | Match; reserved encodings are rejected |\n| PLL input clock | HSI/HSE: x2 requires 12–24 MHz; x3 requires 16–24 MHz | Enforces multiplier-specific minimum and 24 MHz maximum | Match; input range enforced |
+| RCC_PLLCFGR.PLLMUL, bits 3:2 | 00=x2, 01=x3; other encodings reserved | Explicit decoder accepts only 00 and 01; returns failure for 10 and 11 | Match; reserved encodings are rejected |
+| PLL input clock | HSI/HSE: x2 requires 12–24 MHz; x3 requires 16–24 MHz | Enforces multiplier-specific minimum and 24 MHz maximum | Match; input range enforced |
 
 ### Follow-up hardening completed
 
