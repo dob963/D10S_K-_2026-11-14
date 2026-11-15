@@ -1,4 +1,4 @@
-# D10S UV-K1 V3 hardware validation checklist
+# D10S standard UV-K1 hardware validation checklist
 
 This is the remaining physical acceptance checklist for the source-derived PY32F071/BK4829/ST7565 bring-up image. No item below is marked passed: the repository has no access to the user's physical radio.
 
@@ -55,7 +55,7 @@ Use a conducted RF source through a suitable attenuator/coupler, with no radiate
 
 - [ ] Capture CSN/SCL/SDA and verify register write/read framing.
 - [ ] Confirm each serial edge and turnaround delay against the 35-HCLK-cycle implementation and the measured HCLK.
-- [ ] Confirm baseline register writes and RX transition against the pinned UV-K1 V3 source sequence.
+- [ ] Confirm baseline register writes and RX transition against the pinned source-derived BK4829 RX sequence.
 - [ ] Verify REG_33 contains GPIO0 RX_ENABLE plus the correct GPIO3/GPIO4 LNA selection for each tested frequency.
 - [ ] Confirm GPIO1 PA_ENABLE is never set.
 - [ ] Confirm the external receive/RF-switch path actually changes state; source code alone does not prove PCB routing.
