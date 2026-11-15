@@ -1,3 +1,9 @@
+/*
+ * The six REG_13 gain presets follow the documented implementation in
+ * armel/uv-k1-k5v3-firmware-custom, App/app/foxhunt.c, pinned commit
+ * 3261ca7883d5b0b60c0905d8766612dee7b4191d (Apache-2.0).
+ * Adapted to the D10S register bus; see THIRD_PARTY_NOTICES.md.
+ */
 #include "bk4829.h"
 
 bool d10s_bk4829_frequency_supported(uint32_t frequency_hz)
@@ -25,6 +31,30 @@ bool d10s_bk4829_write_frequency(const d10s_bk4829_bus_port_t *port,
                                     (uint16_t)(word & 0xFFFFu))) return false;
     return d10s_bk4829_write_register(port, timing, D10S_BK4829_REG_FREQ_HIGH,
                                       (uint16_t)(word >> 16));
+}
+
+bool d10s_bk4829_set_rx_gain_level(
+    const d10s_bk4829_bus_port_t *port,
+    const d10s_bk4829_bus_timing_t *timing,
+    uint8_t level)
+{
+    static const uint16_t gain_presets[6] = {
+        0x03DFu, /* ATT 0 */
+        0x03DDu, /* ATT -6 */
+        0x03DBu, /* ATT -15 */
+        0x03D9u, /* ATT -27 */
+        0x0379u, /* BYP: reduced LNA */
+        0x0139u  /* BYP+: reduced LNA and LNA-short */
+    };
+    uint16_t current;
+    uint16_t updated;
+    if (level >= (uint8_t)(sizeof(gain_presets) / sizeof(gain_presets[0])) ||
+        !d10s_bk4829_read_register(port, timing, 0x13u, &current))
+        return false;
+    /* Change only documented gain fields; preserve REG_13 bits 10..15. */
+    updated = (uint16_t)((current & (uint16_t)~0x03FFu) |
+                         gain_presets[level]);
+    return d10s_bk4829_write_register(port, timing, 0x13u, updated);
 }
 
 bool d10s_bk4829_read_raw_rssi(const d10s_bk4829_bus_port_t *port,
