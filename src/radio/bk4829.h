@@ -22,6 +22,11 @@ bool d10s_bk4829_write_frequency(const d10s_bk4829_bus_port_t *port,
                                  const d10s_bk4829_bus_timing_t *timing,
                                  uint32_t frequency_hz);
 
+/* Set one of six BK4829 receive gain steps; levels 0..5 are relative only. */
+bool d10s_bk4829_set_rx_gain_level(const d10s_bk4829_bus_port_t *port,
+                                   const d10s_bk4829_bus_timing_t *timing,
+                                   uint8_t level);
+
 /* Raw 9-bit RSSI only. This function never reports dBm. */
 bool d10s_bk4829_read_raw_rssi(const d10s_bk4829_bus_port_t *port,
                                const d10s_bk4829_bus_timing_t *timing,
