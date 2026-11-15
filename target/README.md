@@ -17,7 +17,7 @@ This folder contains the first integrated target entry point for the receive-onl
 
 The reported bootloader version 7.03.01 is listed by reviewed public tooling as a standard UV-K1 bootloader. The same reference maps 7.00.07 to UV-K5 V3 / UV-K1(8) v3 Mini Kong; these model variants must not be treated as interchangeable without confirming the physical unit.
 
-The D10S artifact is emitted as a raw Cortex-M image. Reviewed DFU tooling sends raw images unchanged in 256-byte pages; vendor-packed stock update files use a separate XOR/version-block decoding step. D10S must not apply that vendor packing to its raw build output. The Run 438 image begins with a valid vector table (SP `0x20004000`, reset vector `0x08002905`) and occupies 57 DFU pages after transport padding.
+The D10S artifact is emitted as a raw Cortex-M image. Reviewed DFU tooling sends raw images unchanged in 256-byte pages; vendor-packed stock update files use a separate XOR/version-block decoding step. D10S must not apply that vendor packing to its raw build output. The Run 441 image begins with a valid vector table (SP `0x20004000`, reset vector `0x08002905`) and occupies 57 DFU pages after transport padding.
 
 This is source-level protocol evidence only. The bootloader version, model, application origin and recovery path have not been read/tested on the actual radio. **The intermediate BIN remains NOT FOR FLASHING.** See `docs/dfu-compatibility-evidence.md`.
 
@@ -47,10 +47,12 @@ The GitHub Actions workflow installs the GNU Arm Embedded toolchain, compiles ta
 
 A successful CI run uploads the ELF, map, intermediate raw image and build metadata as a 14-day diagnostic artifact explicitly marked **NOT FOR FLASHING**. This artifact is for engineering inspection, not a firmware release.
 
-The latest inspected Run 438 (commit `0e68b1ba630a0df03f17b58e397defb23a998d65`) produced:
+The latest inspected Run 441 (commit `e1ad8592dfe80500375ae24d74d04e4414d4228a`) produced:
 - `D10S_K1.intermediate.bin`: 14,456 bytes; SHA-256 `4fdf289d7eed0b84ec028e62ca3d0627ece83a3f0c2ba42ba9786c6c22cf0a35`.
 - ELF size report: 14,456 bytes text, 0 bytes data, 5,568 bytes BSS.
-- Artifact name: `D10S-K1-diagnostic-build-not-for-flashing`.
+- Stack analysis: 117 function frames; largest individual frame 560 bytes in `estimate_noise_floor`; per-function threshold 768 bytes. This is not a cumulative call-chain or runtime high-water measurement.
+- Tests: 9/9 CTest cases passed; all 9 Makefile test executables passed; Cortex-M0+ cross-compilation and full target link passed.
+- Artifact: `D10S-K1-diagnostic-build-not-for-flashing`, ID `14154875666`, ZIP SHA-256 `f2bf4fafe0fab245e439d8efcdd4c2f897e99f6ced888a8a4fdbf902598a3b16`.
 
 The intermediate BIN is not a released or approved flash image.
 
