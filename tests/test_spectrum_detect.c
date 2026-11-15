@@ -23,6 +23,30 @@ static void make_noise_sweep(d10s_spectrum_bin_t *bins, size_t count, uint16_t b
     }
 }
 
+
+static void test_configurable_opening_margin(void)
+{
+    const d10s_spectrum_bin_t bins[] = {
+        {144000000u, 100u}, {144001000u, 100u}, {144002000u, 160u},
+        {144003000u, 100u}, {144004000u, 100u}
+    };
+    d10s_spectrum_config_t config;
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+
+    d10s_spectrum_default_config(&config);
+    config.noise_margin = 20u;
+    d10s_spectrum_init(&state, &config);
+    CHECK(d10s_spectrum_process(&state, bins, 5u, &result));
+    CHECK(result.noise_floor == 100u);
+    CHECK(result.open_threshold == 120u);
+
+    state.config.noise_margin = 30u;
+    CHECK(d10s_spectrum_process(&state, bins, 5u, &result));
+    CHECK(result.noise_floor == 100u);
+    CHECK(result.open_threshold == 130u);
+}
+
 static void test_confirmation_and_peak_hold(void)
 {
     d10s_spectrum_state_t state;
@@ -690,7 +714,7 @@ static void test_spectrum_view_cursor_uses_published_bin_frequency(void)
     const d10s_spectrum_view_model_t model = {
         .bins = bins, .count = 5u, .band_index = 0u, .band_count = 2u,
         .attenuation_level = 2u, .turbo_enabled = true,
-        .noise_floor = 100u, .open_threshold = 120u,
+        .noise_floor = 100u, .open_threshold = 120u, .noise_margin = 20u,
         .peak_hold_valid = true, .peak_hold_frequency_hz = 144002000u,
         .cursor_valid = true, .cursor_bin = 2u,
         .band_label = 0, .bold_labels = true
@@ -851,6 +875,7 @@ static void test_mono128x64_framebuffer_with_spectrum_renderer(void)
 
 int main(void)
 {
+    test_configurable_opening_margin();
     test_confirmation_and_peak_hold();
     test_single_sweep_spike_is_not_confirmed();
     test_noise_floor_tracks_background();
