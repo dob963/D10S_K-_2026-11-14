@@ -48,6 +48,11 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
     scanner->pending_turbo_poll_interval_ms = 0u;
     scanner->pending_turbo_stable_delta = 0u;
     scanner->pending_turbo_stable_samples = 0u;
+    scanner->pending_attenuation_valid = false;
+    scanner->pending_attenuation_level = 0u;
+    scanner->pending_rssi_compensation = 0u;
+    scanner->attenuation_settle_pending = false;
+    scanner->current_settle_ms = settle_ms;
     scanner->phase = SCANNER_PHASE_TUNE;
     return true;
 }
@@ -58,21 +63,22 @@ bool d10s_spectrum_scanner_set_attenuation(
                                 uint8_t level,
                                 uint16_t measured_raw_rssi_offset)
 {
-    if (scanner == 0 || radio == 0 || radio->set_attenuation == 0)
+    if (scanner == 0 || radio == 0 || radio->set_attenuation == 0 ||
+        level > 5u || scanner->phase == SCANNER_PHASE_STOPPED ||
+        scanner->phase == SCANNER_PHASE_FAILED)
         return false;
-    if (scanner->phase != SCANNER_PHASE_TUNE || scanner->bin_index != 0u)
-        return false;
-    if (scanner->attenuation_configured &&
+    if (scanner->pending_attenuation_valid &&
+        scanner->pending_attenuation_level == level &&
+        scanner->pending_rssi_compensation == measured_raw_rssi_offset)
+        return true;
+    if (!scanner->pending_attenuation_valid &&
+        scanner->attenuation_configured &&
         scanner->attenuation_level == level &&
         scanner->rssi_compensation == measured_raw_rssi_offset)
         return true;
-    if (!radio->set_attenuation(radio->context, level)) return false;
-
-    scanner->attenuation_level = level;
-    scanner->rssi_compensation = measured_raw_rssi_offset;
-    scanner->attenuation_configured = true;
-    scanner->published_valid = false;
-    d10s_spectrum_reset_tracking(&scanner->detector);
+    scanner->pending_attenuation_level = level;
+    scanner->pending_rssi_compensation = measured_raw_rssi_offset;
+    scanner->pending_attenuation_valid = true;
     return true;
 }
 
@@ -202,6 +208,24 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
         return D10S_SCANNER_ERROR;
     }
 
+    /* Apply RF gain changes only between complete sweeps. */
+    if (scanner->phase == SCANNER_PHASE_TUNE && scanner->bin_index == 0u &&
+        scanner->pending_attenuation_valid) {
+        if (radio->set_attenuation == 0 ||
+            !radio->set_attenuation(radio->context,
+                                    scanner->pending_attenuation_level)) {
+            scanner->phase = SCANNER_PHASE_FAILED;
+            return D10S_SCANNER_ERROR;
+        }
+        scanner->attenuation_level = scanner->pending_attenuation_level;
+        scanner->rssi_compensation = scanner->pending_rssi_compensation;
+        scanner->attenuation_configured = true;
+        scanner->pending_attenuation_valid = false;
+        scanner->attenuation_settle_pending = true;
+        scanner->published_valid = false;
+        d10s_spectrum_reset_tracking(&scanner->detector);
+    }
+
     /* Apply user timing changes only between complete sweeps. */
     if (scanner->phase == SCANNER_PHASE_TUNE && scanner->bin_index == 0u) {
         if (scanner->pending_delay_valid) {
@@ -236,6 +260,9 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
         }
         scanner->current_frequency_hz = actual_frequency_hz;
         scanner->bins[scanner->bin_index].frequency_hz = actual_frequency_hz;
+        scanner->current_settle_ms = scanner->attenuation_settle_pending
+            ? 40u : scanner->settle_ms;
+        scanner->attenuation_settle_pending = false;
         scanner->settle_started_ms = now_ms;
         scanner->turbo_have_sample = false;
         scanner->turbo_stable_count = 0u;
@@ -247,7 +274,7 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
     case SCANNER_PHASE_SETTLE:
         if (!scanner->turbo_enabled) {
             if ((uint32_t)(now_ms - scanner->settle_started_ms) <
-                scanner->settle_ms) return D10S_SCANNER_BUSY;
+                scanner->current_settle_ms) return D10S_SCANNER_BUSY;
             scanner->phase = SCANNER_PHASE_READ;
             return D10S_SCANNER_BUSY;
         }
@@ -290,7 +317,7 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
             }
 
             if (scanner->turbo_stable_count < scanner->turbo_stable_samples &&
-                elapsed < scanner->settle_ms) {
+                elapsed < scanner->current_settle_ms) {
                 scanner->turbo_next_poll_ms =
                     now_ms + scanner->turbo_poll_interval_ms;
                 scanner->phase = SCANNER_PHASE_SETTLE;
