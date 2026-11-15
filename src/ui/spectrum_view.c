@@ -132,20 +132,23 @@ static void draw_header(const d10s_spectrum_canvas_t *canvas,
                         const d10s_spectrum_view_model_t *model)
 {
     char label[8] = "B0/0";
-    char att[5] = "A000";
+    static const char *const attenuation_labels[6] = {
+        "A0", "A6", "A15", "A27", "BYP", "BYP+"
+    };
+    const char *att_label;
     const uint8_t style = model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u;
 
     label[1] = (char)('1' + model->band_index);
     label[3] = (char)('0' + (model->band_count % 10u));
-    att[1] = (char)('0' + ((model->attenuation_level / 100u) % 10u));
-    att[2] = (char)('0' + ((model->attenuation_level / 10u) % 10u));
-    att[3] = (char)('0' + (model->attenuation_level % 10u));
+    att_label = model->attenuation_level < 6u
+        ? attenuation_labels[model->attenuation_level] : "A?";
+
 
     if (canvas->text == 0) return;
     canvas->text(canvas->context, 0u, 1u, "D10S", style);
     canvas->text(canvas->context, 34u, 1u,
                  model->band_label != 0 ? model->band_label : label, style);
-    canvas->text(canvas->context, 91u, 1u, att, style);
+    canvas->text(canvas->context, 91u, 1u, att_label, style);
     if (model->hold_enabled)
         canvas->text(canvas->context, 70u, 1u, "H", style);
     if (model->turbo_enabled)
