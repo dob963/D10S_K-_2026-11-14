@@ -148,8 +148,15 @@ static uint32_t refined_frequency(const d10s_spectrum_bin_t *bins, size_t index)
         const uint16_t quotient = divide_u32_u16_bounded(magnitude, divisor);
         offset_q8 = numerator < 0 ? (int32_t)quotient : -(int32_t)quotient;
     }
-    frequency = (int64_t)bins[index].frequency_hz +
-                ((int64_t)span * offset_q8) / 512;
+    {
+        const uint32_t magnitude = (uint32_t)(offset_q8 < 0
+            ? -offset_q8 : offset_q8);
+        const uint32_t whole = (span >> 9) * magnitude;
+        const uint32_t fraction = ((span & 511u) * magnitude) >> 9;
+        const int64_t delta = (int64_t)(whole + fraction);
+        frequency = (int64_t)bins[index].frequency_hz +
+                    (offset_q8 < 0 ? -delta : delta);
+    }
     if (frequency < 0) return 0u;
     if (frequency > UINT32_MAX) return UINT32_MAX;
     return (uint32_t)frequency;
