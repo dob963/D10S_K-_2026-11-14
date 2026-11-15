@@ -79,6 +79,18 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
             if source and target:
                 pending_edges.append((source, target))
 
+    for name, frame in EXTERNAL_STACK_RESERVES.items():
+        graph.setdefault(
+            name,
+            Node(
+                title=name,
+                frame=frame,
+                qualifier="static",
+                dynamic_objects=0,
+                source="manual conservative libgcc reserve",
+            ),
+        )
+
     for source, target in pending_edges:
         if source in graph:
             graph[source].edges.add(target)
