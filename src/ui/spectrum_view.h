@@ -32,6 +32,8 @@ typedef struct {
     uint16_t noise_margin;
     bool peak_hold_valid;
     uint32_t peak_hold_frequency_hz;
+    const d10s_spectrum_peak_t *peaks;
+    uint8_t peak_count;
     bool cursor_valid;
     uint16_t cursor_bin;
     const char *band_label; /* Optional short label; keep it to five characters. */
