@@ -96,8 +96,15 @@ bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
         scanner->phase == SCANNER_PHASE_FAILED)
         return false;
     if (turbo && settle_ms <= turbo_min) return false;
-    scanner->pending_settle_ms = settle_ms;
-    scanner->pending_delay_valid = true;
+    if (scanner->phase == SCANNER_PHASE_TUNE && scanner->bin_index == 0u &&
+        !scanner->pending_turbo_valid) {
+        scanner->settle_ms = settle_ms;
+        scanner->pending_settle_ms = settle_ms;
+        scanner->pending_delay_valid = false;
+    } else {
+        scanner->pending_settle_ms = settle_ms;
+        scanner->pending_delay_valid = true;
+    }
     return true;
 }
 
@@ -116,12 +123,24 @@ bool d10s_spectrum_scanner_set_turbo(d10s_spectrum_scanner_t *scanner,
     if (enabled && (min_settle_ms == 0u || poll_interval_ms == 0u ||
                     stable_samples < 2u || settle <= min_settle_ms))
         return false;
-    scanner->pending_turbo_valid = true;
-    scanner->pending_turbo_enabled = enabled;
-    scanner->pending_turbo_min_settle_ms = enabled ? min_settle_ms : 0u;
-    scanner->pending_turbo_poll_interval_ms = enabled ? poll_interval_ms : 0u;
-    scanner->pending_turbo_stable_delta = enabled ? stable_delta : 0u;
-    scanner->pending_turbo_stable_samples = enabled ? stable_samples : 0u;
+    if (scanner->phase == SCANNER_PHASE_TUNE && scanner->bin_index == 0u &&
+        !scanner->pending_delay_valid) {
+        scanner->turbo_enabled = enabled;
+        scanner->turbo_min_settle_ms = enabled ? min_settle_ms : 0u;
+        scanner->turbo_poll_interval_ms = enabled ? poll_interval_ms : 0u;
+        scanner->turbo_stable_delta = enabled ? stable_delta : 0u;
+        scanner->turbo_stable_samples = enabled ? stable_samples : 0u;
+        scanner->turbo_have_sample = false;
+        scanner->turbo_stable_count = 0u;
+        scanner->pending_turbo_valid = false;
+    } else {
+        scanner->pending_turbo_valid = true;
+        scanner->pending_turbo_enabled = enabled;
+        scanner->pending_turbo_min_settle_ms = enabled ? min_settle_ms : 0u;
+        scanner->pending_turbo_poll_interval_ms = enabled ? poll_interval_ms : 0u;
+        scanner->pending_turbo_stable_delta = enabled ? stable_delta : 0u;
+        scanner->pending_turbo_stable_samples = enabled ? stable_samples : 0u;
+    }
     return true;
 }
 
