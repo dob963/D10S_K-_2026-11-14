@@ -123,6 +123,17 @@ static bool gpio1_pa_enable_seen(const fake_bus_t *bus)
     return false;
 }
 
+static uint16_t last_gpio_state(const fake_bus_t *bus)
+{
+    uint8_t i = bus->register_count;
+    while (i != 0u) {
+        --i;
+        if (bus->writes[i].address == 0x33u)
+            return bus->writes[i].value;
+    }
+    return 0xFFFFu;
+}
+
 static void test_uvk1_profile_initializes_and_selects_lna_path(void)
 {
     fake_bus_t fake = {0};
@@ -152,11 +163,23 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(write_seen(&fake, 0x39u, (uint16_t)(word >> 16)));
     CHECK(!write_seen(&fake, 0x33u, 0x9008u));
     CHECK(write_seen(&fake, 0x33u, 0x9048u));
+    CHECK(last_gpio_state(&fake) == 0x9048u);
     CHECK(!gpio1_pa_enable_seen(&fake));
+
+    /*
+     * The pinned upstream selector changes to the internal VHF LNA only
+     * below 28 MHz. Both requested analyzer bands (144–146 and 430–440 MHz)
+     * therefore select GPIO3/UHF_LNA in this source-derived profile.
+     */
+    CHECK(d10s_bk4829_uvk1_v3_resume_rx(144000000u, &profile));
+    CHECK(last_gpio_state(&fake) == 0x9048u);
+    CHECK(d10s_bk4829_uvk1_v3_resume_rx(433000000u, &profile));
+    CHECK(last_gpio_state(&fake) == 0x9048u);
 
     before = fake.register_count;
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(27000000u, &profile));
     CHECK(profile.current_frequency_hz == 27000000u);
+    CHECK(last_gpio_state(&fake) == 0x9044u);
     CHECK(!write_seen(&fake, 0x33u, 0x9004u));
     CHECK(write_seen(&fake, 0x33u, 0x9044u));
     CHECK(!gpio1_pa_enable_seen(&fake));
