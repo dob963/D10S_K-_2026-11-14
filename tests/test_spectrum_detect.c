@@ -178,6 +178,27 @@ static void test_rejects_invalid_frequency_grid(void)
     CHECK(!d10s_spectrum_process(&state, bins, 3u, &result));
 }
 
+
+static void test_multi_peak_output_is_bounded_to_eight_strongest(void)
+{
+    d10s_spectrum_config_t config;
+    d10s_spectrum_state_t state;
+    d10s_spectrum_result_t result;
+    d10s_spectrum_bin_t bins[21];
+    size_t i;
+
+    d10s_spectrum_default_config(&config);
+    config.confirm_sweeps = 1u;
+    d10s_spectrum_init(&state, &config);
+    make_noise_sweep(bins, 21u, 90u);
+    for (i = 1u; i < 20u; i += 2u)
+        bins[i].rssi = (uint16_t)(120u + i);
+    CHECK(d10s_spectrum_process(&state, bins, 21u, &result));
+    CHECK(result.peak_count == D10S_SPECTRUM_MAX_PEAKS);
+    CHECK(result.peaks[0].level == 139u);
+    CHECK(result.peaks[7].level == 125u);
+}
+
 static void test_band_reset_clears_old_noise_and_peak(void)
 {
     d10s_spectrum_state_t state;
@@ -950,6 +971,7 @@ int main(void)
     test_multiple_peaks_confirm_independently();
     test_peak_tracks_survive_dominant_peak_changes();
     test_peak_confirmation_resets_after_missing_sweep();
+    test_multi_peak_output_is_bounded_to_eight_strongest();
     test_single_sweep_spike_is_not_confirmed();
     test_noise_floor_tracks_background();
     test_one_noisy_sweep_does_not_drag_noise_floor();
