@@ -51,6 +51,12 @@ static void test_ahb_prescaler_and_invalid_sources(void)
         0u, 0u, 0x10u, 0u, 24000000u, &hz));
     CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0x18u, 0u, 24000000u, &hz));
+
+    /* PLLMUL encodings 10 and 11 are reserved by the Puya reference manual. */
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, (4u << 13), 0x10u, (2u | (2u << 2)), 24000000u, &hz));
+    CHECK(!d10s_py32f071_uvk1_v3_clock_from_registers(
+        0u, (4u << 13), 0x10u, (2u | (3u << 2)), 24000000u, &hz));
 }
 
 int main(void)
