@@ -84,7 +84,7 @@ jobs:
             build/target/D10S_K1.intermediate.bin
           python3 target/validate_image.py build/target/D10S_K1.intermediate.bin
       - name: Verify Makefile build and tests
-        run: make clean && make test
+        run: make test
       - name: Package diagnostic build outputs (not for flashing)
         if: success()
         run: |
