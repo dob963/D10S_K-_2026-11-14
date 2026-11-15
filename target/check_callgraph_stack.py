@@ -86,16 +86,22 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
                 pending_edges.append((source, target))
 
     for name, frame in EXTERNAL_STACK_RESERVES.items():
-        graph.setdefault(
-            name,
-            Node(
+        node = graph.get(name)
+        if node is None:
+            graph[name] = Node(
                 title=name,
                 frame=frame,
                 qualifier="static",
                 dynamic_objects=0,
                 source="manual conservative libgcc reserve",
-            ),
-        )
+            )
+        elif node.frame is None:
+            # GCC can emit a call-target node without a stack label. Apply
+            # the explicit reserve to that existing unresolved node too.
+            node.frame = frame
+            node.qualifier = "static"
+            node.dynamic_objects = 0
+            node.source = "manual conservative libgcc reserve"
 
     for source, target in pending_edges:
         if source in graph:
