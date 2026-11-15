@@ -63,6 +63,16 @@ The pinned reference linker script identifies PY32F071xB with 128 KiB flash and 
 Until those checks pass, these assignments are documented candidates only. No BIN built from this map is approved for flashing.
 
 
+## Bootloader clock and HSE source evidence (2026-11-15)
+
+The pinned UV-K1 reference source at revision `3261ca7883d5b0b60c0905d8766612dee7b4191d` provides two relevant facts:
+- `Core/Src/system_py32f071.c` defines `HSE_VALUE` as `24000000U` unless overridden.
+- `Core/Src/main.c` comments that the bootloader has already configured the clock and sets the software `SystemCoreClock` value to 48 MHz.
+
+D10S therefore supplies 24 MHz to its RCC decoder. This supports the HSE/PLL-HSE calculation path and avoids rejecting that source configuration merely because the HSE argument was zero. It does **not** prove the oscillator value or the bootloader RCC state on the user's individual radio; the assumption remains source-derived and must be checked against the exact PCB/bootloader before release. D10S does not reprogram the clock tree.
+
+The clock unit test explicitly covers the source-derived 24 MHz HSE ×2 = 48 MHz bootloader configuration. Other unsupported or out-of-range RCC states remain fail-closed.
+
 ## Official PY32F07X clock-register cross-check (2026-11-15)
 
 Reference: Puya, *PY32F07X Reference Manual*, revision 0.2, sections 8.1 and 8.5.1–8.5.4 (official publisher copy: https://www.puyasemi.com/download_path/%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C/MCU%20%E5%BE%AE%E5%A4%84%E7%90%86%E5%99%A8/PY32F07X_Reference_Manual_V0.2.pdf).
