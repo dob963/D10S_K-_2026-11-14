@@ -62,8 +62,12 @@ Use a conducted RF source through a suitable attenuator/coupler, with no radiate
 - [ ] Measure noise floor and repeatability with input terminated and with known signals.
 - [ ] Check peak confirmation, false-peak rejection and parabolic refinement against a known frequency source.
 - [ ] Measure sweep time at the 8 ms starting dwell.
-- [ ] Only after measurement, tune Delay and Turbo parameters and check that weak/short signals are not lost.
-- [ ] ATT is not implemented as a physical control in this build. Identify the actual attenuator hardware/path and measure its steps before exposing it to the UI or entering compensation values.
+- [ ] Delay and Turbo are exposed on keys 4 and 3 respectively; measure sweep time and detection probability for weak/short signals before choosing final defaults.
+- [x] Six REG_13 receive-gain presets are integrated and software-tested: ATT 0, ATT -6, ATT -15, ATT -27, BYP and BYP+.
+- [ ] Verify electrically that REG_13 controls the expected RF gain path on this exact PCB; the preset names are source-derived, not measured attenuation values.
+- [ ] Measure each preset's raw REG_67 response with the same conducted signal, on both bands; determine whether BYP/BYP+ alter LNA behavior as expected.
+- [ ] Do not apply cross-stage RSSI compensation or label the stages as calibrated dB until those measurements exist.
+- [ ] Confirm the 40 ms post-change settling interval is sufficient using repeated RSSI captures; adjust only from measured evidence.
 - [ ] Do not label raw RSSI as dBm without a documented multi-point calibration.
 
 ## 6. Validate bootloader/update and recovery last
