@@ -151,7 +151,7 @@ bool d10s_py32f071_uvk1_v3_clock_from_registers(
         0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
         1u, 2u, 3u, 4u, 6u, 7u, 8u, 9u
     };
-    static const uint8_t pll_multiplier[4] = {2u, 3u, 2u, 2u};
+    uint8_t pll_multiplier;
     const uint8_t hsi_select = (uint8_t)((rcc_icscr >> 13) & 7u);
     const uint8_t ahb_code = (uint8_t)((rcc_cfgr >> 8) & 15u);
     const uint32_t system_source = rcc_cfgr & 0x38u;
@@ -170,13 +170,15 @@ bool d10s_py32f071_uvk1_v3_clock_from_registers(
         break;
     case 0x10u: { /* PLL */
         const uint8_t source = (uint8_t)(rcc_pllcfgr & 3u);
-        const uint8_t multiplier =
-            pll_multiplier[(rcc_pllcfgr >> 2) & 3u];
+        const uint8_t multiplier_code =
+            (uint8_t)((rcc_pllcfgr >> 2) & 3u);
+        if (multiplier_code > 1u) return false;
+        pll_multiplier = multiplier_code == 0u ? 2u : 3u;
         if (source == 2u) {
             system_clock_hz =
-                (uint64_t)hsi_frequency_hz[hsi_select] * multiplier;
+                (uint64_t)hsi_frequency_hz[hsi_select] * pll_multiplier;
         } else if (source == 3u && hse_clock_hz != 0u) {
-            system_clock_hz = (uint64_t)hse_clock_hz * multiplier;
+            system_clock_hz = (uint64_t)hse_clock_hz * pll_multiplier;
         } else {
             return false;
         }
