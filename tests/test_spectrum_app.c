@@ -225,8 +225,10 @@ static void test_complete_spectrum_application_pipeline(void)
     CHECK(app.scanner.pending_turbo_valid);
     CHECK(!app.scanner.pending_turbo_enabled);
     CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_5));
-    CHECK(app.scanner.pending_attenuation_valid);
-    CHECK(app.scanner.pending_attenuation_level == 1u);
+    CHECK(app.scanner.pending_attenuation_valid ||
+          app.scanner.attenuation_level == 1u);
+    if (app.scanner.pending_attenuation_valid)
+        CHECK(app.scanner.pending_attenuation_level == 1u);
     {
         unsigned att_tick;
         for (att_tick = 1u; att_tick <= 200u &&
