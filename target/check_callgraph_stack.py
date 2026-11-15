@@ -27,6 +27,90 @@ EXTERNAL_STACK_RESERVES = {
     "__aeabi_uidivmod": 256,
 }
 
+# GCC VCG emits one generic __indirect_call node per translation unit.
+# Resolve each call site against the concrete callback targets wired by the
+# target integration. The map is deliberately caller-specific to avoid
+# creating false cycles by connecting every callback to every other callback.
+INDIRECT_CALL_TARGETS = {
+    "src/ui/spectrum_view.c:put_pixel.constprop.0": (
+        "d10s_mono128x64_pixel",
+    ),
+    "d10s_spectrum_view_render": (
+        "d10s_mono128x64_pixel", "d10s_mono128x64_text",
+    ),
+    "src/platform/py32f071_uvk1_v3.c:display_delay_ms": (
+        "src/platform/py32f071_uvk1_v3.c:systick_delay_ms",
+    ),
+    "src/platform/py32f071_uvk1_v3.c:radio_delay_ticks": (
+        "src/platform/py32f071_uvk1_v3.c:systick_delay_ticks",
+    ),
+    "src/platform/st7565.c:command": (
+        "src/platform/py32f071_uvk1_v3.c:display_data_mode",
+        "src/platform/py32f071_uvk1_v3.c:display_write_byte",
+    ),
+    "src/platform/st7565.c:send_command_frame.constprop.0": (
+        "src/platform/py32f071_uvk1_v3.c:display_chip_select",
+    ),
+    "d10s_st7565_flush_page": (
+        "src/platform/py32f071_uvk1_v3.c:display_chip_select",
+        "src/platform/py32f071_uvk1_v3.c:display_data_mode",
+        "src/platform/py32f071_uvk1_v3.c:display_write_byte",
+    ),
+    "d10s_st7565_init": (
+        "src/platform/py32f071_uvk1_v3.c:display_chip_select",
+        "src/platform/py32f071_uvk1_v3.c:display_delay_ms",
+    ),
+    "src/radio/bk4829_bus.c:recover": (
+        "src/platform/py32f071_uvk1_v3.c:radio_set_csn",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_clock",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_data_output",
+        "src/platform/py32f071_uvk1_v3.c:radio_write_data",
+    ),
+    "src/radio/bk4829_bus.c:begin": (
+        "src/platform/py32f071_uvk1_v3.c:radio_set_csn",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_clock",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_data_output",
+        "src/platform/py32f071_uvk1_v3.c:radio_write_data",
+        "src/platform/py32f071_uvk1_v3.c:radio_delay_ticks",
+    ),
+    "src/radio/bk4829_bus.c:write_bits": (
+        "src/platform/py32f071_uvk1_v3.c:radio_set_clock",
+        "src/platform/py32f071_uvk1_v3.c:radio_write_data",
+        "src/platform/py32f071_uvk1_v3.c:radio_delay_ticks",
+    ),
+    "src/radio/bk4829_bus.c:end": (
+        "src/platform/py32f071_uvk1_v3.c:radio_set_csn",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_clock",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_data_output",
+        "src/platform/py32f071_uvk1_v3.c:radio_write_data",
+        "src/platform/py32f071_uvk1_v3.c:radio_delay_ticks",
+    ),
+    "d10s_bk4829_read_register": (
+        "src/platform/py32f071_uvk1_v3.c:radio_set_clock",
+        "src/platform/py32f071_uvk1_v3.c:radio_set_data_output",
+        "src/platform/py32f071_uvk1_v3.c:radio_read_data",
+        "src/platform/py32f071_uvk1_v3.c:radio_delay_ticks",
+    ),
+    "src/radio/bk4829_scanner_adapter.c:fail_closed": (
+        "d10s_bk4829_uvk1_v3_stop_rx",
+    ),
+    "src/radio/bk4829_scanner_adapter.c:tune_hz": (
+        "d10s_bk4829_uvk1_v3_resume_rx",
+    ),
+    "d10s_bk4829_scanner_adapter_init": (
+        "d10s_bk4829_uvk1_v3_initialize_rx",
+        "d10s_bk4829_uvk1_v3_stop_rx",
+    ),
+    "d10s_spectrum_scanner_set_attenuation": (
+        "src/radio/bk4829_scanner_adapter.c:set_attenuation",
+    ),
+    "d10s_spectrum_scanner_tick": (
+        "src/radio/bk4829_scanner_adapter.c:set_attenuation",
+        "src/radio/bk4829_scanner_adapter.c:tune_hz",
+        "src/radio/bk4829_scanner_adapter.c:read_rssi",
+    ),
+}
+
 
 @dataclass
 class Node:
@@ -47,7 +131,7 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
     if not reports:
         raise ValueError("no GCC .ci call-graph reports found")
     graph: dict[str, Node] = {}
-    pending_edges: list[tuple[str, str]] = []
+    pending_edges: list[tuple[str, str, str]] = []
 
     for report in reports:
         data = report.read_text(encoding="utf-8")
@@ -83,7 +167,7 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
             source = attrs.get("sourcename")
             target = attrs.get("targetname")
             if source and target:
-                pending_edges.append((source, target))
+                pending_edges.append((source, target, attrs.get("label", "")))
 
     for name, frame in EXTERNAL_STACK_RESERVES.items():
         node = graph.get(name)
@@ -103,11 +187,37 @@ def parse_reports(root: pathlib.Path) -> dict[str, Node]:
             node.dynamic_objects = 0
             node.source = "manual conservative libgcc reserve"
 
-    for source, target in pending_edges:
-        if source in graph:
-            graph[source].edges.add(target)
-        else:
+    for source, target, label in pending_edges:
+        if source not in graph:
             raise ValueError(f"call-graph edge has unknown caller node: {source}")
+        if target == "__indirect_call":
+            targets = INDIRECT_CALL_TARGETS.get(source)
+            if not targets:
+                raise ValueError(
+                    f"indirect call site has no reviewed target map: "
+                    f"{source} at {label}"
+                )
+            proxy_name = f"__indirect_call@{source}@{label}"
+            proxy = graph.get(proxy_name)
+            if proxy is None:
+                proxy = Node(
+                    title=proxy_name,
+                    frame=0,
+                    qualifier="static",
+                    dynamic_objects=0,
+                    source="reviewed target integration map",
+                )
+                graph[proxy_name] = proxy
+            for callback in targets:
+                if callback not in graph:
+                    raise ValueError(
+                        f"mapped indirect callback is absent from call graph: "
+                        f"{callback} (caller {source})"
+                    )
+                proxy.edges.add(callback)
+            graph[source].edges.add(proxy_name)
+        else:
+            graph[source].edges.add(target)
     return graph
 
 
