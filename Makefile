@@ -27,12 +27,13 @@ INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
 .PHONY: test clean
 
-test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_bk4829_profile build/test_py32_clock build/test_spectrum_key build/test_target_defaults
+test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_spectrum_view build/test_bk4829_profile build/test_py32_clock build/test_spectrum_key build/test_target_defaults
 	./build/test_spectrum_detect
 	./build/test_bk4829_bus
 	./build/test_st7565
 	./build/test_bk4829_scanner_adapter
 	./build/test_spectrum_app
+	./build/test_spectrum_view
 	./build/test_py32_clock
 	./build/test_spectrum_key
 	./build/test_bk4829_profile
@@ -76,3 +77,7 @@ build/test_spectrum_key: src/ui/spectrum_key.c src/ui/spectrum_key.h tests/test_
 build/test_target_defaults: src/spectrum/spectrum_plan.c src/spectrum/spectrum_plan.h target/scan_bands.h tests/test_target_defaults.c
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) -Itarget src/spectrum/spectrum_plan.c tests/test_target_defaults.c -o $@
+
+build/test_spectrum_view: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_view.c
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) tests/test_spectrum_view.c -o $@
