@@ -115,21 +115,29 @@ static size_t find_peaks(const d10s_spectrum_state_t *state,
     size_t found = 0u;
     size_t i;
 
-    for (i = 1u; i + 1u < count; ++i) {
+    /* Band-edge maxima are valid signals, although they cannot be
+       interpolated without samples outside the configured scan band. */
+    for (i = 0u; i < count; ++i) {
         const uint16_t level = bins[i].rssi;
-        const uint16_t neighbor =
-            bins[i - 1u].rssi > bins[i + 1u].rssi
-                ? bins[i - 1u].rssi : bins[i + 1u].rssi;
+        const uint16_t left = i > 0u ? bins[i - 1u].rssi : 0u;
+        const uint16_t right = i + 1u < count ? bins[i + 1u].rssi : 0u;
+        const uint16_t neighbor = i == 0u ? right
+            : (i + 1u == count ? left : (left > right ? left : right));
         const uint16_t prominence =
             level > neighbor ? (uint16_t)(level - neighbor) : 0u;
         size_t position;
 
-        if (level < threshold || level < bins[i - 1u].rssi ||
-            level < bins[i + 1u].rssi) continue;
-        if (level == bins[i - 1u].rssi && level == bins[i + 1u].rssi) continue;
+        if (level < threshold) continue;
+        if (i == 0u) {
+            if (level <= right) continue;
+        } else if (i + 1u == count) {
+            if (level <= left) continue;
+        } else if (level < left || level < right ||
+                   (level == left && level == right)) {
+            continue;
+        }
         if (prominence < state->config.min_peak_prominence) continue;
 
-        /* Keep the strongest bounded set, in descending RSSI order. */
         if (found == D10S_SPECTRUM_MAX_PEAKS &&
             level <= bins[peak_indices[D10S_SPECTRUM_MAX_PEAKS - 1u]].rssi)
             continue;
@@ -258,7 +266,8 @@ bool d10s_spectrum_process(d10s_spectrum_state_t *state,
 
         peak->valid = true;
         peak->bin = bin;
-        peak->frequency_hz = refined_frequency(bins, bin);
+        peak->frequency_hz = (bin == 0u || bin + 1u == count)
+            ? bins[bin].frequency_hz : refined_frequency(bins, bin);
         peak->level = bins[bin].rssi;
         if (matched_track < D10S_SPECTRUM_MAX_PEAKS) {
             old_track_used[matched_track] = true;
