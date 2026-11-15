@@ -6,12 +6,12 @@ Audit date: 2026-11-15
 
 The D10S target workflow produces a raw Cortex-M firmware image, not a Quansheng vendor-packed update file. The latest verified CI artifact is:
 
-- Workflow run: [43727291448](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43723962063).
-- Commit: `761685873d2216db2c68e5ca8b6983a484b05aa1`.
+- Workflow run: [43727418351](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43727418351).
+- Commit: `9b59f72077fba18798f2822750623b71a328eb88`.
 - Artifact: `D10S-K1-diagnostic-build-not-for-flashing`.
-- Artifact ID: `14166443988`.
+- Artifact ID: `14167430161`.
 - ZIP size: 37,645 bytes.
-- ZIP SHA-256: `a76a5f8584d1c961a817293684188a9e53ee11761c3372b4c2d19534ebbb94ee`.
+- ZIP SHA-256: `7d44e9be2cde30fa1a453a34fe6e21335d474e2dda01baa709feba4ded3aa169`.
 
 The latest run's `host-tests` job completed successfully: warning-as-error compilation, all CMake tests, Cortex-M0+ cross-compilation, complete PY32F071 application link and image-layout validation, stack-analysis diagnostics, Makefile build/tests, and diagnostic artifact upload all passed.
 
@@ -47,7 +47,7 @@ Therefore, the reported bootloader `7.03.01` supports the standard UV-K1 target 
 |---|---|---|---|
 | [knoinok/quansheng_toolkit](https://github.com/knoinok/quansheng_toolkit) | `ea13a5850d8f22372c7ad205db13610c083c4ee8` | Apache-2.0; LICENSE and NOTICE reviewed | Protocol facts only; no code imported |
 | [spm81/Multi-UVTools](https://github.com/spm81/Multi-UVTools) | `3979b8097af1703762e472f574219cbc2d35c172` | Not verified | Corroborating behavior notes only; no code imported |
-| D10S diagnostic build | `4cf33e2188a2d2227fad78e1ab9ebb43a44ce0ef` | D10S project license not yet selected | Latest CI build; raw BIN extracted and hashed; diagnostic only, not for flashing |
+| D10S diagnostic build | `9b59f72077fba18798f2822750623b71a328eb88` | D10S project license not yet selected | Latest CI build; raw BIN extracted and hashed; diagnostic only, not for flashing |
 
 ## Release status
 
