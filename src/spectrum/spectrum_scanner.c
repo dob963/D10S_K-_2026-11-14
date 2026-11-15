@@ -40,6 +40,14 @@ bool d10s_spectrum_scanner_init(d10s_spectrum_scanner_t *scanner,
     scanner->turbo_stable_delta = 0u;
     scanner->turbo_stable_samples = 0u;
     scanner->turbo_stable_count = 0u;
+    scanner->pending_delay_valid = false;
+    scanner->pending_settle_ms = settle_ms;
+    scanner->pending_turbo_valid = false;
+    scanner->pending_turbo_enabled = false;
+    scanner->pending_turbo_min_settle_ms = 0u;
+    scanner->pending_turbo_poll_interval_ms = 0u;
+    scanner->pending_turbo_stable_delta = 0u;
+    scanner->pending_turbo_stable_samples = 0u;
     scanner->phase = SCANNER_PHASE_TUNE;
     return true;
 }
@@ -71,12 +79,19 @@ bool d10s_spectrum_scanner_set_attenuation(
 bool d10s_spectrum_scanner_set_delay(d10s_spectrum_scanner_t *scanner,
                                      uint16_t settle_ms)
 {
+    const bool turbo = scanner != 0 && scanner->pending_turbo_valid
+        ? scanner->pending_turbo_enabled
+        : (scanner != 0 && scanner->turbo_enabled);
+    const uint16_t turbo_min = scanner != 0 && scanner->pending_turbo_valid
+        ? scanner->pending_turbo_min_settle_ms
+        : (scanner != 0 ? scanner->turbo_min_settle_ms : 0u);
     if (scanner == 0 || settle_ms == 0u ||
-        scanner->phase != SCANNER_PHASE_TUNE || scanner->bin_index != 0u)
+        scanner->phase == SCANNER_PHASE_STOPPED ||
+        scanner->phase == SCANNER_PHASE_FAILED)
         return false;
-    if (scanner->turbo_enabled && settle_ms <= scanner->turbo_min_settle_ms)
-        return false;
-    scanner->settle_ms = settle_ms;
+    if (turbo && settle_ms <= turbo_min) return false;
+    scanner->pending_settle_ms = settle_ms;
+    scanner->pending_delay_valid = true;
     return true;
 }
 
@@ -87,18 +102,20 @@ bool d10s_spectrum_scanner_set_turbo(d10s_spectrum_scanner_t *scanner,
                                      uint8_t stable_delta,
                                      uint8_t stable_samples)
 {
-    if (scanner == 0 || scanner->phase != SCANNER_PHASE_TUNE ||
-        scanner->bin_index != 0u) return false;
+    const uint16_t settle = scanner != 0 && scanner->pending_delay_valid
+        ? scanner->pending_settle_ms
+        : (scanner != 0 ? scanner->settle_ms : 0u);
+    if (scanner == 0 || scanner->phase == SCANNER_PHASE_STOPPED ||
+        scanner->phase == SCANNER_PHASE_FAILED) return false;
     if (enabled && (min_settle_ms == 0u || poll_interval_ms == 0u ||
-                    stable_samples < 2u || scanner->settle_ms <= min_settle_ms))
+                    stable_samples < 2u || settle <= min_settle_ms))
         return false;
-    scanner->turbo_enabled = enabled;
-    scanner->turbo_min_settle_ms = enabled ? min_settle_ms : 0u;
-    scanner->turbo_poll_interval_ms = enabled ? poll_interval_ms : 0u;
-    scanner->turbo_stable_delta = enabled ? stable_delta : 0u;
-    scanner->turbo_stable_samples = enabled ? stable_samples : 0u;
-    scanner->turbo_stable_count = 0u;
-    scanner->turbo_have_sample = false;
+    scanner->pending_turbo_valid = true;
+    scanner->pending_turbo_enabled = enabled;
+    scanner->pending_turbo_min_settle_ms = enabled ? min_settle_ms : 0u;
+    scanner->pending_turbo_poll_interval_ms = enabled ? poll_interval_ms : 0u;
+    scanner->pending_turbo_stable_delta = enabled ? stable_delta : 0u;
+    scanner->pending_turbo_stable_samples = enabled ? stable_samples : 0u;
     return true;
 }
 
@@ -183,6 +200,24 @@ d10s_spectrum_scanner_status_t d10s_spectrum_scanner_tick(
     if (band == 0) {
         scanner->phase = SCANNER_PHASE_FAILED;
         return D10S_SCANNER_ERROR;
+    }
+
+    /* Apply user timing changes only between complete sweeps. */
+    if (scanner->phase == SCANNER_PHASE_TUNE && scanner->bin_index == 0u) {
+        if (scanner->pending_delay_valid) {
+            scanner->settle_ms = scanner->pending_settle_ms;
+            scanner->pending_delay_valid = false;
+        }
+        if (scanner->pending_turbo_valid) {
+            scanner->turbo_enabled = scanner->pending_turbo_enabled;
+            scanner->turbo_min_settle_ms = scanner->pending_turbo_min_settle_ms;
+            scanner->turbo_poll_interval_ms = scanner->pending_turbo_poll_interval_ms;
+            scanner->turbo_stable_delta = scanner->pending_turbo_stable_delta;
+            scanner->turbo_stable_samples = scanner->pending_turbo_stable_samples;
+            scanner->pending_turbo_valid = false;
+            scanner->turbo_have_sample = false;
+            scanner->turbo_stable_count = 0u;
+        }
     }
 
     switch (scanner->phase) {
