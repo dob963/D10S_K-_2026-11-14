@@ -127,3 +127,10 @@ The earlier D10S working assumption of bootloader 7.03.01 is consistent with the
 ### Legal/provenance boundary for this research
 
 These sources were consulted for factual hardware observations and cross-checking only. No code, images, schematic artwork, or documentation text has been imported from the teardown/forum/Fagci sources into D10S. Fagci's README states Apache 2.0, but the repository's root LICENSE file was not found during this check; therefore its code remains excluded from reuse pending verification of the exact license and notices. Public photos and forum posts are not automatically licensed for republication.
+
+
+## FCC internal-photo exhibit metadata (2026-11-15)
+
+The FCC ID XBPUV-K1 filing's internal-photo exhibit is indexed as document ID `8384105` (description `Iiternal photos`), application `M0Um3S1ptYL6g71b5OoUEg==`, submitted and made available 2025-06-13. The indexed exhibit metadata reports a 10-page PDF, 3,287,221 bytes, SHA-256 `9bba2e94514b232fb3f2d39c6d4dbb6ceb3e2b393898d3ad234fb592b411a587`, and no short- or long-term confidentiality. Source landing page: https://fccid.io/XBPUV-K1/Internal-Photos/Iiternal-photos-8384105 ; FCC filing index: https://fccid.io/XBPUVK1.
+
+**Evidence limit:** the exhibit's existence and metadata are confirmed, but the PDF image pages have not yet been visually inspected in this review. Therefore this filing currently adds provenance for official internal photographs only; it does not upgrade any MCU marking, PCB revision, pin assignment, RF route, or connector claim. The 2025 FCC submission is for model UV-K1, but must not automatically be treated as a photograph of every later V3 / UV-K1(8) production revision. No exhibit image is copied into D10S.
