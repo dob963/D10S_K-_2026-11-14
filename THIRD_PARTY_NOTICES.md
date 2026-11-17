@@ -30,3 +30,14 @@ The six REG_13 receive-gain presets and their interpretation (ATT 0, -6, -15, -2
 
 D10S adaptation: the gain presets are exposed through the standalone BK4829 register API; REG_13 bits 10..15 are preserved by read-modify-write; RF gain changes are queued until a complete sweep boundary; the detector history is reset and the first post-change sample receives a 40 ms settling window. No dBm calibration or absolute RSSI correction is claimed.
 \n## Spectrum acquisition behavior reference\n\nD10S independently implements alternating sweep direction (documented in the Armel/F4HWN Spectrum manual) and optional BK4829 REG_63 readiness polling in Turbo (behavior observed in `App/apps/spectrum3d/spectrum3d_app.c`, Copyright 2026 Armel F4HWN, Apache-2.0, pinned commit `3261ca7883d5b0b60c0905d8766612dee7b4191d`). No Spectrum or Spectrum3D application source was copied. The relevant upstream repository is credited in `docs/third-party-license-audit.md`; its Apache-2.0 license and NOTICE were reviewed.\n
+## BK4829 AFC enable/disable field
+
+File: `src/radio/bk4829.c` and `src/radio/bk4829.h`.
+
+The REG_73 bit-4 AFC-disable field is based on the Apache-2.0 UV-K1/V3 upstream sources listed above:
+- `App/driver/bk4819-regs.h` (`afcDisableRegSpec`)
+- `App/radio.c`
+- `App/driver/bk4829.c`
+- pinned commit `3261ca7883d5b0b60c0905d8766612dee7b4191d`.
+
+D10S implementation performs a read-modify-write and preserves all other REG_73 bits. The AFCR 0..7 width setting is not implemented because no source-derived field mapping is available.
