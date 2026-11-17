@@ -43,6 +43,16 @@ Delay and gain changes are deferred to safe sweep boundaries. A gain change inva
 
 `py32f071xB.ld` defines the application flash/RAM regions, vector table, loadable data and a 2 KiB minimum stack reservation.
 
+## Build locale
+
+Con toolchain GNU Arm Embedded installata nel PATH:
+
+```sh
+make firmware
+```
+
+Il target usa `arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -mfloat-abi=soft`, esegue i controlli stack, genera `build/target/D10S_K1.elf` e `build/target/D10S_K1.bin`, quindi valida il layout vettori/flash. Per i test host: `make test`.
+
 ## Build and CI artifact
 
 The GitHub Actions workflow compiles target sources with warnings as errors, links `D10S_K1.elf`, emits `D10S_K1.bin`, validates the image structure, performs stack diagnostics and runs host, Cortex-M0+ and Makefile tests.
