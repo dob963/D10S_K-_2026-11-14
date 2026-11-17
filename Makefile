@@ -27,7 +27,7 @@ RADIO_SOURCES = src/radio/bk4829_bus.c src/radio/bk4829.c src/radio/bk4829_timin
 RADIO_HEADERS = src/radio/bk4829_bus.h src/radio/bk4829.h src/radio/bk4829_timing.h src/radio/bk4829_scanner_adapter.h src/radio/bk4829_uvk1_v3_profile.h src/radio/bk4829_uvk1_v3_radio.h
 INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
-.PHONY: test clean
+.PHONY: test clean firmware
 
 test: build/test_waterfall build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_spectrum_view build/test_bk4829_profile build/test_py32_clock build/test_spectrum_key build/test_target_defaults
 	./build/test_waterfall
@@ -88,3 +88,42 @@ build/test_spectrum_view: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spe
 build/test_waterfall: src/ui/waterfall.c src/ui/waterfall.h src/spectrum/spectrum_detect.h tests/test_waterfall.c
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) src/ui/waterfall.c tests/test_waterfall.c -o $@
+
+# Build completo del firmware target PY32F071 / BK4829.
+ARM_CC ?= arm-none-eabi-gcc
+ARM_OBJCOPY ?= arm-none-eabi-objcopy
+ARM_SIZE ?= arm-none-eabi-size
+TARGET_CFLAGS = -mcpu=cortex-m0plus -mthumb -mfloat-abi=soft -std=c11 -Os \
+	-ffreestanding -fno-builtin -fno-common -ffunction-sections -fdata-sections \
+	-fstack-usage -fcallgraph-info=su,da -Wstack-usage=768 \
+	-fno-unwind-tables -fno-asynchronous-unwind-tables -Wall -Wextra -Werror \
+	-Isrc/spectrum -Isrc/ui -Isrc/app -Isrc/platform -Isrc/radio
+TARGET_SOURCES = \
+	target/startup.c target/runtime.c target/main.c \
+	src/spectrum/spectrum_detect.c src/spectrum/spectrum_plan.c \
+	src/spectrum/spectrum_scanner.c src/ui/spectrum_view.c \
+	src/ui/waterfall.c src/ui/spectrum_key.c src/app/spectrum_app.c \
+	src/platform/mono128x64.c src/platform/st7565.c \
+	src/platform/py32f071_uvk1_v3.c \
+	src/radio/bk4829_bus.c src/radio/bk4829.c \
+	src/radio/bk4829_timing.c src/radio/bk4829_scanner_adapter.c \
+	src/radio/bk4829_uvk1_v3_profile.c src/radio/bk4829_uvk1_v3_radio.c
+TARGET_OBJECTS = $(patsubst %.c,build/target/%.o,$(TARGET_SOURCES))
+
+firmware: build/target/D10S_K1.bin
+
+build/target/%.o: %.c
+	mkdir -p $(dir $@)
+	$(ARM_CC) $(TARGET_CFLAGS) -c $< -o $@
+
+build/target/D10S_K1.elf: $(TARGET_OBJECTS) target/py32f071xB.ld
+	$(ARM_CC) -mcpu=cortex-m0plus -mthumb -mfloat-abi=soft -nostdlib \
+		-Wl,-T,target/py32f071xB.ld -Wl,--gc-sections -Wl,--build-id=none \
+		-Wl,-Map=build/target/D10S_K1.map $(TARGET_OBJECTS) -lgcc -o $@
+	$(ARM_SIZE) $@
+
+build/target/D10S_K1.bin: build/target/D10S_K1.elf
+	python3 target/check_stack_usage.py build/target
+	python3 target/check_callgraph_stack.py build/target --entry Reset_Handler --exception-reserve 40 --budget 1536 --link-map build/target/D10S_K1.map
+	$(ARM_OBJCOPY) -O binary $< $@
+	python3 target/validate_image.py $@
