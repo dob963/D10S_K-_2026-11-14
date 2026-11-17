@@ -199,10 +199,10 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(write_index(&fake, 0x30u, 0x0000u) <
           write_index(&fake, 0x30u, 0xBFF1u));
     CHECK(write_index(&fake, 0x30u, 0xBFF1u) <
-          write_index(&fake, 0x33u, 0x9048u));
+          write_index(&fake, 0x33u, 0x9044u));
     CHECK(!write_seen(&fake, 0x33u, 0x9008u));
-    CHECK(write_seen(&fake, 0x33u, 0x9048u));
-    CHECK(last_gpio_state(&fake) == 0x9048u);
+    CHECK(write_seen(&fake, 0x33u, 0x9044u));
+    CHECK(last_gpio_state(&fake) == 0x9044u);
     CHECK(!gpio1_pa_enable_seen(&fake));
 
     /* The upstream frequency argument is in 10-Hz units. D10S uses Hz,
@@ -270,7 +270,7 @@ static void test_uvk1_profile_rejects_bad_gain_readback(void)
                                              &profile));
     CHECK(!profile.rx_mode_configured);
     CHECK(write_seen(&fake, 0x33u, 0x9000u));
-    CHECK(!write_seen(&fake, 0x33u, 0x9048u));
+    CHECK(!write_seen(&fake, 0x33u, 0x9044u));
 }
 
 static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
