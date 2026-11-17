@@ -39,7 +39,6 @@ bool d10s_waterfall_push(d10s_waterfall_t *w,
                         D10S_WATERFALL_WIDTH;
         uint16_t level = 0u;
         uint8_t intensity;
-        uint8_t y;
         if (last <= first) last = first + 1u;
         if (last > count) last = count;
         for (uint32_t i = first; i < last; ++i)
