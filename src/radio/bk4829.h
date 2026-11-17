@@ -28,6 +28,7 @@ bool d10s_bk4829_set_rx_gain_level(const d10s_bk4829_bus_port_t *port,
                                    uint8_t level);
 
 /* BK4829 REG_73 bit 4: true disables AFC; false enables AFC. */
+/* TODO: AFCR 0-7: registro e codifica non verificati (indizio 4PDA). */
 bool d10s_bk4829_set_afc_enabled(const d10s_bk4829_bus_port_t *port,
                                   const d10s_bk4829_bus_timing_t *timing,
                                   bool enabled);
