@@ -322,6 +322,24 @@ static void test_radio_wrapper_binds_profile_to_scanner_ops(void)
     CHECK(!gpio1_pa_enable_seen(&fake));
 }
 
+static void test_afc_enable_disable_preserves_other_reg73_bits(void)
+{
+    fake_bus_t fake = {0};
+    const d10s_bk4829_bus_port_t port = make_port(&fake);
+    const d10s_bk4829_bus_timing_t timing = {2u, 48u};
+    const uint16_t original = 0xA5C5u;
+
+    fake.read_value = original;
+    CHECK(d10s_bk4829_set_afc_enabled(&port, &timing, false));
+    CHECK(write_seen(&fake, 0x73u, (uint16_t)(original | 0x0010u)));
+
+    fake.register_count = 0u;
+    fake.read_value = (uint16_t)(original | 0x0010u);
+    CHECK(d10s_bk4829_set_afc_enabled(&port, &timing, true));
+    CHECK(write_seen(&fake, 0x73u,
+                     (uint16_t)((original | 0x0010u) & (uint16_t)~0x0010u)));
+}
+
 int main(void)
 {
     test_uvk1_profile_initializes_and_selects_lna_path();
@@ -329,6 +347,7 @@ int main(void)
     test_uvk1_profile_fails_closed_on_bus_error();
     test_uvk1_profile_rejects_bad_gain_readback();
     test_radio_wrapper_binds_profile_to_scanner_ops();
+    test_afc_enable_disable_preserves_other_reg73_bits();
     puts("BK4829 UV-K1 V3 profile tests: PASS");
     return 0;
 }
