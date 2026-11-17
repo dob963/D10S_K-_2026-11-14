@@ -74,6 +74,8 @@ bool d10s_bk4829_read_raw_rssi(const d10s_bk4829_bus_port_t *port,
  * UV-K1/V3 F4HWN source identifies REG_73 bit 4 as AFC disable.
  * Preserve all other register bits. This controls AFC enable/disable only;
  * AFCR width/range (0..7) is not mapped by the available source evidence.
+ * TODO: registro AFC/AFCR da confermare. Indizio 4PDA: AFCR 0-7;
+ * non associare questi valori a un registro senza una fonte tecnica.
  */
 bool d10s_bk4829_set_afc_enabled(const d10s_bk4829_bus_port_t *port,
                                   const d10s_bk4829_bus_timing_t *timing,
