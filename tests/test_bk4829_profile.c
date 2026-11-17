@@ -205,13 +205,11 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(last_gpio_state(&fake) == 0x9048u);
     CHECK(!gpio1_pa_enable_seen(&fake));
 
-    /*
-     * The pinned upstream selector changes to the internal VHF LNA only
-     * below 28 MHz. Both requested analyzer bands (144–146 and 430–440 MHz)
-     * therefore select GPIO3/UHF_LNA in this source-derived profile.
-     */
+    /* The upstream frequency argument is in 10-Hz units. D10S uses Hz,
+     * therefore the source boundary 28,000,000 becomes 280,000,000 Hz.
+     * VHF (144 MHz) selects GPIO4; UHF (433 MHz) selects GPIO3. */
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(144000000u, &profile));
-    CHECK(last_gpio_state(&fake) == 0x9048u);
+    CHECK(last_gpio_state(&fake) == 0x9044u);
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(433000000u, &profile));
     CHECK(last_gpio_state(&fake) == 0x9048u);
 
