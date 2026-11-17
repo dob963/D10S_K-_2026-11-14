@@ -61,6 +61,7 @@ The alternating sweep-direction behavior is independently implemented from the d
 - Upstream platform review: docs/upstream-review.md
 - BK4829 hardware adapter contract: docs/bk4829-hardware-adapter-contract.md
 - BK4829 upstream evidence: docs/bk4829-upstream-evidence.md
+- BK4829 AFC evidence limits and explicit TODO: docs/bk4829-afc-status.md
 - BK4829 UV-K1 V3 profile: docs/bk4829-uvk1-v3-profile.md
 - ST7565 backend and target port: docs/st7565-platform-port.md
 - Integrated application layer: docs/application-layer.md
