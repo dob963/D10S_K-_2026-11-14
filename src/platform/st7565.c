@@ -59,10 +59,10 @@ bool d10s_st7565_init(d10s_st7565_t *d,
         !d->port.chip_select(false, d->port.context)) return false;
 
     /*
-     * Il reset del controller deve essere eseguito dal pin RES hardware
-     * all'accensione. Il pin RES non e' ancora mappato in modo verificato
-     * per tutte le revisioni PCB; qui si attende il tempo di assestamento,
-     * senza inviare il comando software 0xE2.
+     * D10S non pilota il pin RES: il riferimento UV-K1 esaminato dichiara
+     * che non esiste un reset hardware MCU utilizzabile. Il briefing richiede
+     * reset RES all'accensione e vieta 0xE2; si attende quindi il power-on
+     * reset esterno. Verificare questo comportamento sul PCB prima del flash.
      */
     if (!d->port.delay_ms(c->reset_delay_ms, d->port.context)) return false;
 
