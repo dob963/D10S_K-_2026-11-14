@@ -167,6 +167,7 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(fake.writes[1].address == 0x00u);
     CHECK(fake.writes[1].value == 0x0000u);
     CHECK(write_seen(&fake, 0x37u, 0x9D1Fu));
+    CHECK(write_seen(&fake, 0x19u, 0x1041u));
     /* Spectrum init disables AFC through documented REG_73 bit 4. */
     CHECK(write_seen(&fake, 0x73u, 0x03DFu));
     /* Active upstream #if 1 DTMF coefficient table, exact register words. */
