@@ -50,8 +50,8 @@ bool d10s_waterfall_push(d10s_waterfall_t *w,
         else intensity = (uint8_t)(((uint32_t)(level - noise_floor) * 15u) /
                                     (full_scale - noise_floor));
 
-        for (y = 0u; y < D10S_WATERFALL_HEIGHT; ++y) {
-            const uint8_t threshold = bayer4[y & 3u][x & 3u];
+        {
+            const uint8_t threshold = bayer4[w->head & 3u][x & 3u];
             const uint8_t mask = (uint8_t)(1u << (x & 7u));
             if (intensity > threshold)
                 w->rows[w->head][x >> 3] |= mask;
