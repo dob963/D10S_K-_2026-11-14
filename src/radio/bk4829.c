@@ -8,8 +8,8 @@
 
 bool d10s_bk4829_frequency_supported(uint32_t frequency_hz)
 {
-    return (frequency_hz >= 18000000u && frequency_hz <= 580000000u) ||
-           (frequency_hz >= 760000000u && frequency_hz <= 1160000000u);
+    return (frequency_hz >= 18000000u && frequency_hz <= 630000000u) ||
+           (frequency_hz >= 840000000u && frequency_hz <= 1300000000u);
 }
 
 bool d10s_bk4829_frequency_to_word(uint32_t frequency_hz,
