@@ -56,6 +56,7 @@ static const register_write_t baseline[] = {
      * Its function is not established; it is NOT treated as an AFC control.
      * TODO(AFC): determine BK4829 AFC registers/semantics from authoritative
      * BK4829 documentation or controlled register dumps before implementing. */
+    // fonte: F4HWN v5.0.1, reg 0x19 per match stock
     {0x19u, 0x1041u},
     {0x28u, 0x0B40u}, {0x29u, 0xAA00u}, {0x2Au, 0x6600u},
     {0x2Cu, 0x1822u}, {0x2Fu, 0x9890u}, {0x53u, 0x2028u},
