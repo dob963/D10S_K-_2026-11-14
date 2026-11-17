@@ -53,6 +53,10 @@ The GitHub Actions workflow compiles target sources with warnings as errors, lin
 - GitHub artifact ZIP size: 37,600 bytes; SHA-256: `7cf26e104dac15cab1ce5dd0497ec01460090924af5c5167f02ead43ec49893e`.
 - Extracted `D10S_K1.bin`: 15,196 bytes; SHA-256: `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`.
 - Vector values: initial SP `0x20004000`; Reset vector `0x08002905` (Thumb).
+
+### Stock firmware image reference
+
+The upstream archive also contains `archive/quansheng.k1.stock.firmware.v7.03.01.bin` (71,268 bytes; Git blob SHA `7beb185168f0e04989320ff4589b9b8399b7bbdf`). Its vector words are initial SP `0x200031A0` and Reset vector `0x080028D5` (Thumb), consistent with the `0x08002800` application vector base. This is a binary image-layout reference, not a live BK4829 register dump. The stock image is not copied into D10S.
 - Metadata status: `RELEASE_CANDIDATE_HARDWARE_VALIDATION_REQUIRED`.
 
 CI success proves the checked source compiles and passes automated software and image-structure checks. It does not validate the physical UV-K1 PCB, RF path, LCD/keypad behavior, bootloader hand-off or recovery procedure.
