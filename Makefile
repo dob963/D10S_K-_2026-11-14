@@ -7,6 +7,7 @@ SPECTRUM_SOURCES = \
 	src/spectrum/spectrum_scanner.c \
 	src/app/spectrum_app.c \
 	src/ui/spectrum_view.c \
+	src/ui/waterfall.c \
 	src/ui/spectrum_key.c \
 	src/platform/mono128x64.c \
 	src/platform/st7565.c \
@@ -16,6 +17,7 @@ SPECTRUM_HEADERS = \
 	src/spectrum/spectrum_plan.h \
 	src/spectrum/spectrum_scanner.h \
 	src/ui/spectrum_view.h \
+	src/ui/waterfall.h \
 	src/ui/spectrum_key.h \
 	src/platform/mono128x64.h \
 	src/app/spectrum_app.h \
@@ -27,7 +29,8 @@ INCLUDES = -Isrc/spectrum -Isrc/ui -Isrc/platform -Isrc/radio -Isrc/app
 
 .PHONY: test clean
 
-test: build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_spectrum_view build/test_bk4829_profile build/test_py32_clock build/test_spectrum_key build/test_target_defaults
+test: build/test_waterfall build/test_spectrum_detect build/test_bk4829_bus build/test_st7565 build/test_bk4829_scanner_adapter build/test_spectrum_app build/test_spectrum_view build/test_bk4829_profile build/test_py32_clock build/test_spectrum_key build/test_target_defaults
+	./build/test_waterfall
 	./build/test_spectrum_detect
 	./build/test_bk4829_bus
 	./build/test_st7565
@@ -81,3 +84,7 @@ build/test_target_defaults: src/spectrum/spectrum_plan.c src/spectrum/spectrum_p
 build/test_spectrum_view: $(SPECTRUM_SOURCES) $(SPECTRUM_HEADERS) tests/test_spectrum_view.c
 	mkdir -p build
 	$(CC) $(CFLAGS) $(INCLUDES) $(SPECTRUM_SOURCES) tests/test_spectrum_view.c -o $@
+
+build/test_waterfall: src/ui/waterfall.c src/ui/waterfall.h src/spectrum/spectrum_detect.h tests/test_waterfall.c
+	mkdir -p build
+	$(CC) $(CFLAGS) $(INCLUDES) src/ui/waterfall.c tests/test_waterfall.c -o $@
