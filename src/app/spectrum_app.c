@@ -28,6 +28,9 @@ bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
     app->paused = false;
     app->pause_frame_pending = false;
     app->last_result = (d10s_spectrum_result_t){0};
+    d10s_waterfall_init(&app->waterfall);
+    app->last_display_ms = 0u;
+    app->display_time_valid = false;
     d10s_mono128x64_clear(&app->framebuffer, false);
     app->initialized = true;
     return true;
@@ -71,11 +74,24 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
     if (status == D10S_SCANNER_ERROR) return D10S_APP_ERROR;
     if (status != D10S_SCANNER_SWEEP_READY) return D10S_APP_BUSY;
 
+    /* Limite a 15 fps; la scansione RF non viene rallentata dal display. */
+    if (app->display_time_valid &&
+        (uint32_t)(now_ms - app->last_display_ms) < 67u)
+        return D10S_APP_BUSY;
+
     if (!d10s_spectrum_scanner_snapshot(&app->scanner, &snapshot, &count,
                                         &band_index, &attenuation_level,
                                         &generation) ||
         snapshot == NULL || count < 3u) return D10S_APP_ERROR;
     (void)generation;
+
+    if (!app->paused) {
+        uint32_t full_scale = (uint32_t)result.open_threshold + 48u;
+        if (full_scale > D10S_SPECTRUM_MAX_RSSI)
+            full_scale = D10S_SPECTRUM_MAX_RSSI;
+        (void)d10s_waterfall_push(&app->waterfall, snapshot, count,
+                                  result.noise_floor, (uint16_t)full_scale);
+    }
 
     model = (d10s_spectrum_view_model_t){
         .bins = snapshot,
@@ -95,7 +111,8 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         .cursor_valid = app->cursor_enabled && app->cursor_bin < count,
         .cursor_bin = app->cursor_bin,
         .band_label = NULL,
-        .bold_labels = app->bold_labels
+        .bold_labels = app->bold_labels,
+        .waterfall = &app->waterfall
     };
 
     d10s_mono128x64_clear(&app->framebuffer, false);
@@ -105,6 +122,8 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         return D10S_APP_ERROR;
 
     app->last_result = result;
+    app->last_display_ms = now_ms;
+    app->display_time_valid = true;
     app->pause_frame_pending = false;
     return D10S_APP_FRAME_UPDATED;
 }
