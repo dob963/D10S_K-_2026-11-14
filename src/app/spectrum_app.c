@@ -74,11 +74,6 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
     if (status == D10S_SCANNER_ERROR) return D10S_APP_ERROR;
     if (status != D10S_SCANNER_SWEEP_READY) return D10S_APP_BUSY;
 
-    /* Limite a 15 fps; la scansione RF non viene rallentata dal display. */
-    if (app->display_time_valid &&
-        (uint32_t)(now_ms - app->last_display_ms) < 67u)
-        return D10S_APP_BUSY;
-
     if (!d10s_spectrum_scanner_snapshot(&app->scanner, &snapshot, &count,
                                         &band_index, &attenuation_level,
                                         &generation) ||
@@ -115,13 +110,20 @@ d10s_spectrum_app_status_t d10s_spectrum_app_tick(
         .waterfall = &app->waterfall
     };
 
+    /* Aggiorna sempre i dati dell'ultima sweep, anche se il display e' in attesa. */
+    app->last_result = result;
+
+    /* Limite a 15 fps; la scansione RF continua senza ritardi aggiunti. */
+    if (app->display_time_valid &&
+        (uint32_t)(now_ms - app->last_display_ms) < 67u)
+        return D10S_APP_BUSY;
+
     d10s_mono128x64_clear(&app->framebuffer, false);
     d10s_mono128x64_bind(&app->framebuffer, &canvas);
     if (!d10s_spectrum_view_render(&canvas, &model) ||
         !d10s_mono128x64_flush(&app->framebuffer, app->display))
         return D10S_APP_ERROR;
 
-    app->last_result = result;
     app->last_display_ms = now_ms;
     app->display_time_valid = true;
     app->pause_frame_pending = false;
