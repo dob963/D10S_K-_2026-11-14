@@ -30,6 +30,8 @@ The upstream file named `bk4829.c` uses legacy `BK4819_*` function names. This i
 - Keep the portable scanner independent of chip registers.
 - Implement the hardware adapter so a tune operation performs the verified RF/receiver setup, waits the configured settle interval, discards the first RSSI sample where the upstream behavior is applicable, and returns the subsequent raw 9-bit RSSI sample.
 - Treat PF9/PB8/PB9 as a candidate mapping only until the exact standard UV-K1 PCB and continuity/pin mapping are confirmed.
+- The upstream `App/frequencies.c` `RX_freq_check` rejects the 630–840 MHz gap; `App/apps/spectrum3d/gen_assets.py` documents the supported RF windows as 18–630 MHz and 840–1300 MHz. D10S frequency validation now uses these source-derived windows.
+- The upstream LNA selector receives frequency in 10-Hz units and switches at 28,000,000 units (280 MHz). D10S accepts Hz and therefore uses 280,000,000 Hz as its split; 144 MHz selects GPIO4/VHF_LNA and 433 MHz selects GPIO3/UHF_LNA.
 - Do not convert raw RSSI to dBm. Do not claim ATT compensation is calibrated until measurements across attenuation settings and bands exist.
 - D10S sets REG_73 bit 4 to disable AFC during Spectrum sweeps, using the source-confirmed control field. AFCR width 0..7 remains unresolved.
 - Do not claim receiver initialization is complete until startup, RX enable, RF switch, LNA/ATT, frequency tuning and RSSI have been checked on the actual radio.
