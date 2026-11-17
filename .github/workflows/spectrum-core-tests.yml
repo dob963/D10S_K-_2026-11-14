@@ -100,6 +100,8 @@ jobs:
           retention-days: 7
       - name: Verify Makefile build and tests
         run: make test
+      - name: Verify Makefile ARM firmware target
+        run: make firmware
       - name: Package firmware release candidate
         if: success()
         run: |
