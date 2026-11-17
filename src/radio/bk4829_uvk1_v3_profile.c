@@ -67,7 +67,7 @@ static const register_write_t baseline[] = {
 #define GPIO_RX_ENABLE  0x0040u
 #define GPIO_UHF_LNA    0x0008u
 #define GPIO_VHF_LNA    0x0004u
-#define VHF_LNA_LIMIT_HZ 28000000u
+#define VHF_LNA_LIMIT_HZ 280000000u
 
 static bool write_reg(d10s_bk4829_uvk1_v3_profile_t *profile,
                       uint8_t address, uint16_t value)
@@ -90,7 +90,7 @@ bool d10s_bk4829_uvk1_v3_resume_rx(uint32_t frequency_hz, void *context)
 
     /* The adapter programs REG_38/39 before invoking this RX-path callback. */
     /* Match the pinned UV-K1 V3 RX path: GPIO0 RX_ENABLE plus one
-     * internal LNA selector (GPIO3 for >=28 MHz, GPIO4 below 28 MHz).
+     * internal LNA selector (GPIO3 for >=280 MHz, GPIO4 below 280 MHz).
      * GPIO1 PA_ENABLE is never asserted; this project has no TX path. */
     if (!write_reg(profile, 0x33u,
                    (uint16_t)(GPIO_STATE_BASE | GPIO_RX_ENABLE | lna_state)))
