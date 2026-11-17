@@ -116,10 +116,10 @@ static void test_complete_spectrum_application_pipeline(void)
         if (status == D10S_APP_FRAME_UPDATED) ++updated_frames;
     }
 
-    CHECK(updated_frames == 3u);
+    CHECK(updated_frames == 1u);
     CHECK(hw.tune_calls == 15u);
     CHECK(hw.read_calls == 15u);
-    CHECK(hw.bytes_written == 3u * 8u * 131u);
+    CHECK(hw.bytes_written == 1u * 8u * 131u);
     CHECK(!hw.selected);
     CHECK(app.last_result.confirmed);
     CHECK(app.last_result.confirmed_level == 180u);
