@@ -69,3 +69,22 @@ bool d10s_bk4829_read_raw_rssi(const d10s_bk4829_bus_port_t *port,
     *raw_rssi = (uint16_t)(value & D10S_BK4829_RSSI_MASK);
     return true;
 }
+
+/*
+ * UV-K1/V3 F4HWN source identifies REG_73 bit 4 as AFC disable.
+ * Preserve all other register bits. This controls AFC enable/disable only;
+ * AFCR width/range (0..7) is not mapped by the available source evidence.
+ */
+bool d10s_bk4829_set_afc_enabled(const d10s_bk4829_bus_port_t *port,
+                                  const d10s_bk4829_bus_timing_t *timing,
+                                  bool enabled)
+{
+    uint16_t value;
+    if (!d10s_bk4829_read_register(port, timing, 0x73u, &value))
+        return false;
+    if (enabled)
+        value = (uint16_t)(value & (uint16_t)~0x0010u);
+    else
+        value = (uint16_t)(value | 0x0010u);
+    return d10s_bk4829_write_register(port, timing, 0x73u, value);
+}
