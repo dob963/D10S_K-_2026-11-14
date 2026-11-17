@@ -28,3 +28,11 @@ The reviewed UV-K1/K5 V3 upstream reference is `armel/uv-k1-k5v3-firmware-custom
 - Validate startup/exit display behavior on the radio.
 
 Host tests confirm byte ordering and framebuffer mapping only. They do not validate panel optics, electrical timing or the user's actual hardware.
+
+## Waterfall and refresh cadence
+
+The integrated view now retains 16 sweep rows in a 256-byte packed buffer and converts each RSSI sample to a monochrome 4x4 Bayer-dithered pixel. The spectrum footer reports center frequency, measured sweep span and bin-to-bin RBW. LCD transfers are rate-limited to 15 frames/s; RF sweep scheduling continues independently.
+
+## Reset-line caveat
+
+The pinned UV-K1 upstream ST7565 driver explicitly reports that the K1 has no usable MCU-controlled hardware reset pin and uses the ST7565 software-reset command. The current D10S branch follows the supplied RES-at-power-on requirement by not sending command 0xE2 and waiting the configured startup interval. However, the exact RES net/power-on reset behavior is not confirmed on the user's PCB. This is a hardware release gate: if the panel is not reliably reset by its power-on circuit, the RES net must be traced or the upstream software-reset sequence restored before flashing.
