@@ -155,3 +155,7 @@ The official PY32F07X Reference Manual V0.2, Figure 8-1 (section 8.2), draws the
 Reference: Puya, *PY32F07X Reference Manual*, V0.2, Figure 8-1 and sections 8.1.5, 8.2, 8.5.1–8.5.4: https://www.puyasemi.com/download_path/%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C/MCU%20%E5%BE%AE%E5%A4%84%E7%90%86%E5%99%A8/PY32F07X-E_Reference_Manual_V0.2.pdf
 
 This confirms the register-decoding model only; it does not prove the live clock configuration on a particular radio.
+
+## Shared-pin decision for D10S
+
+The pinned UV-K1 V3 reference assigns BK4829 CSN/SCL/SDA to PF9/PB8/PB9 and ST7565 SCK/MOSI/CS/A0 to PA5/PA7/PB2/PA6. Therefore PA5/PA6/PA7 are used by the display in this source-derived map and are not shared with the BK4829 bus. Do not configure PA4/PA5/PA6/PA7 as BK4829 signals based on the unverified alternative pin list in the project briefing. All listed pins remain candidate mappings until continuity is checked on the exact radio PCB revision.
