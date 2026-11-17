@@ -27,6 +27,11 @@ bool d10s_bk4829_set_rx_gain_level(const d10s_bk4829_bus_port_t *port,
                                    const d10s_bk4829_bus_timing_t *timing,
                                    uint8_t level);
 
+/* BK4829 REG_73 bit 4: true disables AFC; false enables AFC. */
+bool d10s_bk4829_set_afc_enabled(const d10s_bk4829_bus_port_t *port,
+                                  const d10s_bk4829_bus_timing_t *timing,
+                                  bool enabled);
+
 /* Raw 9-bit RSSI only. This function never reports dBm. */
 bool d10s_bk4829_read_raw_rssi(const d10s_bk4829_bus_port_t *port,
                                const d10s_bk4829_bus_timing_t *timing,
