@@ -108,21 +108,40 @@ static void append_digit(char *buffer, uint8_t *length, uint8_t digit)
 static void format_compact_rate(char prefix, uint32_t frequency_hz,
                                 char buffer[8])
 {
-    uint32_t value;
+    uint32_t unit;
+    uint64_t tenths;
+    uint32_t whole;
+    char digits[10];
+    uint8_t digit_count = 0u;
     uint8_t length = 0u;
-    buffer[length++] = prefix;
-    if (frequency_hz >= 1000000u) {
-        value = (frequency_hz + 500000u) / 1000000u;
-        if (value >= 10u) append_digit(buffer, &length, (uint8_t)(value / 10u));
-        append_digit(buffer, &length, (uint8_t)(value % 10u));
-        buffer[length++] = 'M';
+    uint8_t i;
+    char suffix;
+
+    if (frequency_hz >= 1000000000u) {
+        unit = 1000000000u;
+        suffix = 'G';
+    } else if (frequency_hz >= 1000000u) {
+        unit = 1000000u;
+        suffix = 'M';
     } else {
-        value = (frequency_hz + 500u) / 1000u;
-        if (value >= 100u) append_digit(buffer, &length, (uint8_t)(value / 100u));
-        if (value >= 10u) append_digit(buffer, &length, (uint8_t)((value / 10u) % 10u));
-        append_digit(buffer, &length, (uint8_t)(value % 10u));
-        buffer[length++] = 'K';
+        unit = 1000u;
+        suffix = 'K';
     }
+    tenths = ((uint64_t)frequency_hz * 10u + (unit / 2u)) / unit;
+    whole = (uint32_t)(tenths / 10u);
+    do {
+        digits[digit_count++] = (char)('0' + (whole % 10u));
+        whole /= 10u;
+    } while (whole != 0u && digit_count < (uint8_t)sizeof(digits));
+
+    buffer[length++] = prefix;
+    for (i = 0u; i < digit_count; ++i)
+        buffer[length++] = digits[digit_count - i - 1u];
+    if ((tenths % 10u) != 0u) {
+        buffer[length++] = '.';
+        append_digit(buffer, &length, (uint8_t)(tenths % 10u));
+    }
+    buffer[length++] = suffix;
     buffer[length] = '\0';
 }
 
