@@ -38,7 +38,7 @@ The portable scanner uses d10s_spectrum_radio_ops_t. The hardware adapter maps t
 
 1. Confirm exact UV-K1 V3 PCB revision and MCU marking.
 2. Check continuity and pin direction for PF9/PB8/PB9 and PA5/PA7/PB2/PA6; these are candidate pins from the pinned Armel target source and now have a source-level D10S GPIO/SPI backend.
-3. Confirm whether the radio's board uses the same BK4829 GPIO-controlled RF paths and 28 MHz split.
+3. Confirm whether the radio's board uses the same BK4829 GPIO-controlled RF paths and 280 MHz split.
 4. Verify that the source-named BK4829 GPIO0 RX_ENABLE output reaches the correct external receive/RF-switch path on the exact PCB revision.
 5. Verify BK4829 reset, clock, baseline init, RX mode, antenna switch and both LNA paths on a current-limited/debug setup.
 6. Verify tuning with known RF signals; current adapter returns programmed frequency, not a measured PLL lock frequency.
