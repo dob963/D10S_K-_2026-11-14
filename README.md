@@ -22,6 +22,7 @@ Independent, receive-only Spectrum Analyzer firmware project for the **standard 
 
 ### BK4829
 - Three-wire register read/write bus, timing calculation, frequency conversion and raw 9-bit REG_67 RSSI.
+- Source-derived receive windows: 18–630 MHz and 840–1300 MHz; the 630–840 MHz gap is rejected. These limits follow the upstream K1/V3 RX range implementation, not a claim that every frequency is equally sensitive.
 - The pinned upstream RF-path selector uses GPIO4/VHF_LNA only below 28 MHz and GPIO3/UHF_LNA at or above 28 MHz. Consequently, both configured analyzer bands (144–146 MHz and 430–440 MHz) currently select GPIO3; this is intentional source-derived behavior, not proof that the exact radio PCB routes those paths correctly.
 - Scanner adapter discards the first RSSI conversion after a tune and returns the following one.
 - `d10s_bk4829_uvk1_v3_radio_init()` binds the source-derived profile and scanner adapter into the exact radio-ops interface consumed by the Spectrum app; it still requires a separately verified board GPIO bus.
