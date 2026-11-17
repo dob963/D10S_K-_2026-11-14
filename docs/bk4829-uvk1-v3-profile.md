@@ -17,14 +17,18 @@ The cold-start order follows the upstream radio setup: it programs the initial f
 
 After RX power-up, the profile selects the corresponding internal LNA path and asserts RX_ENABLE. On later scanner retunes, the scanner adapter owns REG_38/REG_39 while RX is already active; the profile resume callback only updates the LNA path and RX_ENABLE. This avoids duplicate synthesizer writes. A host test now asserts the cold-start write ordering.
 
-The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its RX_ENABLE output; the TX setup explicitly clears it. D10S therefore enables GPIO0 together with the selected internal LNA, matching the pinned upstream UV-K1/K5 V3 source lineage. The upstream path selector uses GPIO4 for frequencies below 28 MHz and GPIO3 at/above 28 MHz. D10S emits the combined register writes:
-- VHF selector below 28 MHz: REG_33 = 0x9004 (LNA selector alone)
-- UHF selector at/above 28 MHz: REG_33 = 0x9008 (LNA selector alone)
+The pinned upstream receive setup also asserts GPIO0 (BK4819 GPIO pin 28) as its RX_ENABLE output; the TX setup explicitly clears it. D10S therefore enables GPIO0 together with the selected internal LNA, matching the pinned upstream UV-K1/K5 V3 source lineage. The upstream path selector uses GPIO4 for frequencies below 280 MHz and GPIO3 at/above 280 MHz. D10S emits the combined register writes:
+- VHF selector below 280 MHz: REG_33 = 0x9004 (LNA selector alone)
+- UHF selector at/above 280 MHz: REG_33 = 0x9008 (LNA selector alone)
 - RX enabled with VHF selector: REG_33 = 0x9044
 - RX enabled with UHF selector: REG_33 = 0x9048
 - stop/reset path state: REG_33 = 0x9000 and REG_30 = 0x0000
 
 GPIO0 is the source-named RX_ENABLE output and is asserted for receive; GPIO1 PA_ENABLE is not asserted anywhere in D10S. That GPIO1 control belongs to the upstream transmit path, and this project intentionally has no TX code. The pin assignment is source-derived and still requires measurement on the exact PCB revision before hardware release. The profile field is named rx_mode_configured, not receiver_on, to avoid implying that RF reception has been measured.
+
+## Frequency units and receive windows
+
+The upstream driver passes frequency in 10-Hz units. Its LNA threshold of 28,000,000 therefore corresponds to 280 MHz in D10S, whose public API uses Hz. The source-derived BK4829 receive windows used by D10S are 18–630 MHz and 840–1300 MHz; 630–840 MHz is rejected. These are RF operating windows, not a sensitivity guarantee.
 
 ## Gain presets and settling
 
