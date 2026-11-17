@@ -38,7 +38,7 @@ The value `REG_19 = 0x1041` remains in the source-derived initialization sequenc
 
 ## Factory firmware versus factory register dump
 
-The upstream repository contains `archive/quansheng.k1.stock.firmware.v7.03.01.bin` (Git blob SHA `7beb185168f0e04989320ff4589b9b8399b7bbdf`; 72,456 bytes). This is a stock firmware image, not a live register dump. It can be used as a reverse-engineering reference, but it does not by itself prove the values present in a particular radio at runtime.
+The upstream repository contains `archive/quansheng.k1.stock.firmware.v7.03.01.bin` (Git blob SHA `7beb185168f0e04989320ff4589b9b8399b7bbdf`; 71,268 bytes). This is a stock firmware image, not a live register dump. Its first vector words decode to initial SP `0x200031A0` and Reset vector `0x080028D5` (Thumb), consistent with an application vector table based at `0x08002800`. This is a useful image-layout reference for the D10S target, but it does not by itself prove the values present in a particular radio at runtime.
 
 No verified factory register dump for the exact radio/PCB is currently recorded in D10S. Do not redistribute or incorporate the stock binary into D10S; its presence in an upstream archive does not establish a license to redistribute it.
 
