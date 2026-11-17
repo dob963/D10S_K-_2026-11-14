@@ -105,6 +105,27 @@ static void append_digit(char *buffer, uint8_t *length, uint8_t digit)
     ++(*length);
 }
 
+static void format_compact_rate(char prefix, uint32_t frequency_hz,
+                                char buffer[8])
+{
+    uint32_t value;
+    uint8_t length = 0u;
+    buffer[length++] = prefix;
+    if (frequency_hz >= 1000000u) {
+        value = (frequency_hz + 500000u) / 1000000u;
+        if (value >= 10u) append_digit(buffer, &length, (uint8_t)(value / 10u));
+        append_digit(buffer, &length, (uint8_t)(value % 10u));
+        buffer[length++] = 'M';
+    } else {
+        value = (frequency_hz + 500u) / 1000u;
+        if (value >= 100u) append_digit(buffer, &length, (uint8_t)(value / 100u));
+        if (value >= 10u) append_digit(buffer, &length, (uint8_t)((value / 10u) % 10u));
+        append_digit(buffer, &length, (uint8_t)(value % 10u));
+        buffer[length++] = 'K';
+    }
+    buffer[length] = '\0';
+}
+
 static void format_frequency(uint32_t frequency_hz, char *buffer)
 {
     uint32_t mhz = frequency_hz / 1000000u;
@@ -175,11 +196,10 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
     uint8_t previous_y = GRAPH_BOTTOM;
     uint16_t previous_x = 0u;
     uint16_t peak_bin = 0u;
-    bool peak_x_valid = false;
     uint8_t style;
-    uint32_t cursor_frequency_hz = 0u;
     char frequency_text[16];
-    char margin_text[5] = {'N', '0', '0', '\0', '\0'};
+    char span_text[8];
+    char rbw_text[8];
 
     if (canvas == 0 || canvas->pixel == 0 || model == 0 ||
         model->bins == 0 || model->count < 3u ||
@@ -213,8 +233,16 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         max_level = (uint16_t)(min_level + 1u);
 
     draw_header(canvas, model);
-    margin_text[1] = (char)('0' + (model->noise_margin / 10u));
-    margin_text[2] = (char)('0' + (model->noise_margin % 10u));
+
+    /* Waterfall a 16 sweep, convertito in monocromatico con dithering 4x4. */
+    if (model->waterfall != 0) {
+        uint8_t row;
+        uint8_t x;
+        for (row = 0u; row < model->waterfall->count; ++row)
+            for (x = 0u; x < D10S_WATERFALL_WIDTH; ++x)
+                if (d10s_waterfall_pixel(model->waterfall, row, x))
+                    put_pixel(canvas, x, (int)(GRAPH_BOTTOM - 15u + row), true);
+    }
 
     /* Horizontal reference grid and a light baseline. */
     draw_dashed_horizontal(canvas, 22u, GRAPH_LEFT, GRAPH_RIGHT);
@@ -268,7 +296,6 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
     if (model->peak_hold_valid) {
         peak_bin = nearest_bin_for_frequency(model,
                                               model->peak_hold_frequency_hz);
-        peak_x_valid = true;
         draw_dashed_vertical(canvas, map_index_to_x(peak_bin, model->count),
                              GRAPH_TOP, GRAPH_BOTTOM);
     }
@@ -276,24 +303,23 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         const uint8_t cursor_x = map_index_to_x(model->cursor_bin,
                                                 model->count);
         draw_line(canvas, cursor_x, GRAPH_TOP, cursor_x, GRAPH_BOTTOM, true);
-        if (canvas->text != 0 &&
-            d10s_spectrum_view_cursor_frequency(model, model->cursor_bin,
-                                                &cursor_frequency_hz)) {
-            /* The text is formatted from the selected snapshot's stored bin. */
-            format_frequency(cursor_frequency_hz, frequency_text);
-            canvas->text(canvas->context, 0u, 56u, frequency_text,
-                         model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u);
-        }
-    } else if (peak_x_valid && canvas->text != 0) {
-        format_frequency(model->peak_hold_frequency_hz, frequency_text);
-        canvas->text(canvas->context, 0u, 56u, frequency_text,
-                     model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u);
     }
 
+    /* Centro, span e RBW sono calcolati dai bin effettivamente acquisiti. */
     style = model->bold_labels ? D10S_VIEW_TEXT_BOLD : 0u;
     if (canvas->text != 0) {
-        canvas->text(canvas->context, 50u, 56u, margin_text, style);
-        canvas->text(canvas->context, 91u, 56u, "RSSI", style);
+        const uint32_t first_hz = model->bins[0].frequency_hz;
+        const uint32_t last_hz = model->bins[model->count - 1u].frequency_hz;
+        const uint32_t center_hz = first_hz + ((last_hz - first_hz) / 2u);
+        const uint32_t span_hz = last_hz - first_hz;
+        const uint32_t rbw_hz = model->bins[1].frequency_hz -
+                                model->bins[0].frequency_hz;
+        format_frequency(center_hz, frequency_text);
+        format_compact_rate('S', span_hz, span_text);
+        format_compact_rate('R', rbw_hz, rbw_text);
+        canvas->text(canvas->context, 0u, 56u, frequency_text, style);
+        canvas->text(canvas->context, 50u, 56u, span_text, style);
+        canvas->text(canvas->context, 88u, 56u, rbw_text, style);
     }
     return true;
 }
