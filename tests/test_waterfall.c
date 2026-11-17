@@ -21,7 +21,7 @@ int main(void)
     assert(waterfall.count == 1u);
     for (x = 0u; x < 128u; ++x)
         if (d10s_waterfall_pixel(&waterfall, 0u, (uint8_t)x)) ++lit;
-    assert(lit >= 112u && lit <= 120u);
+    assert(lit == 128u);
 
     for (unsigned sweep = 0u; sweep < 18u; ++sweep)
         assert(d10s_waterfall_push(&waterfall, bins, 128u, 100u, 200u));
