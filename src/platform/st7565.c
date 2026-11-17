@@ -58,10 +58,13 @@ bool d10s_st7565_init(d10s_st7565_t *d,
     if (!command(d, 0xAEu) ||
         !d->port.chip_select(false, d->port.context)) return false;
 
-    if (!d->port.chip_select(true, d->port.context)) return false;
-    if (!command(d, 0xE2u) ||
-        !d->port.chip_select(false, d->port.context) ||
-        !d->port.delay_ms(c->reset_delay_ms, d->port.context)) return false;
+    /*
+     * Il reset del controller deve essere eseguito dal pin RES hardware
+     * all'accensione. Il pin RES non e' ancora mappato in modo verificato
+     * per tutte le revisioni PCB; qui si attende il tempo di assestamento,
+     * senza inviare il comando software 0xE2.
+     */
+    if (!d->port.delay_ms(c->reset_delay_ms, d->port.context)) return false;
 
     commands[0] = 0xA2u; /* 1/9 bias */
     commands[1] = (uint8_t)(0xC0u | (c->reverse_common ? 0x08u : 0u));
