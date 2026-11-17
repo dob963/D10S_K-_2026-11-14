@@ -2,6 +2,7 @@
 #define D10S_SPECTRUM_VIEW_H
 
 #include "spectrum_detect.h"
+#include "waterfall.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -38,6 +39,7 @@ typedef struct {
     uint16_t cursor_bin;
     const char *band_label; /* Optional short label; keep it to five characters. */
     bool bold_labels;
+    const d10s_waterfall_t *waterfall;
 } d10s_spectrum_view_model_t;
 
 bool d10s_spectrum_view_cursor_frequency(
