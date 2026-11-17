@@ -223,7 +223,7 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
     CHECK(fake.register_count == before + 1u);
 
     before = fake.register_count;
-    CHECK(!d10s_bk4829_uvk1_v3_resume_rx(600000000u, &profile));
+    CHECK(!d10s_bk4829_uvk1_v3_resume_rx(700000000u, &profile));
     CHECK(fake.register_count == before);
 }
 
