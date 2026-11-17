@@ -159,6 +159,7 @@ static void test_complete_spectrum_application_pipeline(void)
     }
 
     /* Freeze the last complete sweep for inspection, without more RF scans. */
+    now_ms = app.last_display_ms + 67u;
     {
         const uint32_t tune_before_pause = hw.tune_calls;
         const uint32_t read_before_pause = hw.read_calls;
@@ -180,7 +181,7 @@ static void test_complete_spectrum_application_pipeline(void)
 
         CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_STAR));
         CHECK(app.pause_frame_pending);
-        CHECK(d10s_spectrum_app_tick(&app, now_ms + 11u) ==
+        CHECK(d10s_spectrum_app_tick(&app, now_ms + 67u) ==
               D10S_APP_FRAME_UPDATED);
         CHECK(!app.pause_frame_pending && app.paused);
         CHECK(hw.tune_calls == tune_before_pause);
@@ -191,14 +192,15 @@ static void test_complete_spectrum_application_pipeline(void)
             CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_7));
             CHECK(app.pause_frame_pending);
             CHECK(app.last_result.open_threshold == threshold_before + 2u);
-            CHECK(d10s_spectrum_app_tick(&app, now_ms + 12u) ==
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 134u) ==
                   D10S_APP_FRAME_UPDATED);
             CHECK(!app.pause_frame_pending && app.paused);
             CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_8));
             CHECK(app.last_result.open_threshold == threshold_before);
-            CHECK(d10s_spectrum_app_tick(&app, now_ms + 13u) ==
+            CHECK(d10s_spectrum_app_tick(&app, now_ms + 201u) ==
                   D10S_APP_FRAME_UPDATED);
         }
+        now_ms += 201u;
 
         CHECK(d10s_spectrum_app_handle_key(&app, D10S_KEY_9));
         CHECK(!app.paused);
