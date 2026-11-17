@@ -33,6 +33,7 @@ typedef struct {
     bool initialized;
 } d10s_st7565_t;
 
+/* Il reset RES hardware deve essere attivo prima di d10s_st7565_init(). */
 void d10s_st7565_uvk1_v3_default_config(d10s_st7565_config_t *config);
 bool d10s_st7565_init(d10s_st7565_t *display,
                       const d10s_st7565_port_t *port,
