@@ -31,6 +31,9 @@ typedef struct {
     bool pending_band_valid;
     uint8_t pending_band_index;
     d10s_spectrum_result_t last_result;
+    d10s_waterfall_t waterfall;
+    uint32_t last_display_ms;
+    bool display_time_valid;
 } d10s_spectrum_app_t;
 
 bool d10s_spectrum_app_init(d10s_spectrum_app_t *app,
