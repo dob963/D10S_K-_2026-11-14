@@ -125,11 +125,12 @@ int main(void) {
     p=(d10s_bk4829_bus_port_t){csn,clk,dir,wr,rd,delay,&b};
     CHECK(d10s_bk4829_read_raw_rssi(&p,&t,&rssi) && rssi==511u);
     CHECK(d10s_bk4829_frequency_supported(18000000u));
-    CHECK(d10s_bk4829_frequency_supported(580000000u));
-    CHECK(d10s_bk4829_frequency_supported(760000000u));
-    CHECK(d10s_bk4829_frequency_supported(1160000000u));
-    CHECK(!d10s_bk4829_frequency_supported(600000000u));
-    CHECK(!d10s_bk4829_frequency_supported(1300000000u));
+    CHECK(d10s_bk4829_frequency_supported(630000000u));
+    CHECK(d10s_bk4829_frequency_supported(840000000u));
+    CHECK(d10s_bk4829_frequency_supported(1300000000u));
+    CHECK(!d10s_bk4829_frequency_supported(700000000u));
+    CHECK(!d10s_bk4829_frequency_supported(830000000u));
+    CHECK(!d10s_bk4829_frequency_supported(1300000001u));
     CHECK(d10s_bk4829_frequency_to_word(144000000u,&word) && word==14400000u);
     CHECK(!d10s_bk4829_frequency_to_word(144000001u,&word));
     CHECK(!d10s_bk4829_frequency_to_word(144000000u,0));
