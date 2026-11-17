@@ -210,6 +210,10 @@ static void test_uvk1_profile_initializes_and_selects_lna_path(void)
      * VHF (144 MHz) selects GPIO4; UHF (433 MHz) selects GPIO3. */
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(144000000u, &profile));
     CHECK(last_gpio_state(&fake) == 0x9044u);
+    CHECK(d10s_bk4829_uvk1_v3_resume_rx(279999990u, &profile));
+    CHECK(last_gpio_state(&fake) == 0x9044u);
+    CHECK(d10s_bk4829_uvk1_v3_resume_rx(280000000u, &profile));
+    CHECK(last_gpio_state(&fake) == 0x9048u);
     CHECK(d10s_bk4829_uvk1_v3_resume_rx(433000000u, &profile));
     CHECK(last_gpio_state(&fake) == 0x9048u);
 
