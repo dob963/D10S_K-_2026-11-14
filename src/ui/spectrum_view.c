@@ -338,7 +338,7 @@ bool d10s_spectrum_view_render(const d10s_spectrum_canvas_t *canvas,
         format_compact_rate('R', rbw_hz, rbw_text);
         canvas->text(canvas->context, 0u, 56u, frequency_text, style);
         canvas->text(canvas->context, 50u, 56u, span_text, style);
-        canvas->text(canvas->context, 88u, 56u, rbw_text, style);
+        canvas->text(canvas->context, 85u, 56u, rbw_text, style);
     }
     return true;
 }
