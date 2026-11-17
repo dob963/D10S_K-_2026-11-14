@@ -57,17 +57,21 @@ Il target usa `arm-none-eabi-gcc -mcpu=cortex-m0plus -mthumb -mfloat-abi=soft`, 
 
 The GitHub Actions workflow compiles target sources with warnings as errors, links `D10S_K1.elf`, emits `D10S_K1.bin`, validates the image structure, performs stack diagnostics and runs host, Cortex-M0+ and Makefile tests.
 
-**Latest release-candidate build:** [run 43750817987](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/43750817987), validator source commit `9eb0f341d72f890227bd97103878f9396efd38a5` (firmware source unchanged from `31e792e4a2fe5ab201e10bb478872b76b7af9b5f`).
-- Workflow conclusion: success; every job step completed.
-- Latest artifact: `D10S-K1-firmware-release-candidate`, ID `14175588776`.
-- GitHub artifact ZIP size: 37,600 bytes; SHA-256: `7cf26e104dac15cab1ce5dd0497ec01460090924af5c5167f02ead43ec49893e`.
-- Extracted `D10S_K1.bin`: 15,196 bytes; SHA-256: `41d25c6281c90848c01f3c7542961f56ade79510d539330efd635cb5b96727d9`.
-- Vector values: initial SP `0x20004000`; Reset vector `0x08002905` (Thumb).
+**Latest release-candidate build:** [run 44037422516](https://github.com/dob963/D10S_K-_2026-11-14/actions/runs/44037422516), source commit `017ace764dbafd5d0fd20419db70129061f880b5`.
+- Workflow conclusion: success; all 13 build, test, cross-compile, link, stack and packaging steps completed.
+- Artifact: `D10S-K1-firmware-release-candidate`, ID `14307632270`.
+- Artifact ZIP size: 39,042 bytes; SHA-256: `204b1dc67a054c5b9ed22288c7a9bb3352079302e70d4000c3712121cec9ef97`.
+- Extracted `D10S_K1.bin`: 15,924 bytes; SHA-256: `b62c2a83839650d41d8509fe6bb9cc9bb9a036c819892c1d3fd1e1be9b87240d`.
+- Vector values: initial SP `0x20004000`; Reset vector `0x08002905` (Thumb); app base `0x08002800`.
+- Size report: text 15,924 bytes; data 0; BSS 6,096 bytes.
+- Stack checks: maximum individual frame 312 bytes; worst analyzed call path 912/1,536 bytes (624 bytes margin).
 
 ### Stock firmware image reference
 
 The upstream archive also contains `archive/quansheng.k1.stock.firmware.v7.03.01.bin` (71,268 bytes; Git blob SHA `7beb185168f0e04989320ff4589b9b8399b7bbdf`). Its vector words are initial SP `0x200031A0` and Reset vector `0x080028D5` (Thumb), consistent with the `0x08002800` application vector base. This is a binary image-layout reference, not a live BK4829 register dump. The stock image is not copied into D10S.
 - Metadata status: `RELEASE_CANDIDATE_HARDWARE_VALIDATION_REQUIRED`.
+
+This artifact includes the REG_19 source annotation, AFC/AFCR documentation, ST7565 frame renderer, 16-row 4x4-dither waterfall, center/span/RBW footer and 15 fps display limit.
 
 CI success proves the checked source compiles and passes automated software and image-structure checks. It does not validate the physical UV-K1 PCB, RF path, LCD/keypad behavior, bootloader hand-off or recovery procedure.
 
