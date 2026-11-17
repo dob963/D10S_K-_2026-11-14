@@ -118,14 +118,14 @@ int main(void) {
     CHECK(lcd.initialized && !f.selected && f.delays==4u);
     CHECK(config.column_offset == 4u && config.contrast == 31u &&
           config.reverse_segment && !config.reverse_common && !config.inverse);
-    CHECK(f.bytes[0] == 0xAEu && f.bytes[1] == 0xE2u &&
-          f.bytes[2] == 0xA2u && f.bytes[3] == 0xC0u &&
-          f.bytes[4] == 0xA1u && f.bytes[5] == 0xA6u &&
-          f.bytes[6] == 0xA4u && f.bytes[7] == 0x24u &&
-          f.bytes[8] == 0x81u && f.bytes[9] == 31u);
-    CHECK(f.count == 1066u && f.bytes[1065u] == 0xAFu);
+    CHECK(f.bytes[0] == 0xAEu &&
+          f.bytes[1] == 0xA2u && f.bytes[2] == 0xC0u &&
+          f.bytes[3] == 0xA1u && f.bytes[4] == 0xA6u &&
+          f.bytes[5] == 0xA4u && f.bytes[6] == 0x24u &&
+          f.bytes[7] == 0x81u && f.bytes[8] == 31u);
+    CHECK(f.count == 1065u && f.bytes[1064u] == 0xAFu);
     for (unsigned page_index = 0u; page_index < D10S_ST7565_PAGES; ++page_index) {
-        const unsigned page_start = 17u + page_index * 131u;
+        const unsigned page_start = 16u + page_index * 131u;
         CHECK(f.bytes[page_start] == (uint8_t)(0xB0u | page_index));
         CHECK(f.bytes[page_start + 1u] == 0x10u &&
               f.bytes[page_start + 2u] == 0x04u);
