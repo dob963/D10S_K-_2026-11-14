@@ -32,12 +32,22 @@ static const register_write_t baseline[] = {
     {0x13u, 0x03DFu}, {0x14u, 0x0210u}, {0x49u, 0x2AB2u},
     {0x7Bu, 0x73DCu}, {0x7Du, 0xE920u}, {0x48u, 0x33A8u},
     {0x40u, 0x3516u},
-    /* Active upstream #if 1 DTMF coefficient table at the pinned revision. */
-    {0x09u, 0x006Fu}, {0x09u, 0x106Bu}, {0x09u, 0x2067u},
-    {0x09u, 0x3062u}, {0x09u, 0x4050u}, {0x09u, 0x5047u},
-    {0x09u, 0x603Au}, {0x09u, 0x702Cu}, {0x09u, 0x8041u},
-    {0x09u, 0x9037u}, {0x09u, 0xA025u}, {0x09u, 0xB017u},
-    {0x09u, 0xC0E4u}, {0x09u, 0xD0CBu}, {0x09u, 0xE0B5u},
+    /* Active upstream #if 1 DTMF coefficient table from pinned F4HWN source. */
+    {0x09u, 0x006Fu},
+    {0x09u, 0x106Bu},
+    {0x09u, 0x2067u},
+    {0x09u, 0x3062u},
+    {0x09u, 0x4050u},
+    {0x09u, 0x5047u},
+    {0x09u, 0x603Au},
+    {0x09u, 0x702Cu},
+    {0x09u, 0x8041u},
+    {0x09u, 0x9037u},
+    {0x09u, 0xA025u},
+    {0x09u, 0xB017u},
+    {0x09u, 0xC0E4u},
+    {0x09u, 0xD0CBu},
+    {0x09u, 0xE0B5u},
     {0x09u, 0xF09Fu},
     {0x1Cu, 0x07C0u}, {0x1Du, 0xE555u}, {0x1Eu, 0x4C58u},
     {0x1Fu, 0xC65Au}, {0x3Eu, 0x94C6u},
@@ -132,6 +142,17 @@ bool d10s_bk4829_uvk1_v3_initialize_rx(
             (void)d10s_bk4829_uvk1_v3_stop_rx(profile);
             return false;
         }
+    }
+
+    /*
+     * Spectrum acquisition must not let AFC pull the tuned frequency while
+     * the scanner steps through bins. F4HWN maps REG_73 bit 4 as AFC disable.
+     * The helper performs read-modify-write and preserves unrelated bits.
+     * AFCR width/range remains intentionally unimplemented.
+     */
+    if (!d10s_bk4829_set_afc_enabled(&profile->bus, &profile->timing, false)) {
+        (void)d10s_bk4829_uvk1_v3_stop_rx(profile);
+        return false;
     }
 
     /*
